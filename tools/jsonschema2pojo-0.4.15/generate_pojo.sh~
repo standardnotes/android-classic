@@ -1,0 +1,1 @@
+./jsonschema2pojo -s ../../schema/ -t ../../app/src/main/java/ -p com.msty.comms.data -S -E -l -j -a GSON

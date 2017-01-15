@@ -1,0 +1,17 @@
+{
+	"title": "",
+	"type": "object",
+	"javaType": "org.standardnotes.notes.comms.data.Note",
+	"properties": {
+		"original": {
+			"javaType": "org.standardnotes.notes.comms.data.EncryptedItem",
+			"$ref": "EncryptedItem.jschema"
+		},
+        "title": {
+			"type": "string"
+		},
+		"text": {
+		    "type": "string"
+		}
+	}
+}

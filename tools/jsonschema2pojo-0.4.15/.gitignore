@@ -1,0 +1,24 @@
+# Git derived files #
+*.orig
+
+# Eclipse files #
+.classpath
+.settings
+.project
+.metadata
+
+# Maven derived files #
+target/
+apidocs
+
+# Gradle derived files #
+build/
+.gradle
+
+# IntelliJ files #
+.idea
+*.iml
+
+# Scratch files
+.#*
+.*.swp

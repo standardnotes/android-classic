@@ -1,0 +1,10 @@
+{
+	"title": "",
+	"type": "object",
+	"javaType": "org.standardnotes.notes.comms.data.SigninResponse",
+	"properties": {
+		"token": {
+			"type": "string"
+		}
+	}
+}
