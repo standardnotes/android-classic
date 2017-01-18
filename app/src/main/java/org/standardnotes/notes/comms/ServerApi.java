@@ -21,6 +21,6 @@ public interface ServerApi {
     Call<SigninResponse> signin(@Field("email") String email, @Field("password") String hashedPassword);
 
     @POST("/api/items/sync/")
-    Call<SyncItems> sync(@Body() Object data);
+    Call<SyncItems> sync(@Body UploadSyncItems data);
 
 }

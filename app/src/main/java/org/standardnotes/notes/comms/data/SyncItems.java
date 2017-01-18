@@ -23,6 +23,9 @@ public class SyncItems {
     @SerializedName("retrieved_items")
     @Expose
     private List<EncryptedItem> retrievedItems = new ArrayList<EncryptedItem>();
+    @SerializedName("saved_items")
+    @Expose
+    private List<EncryptedItem> savedItems = new ArrayList<EncryptedItem>();
 
     /**
      * 
@@ -58,6 +61,24 @@ public class SyncItems {
      */
     public void setRetrievedItems(List<EncryptedItem> retrievedItems) {
         this.retrievedItems = retrievedItems;
+    }
+
+    /**
+     * 
+     * @return
+     *     The savedItems
+     */
+    public List<EncryptedItem> getSavedItems() {
+        return savedItems;
+    }
+
+    /**
+     * 
+     * @param savedItems
+     *     The saved_items
+     */
+    public void setSavedItems(List<EncryptedItem> savedItems) {
+        this.savedItems = savedItems;
     }
 
 }

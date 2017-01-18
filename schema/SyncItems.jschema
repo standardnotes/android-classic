@@ -12,6 +12,13 @@
 		        "javaType": "org.standardnotes.notes.comms.data.EncryptedItem",
 		        "$ref": "EncryptedItem.jschema"
 		    }
+		},
+        "saved_items": {
+		    "type": "array",
+		    "items": {
+		        "javaType": "org.standardnotes.notes.comms.data.EncryptedItem",
+		        "$ref": "EncryptedItem.jschema"
+		    }
 		}
 	}
 }

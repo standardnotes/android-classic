@@ -1,6 +1,7 @@
 package org.standardnotes.notes.frag
 
 import android.content.Intent
+import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -14,9 +15,10 @@ import org.joda.time.format.DateTimeFormat
 import org.standardnotes.notes.NoteActivity
 import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
-import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.SyncItems
+import org.standardnotes.notes.comms.data.UploadSyncItems
+import org.standardnotes.notes.dpToPixels
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -43,20 +45,28 @@ class NoteListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         list.layoutManager = LinearLayoutManager(activity)
         list.adapter = adapter
+//        list.addItemDecoration(object : RecyclerView.ItemDecoration() {
+//            internal var eight = 8.dpToPixels()
+//            internal var sixteen = 16.dpToPixels()
+//
+//            override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State?) {
+//                val position = parent.getChildAdapterPosition(view)
+//                outRect.set(sixteen, eight, sixteen, if (position == adapter.itemCount - 1) eight else 0)
+//            }
+//        })
         swipeRefreshLayout.isRefreshing = true
         swipeRefreshLayout.setOnRefreshListener { sync() }
         sync()
-
     }
 
     fun sync() {
-        SApplication.instance!!.comms.api.sync(Any()).enqueue(object : Callback<SyncItems> {
+        val uploadSyncItems = UploadSyncItems()
+        uploadSyncItems.syncToken = SApplication.instance!!.noteStore.syncToken
+        SApplication.instance!!.comms.api.sync(uploadSyncItems).enqueue(object : Callback<SyncItems> {
             override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {
                 notes.clear()
-                response.body().retrievedItems
-                        .map { Crypt.decrypt(it) }
-                        .filter { it.text != null }
-                        .forEach { notes += it }
+                SApplication.instance!!.noteStore.putNotes(response.body())
+                notes.addAll(SApplication.instance!!.noteStore.notesList)
                 swipeRefreshLayout.isRefreshing = false
                 adapter.notifyDataSetChanged()
             }
@@ -74,10 +84,15 @@ class NoteListFragment : Fragment() {
             set(value) {
                 field = value
                 title.text = note?.title
-                date.text = DateTimeFormat.longDateTime().print(note?.original?.updatedAt)
+                date.text = DateTimeFormat.shortDateTime().print(note?.original?.updatedAt)
+                var noteText = note?.text ?: ""
+                noteText = noteText.substring(0, Math.min(256, noteText.length))
+                noteText.replace('\n', ' ')
+                text.text = noteText
             }
         private val title: TextView = itemView.findViewById(R.id.title) as TextView
         private val date: TextView = itemView.findViewById(R.id.date) as TextView
+        private val text: TextView = itemView.findViewById(R.id.text) as TextView
 
         init {
             itemView.setOnClickListener {
@@ -97,7 +112,7 @@ class NoteListFragment : Fragment() {
         }
 
         override fun getItemCount(): Int {
-            return notes?.count()
+            return notes.count()
         }
 
         override fun onBindViewHolder(holder: NoteHolder, position: Int) {

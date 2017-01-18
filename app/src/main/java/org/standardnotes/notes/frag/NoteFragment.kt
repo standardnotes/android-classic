@@ -10,6 +10,8 @@ import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.data.Note
 
 import kotlinx.android.synthetic.main.frag_note.*
+import org.standardnotes.notes.comms.data.EncryptedItem
+import org.standardnotes.notes.comms.data.UploadSyncItems
 
 /**
  * Created by carl on 15/01/17.
@@ -33,5 +35,21 @@ class NoteFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         edit.setText(note!!.text)
     }
+
+
+//    override fun onStop() {
+//        super.onStop()
+//        val uSync = UploadSyncItems()
+//        val thisItem = note!!.encrypted()
+//        uSync.items.add(thisItem)
+//        SApplication.instance!!.comms.api.sync(uSync)
+//    }
+
+//    fun Note.encrypted(): EncryptedItem {
+//        val item = EncryptedItem()
+//        item.contentType = original.contentType
+//        item.createdAt = original.createdAt
+//        item.
+//    }
 
 }

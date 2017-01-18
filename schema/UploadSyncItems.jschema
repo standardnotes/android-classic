@@ -1,0 +1,17 @@
+{
+	"title": "",
+	"type": "object",
+	"javaType": "org.standardnotes.notes.comms.data.UploadSyncItems",
+	"properties": {
+		"sync_token": {
+			"type": "string"
+		},
+		"items": {
+		    "type": "array",
+		    "items": {
+		        "javaType": "org.standardnotes.notes.comms.data.EncryptedItem",
+		        "$ref": "EncryptedItem.jschema"
+		    }
+		}
+	}
+}

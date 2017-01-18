@@ -7,6 +7,7 @@ import net.danlew.android.joda.JodaTimeAndroid
 import org.joda.time.DateTime
 
 import org.standardnotes.notes.comms.CommsManager
+import org.standardnotes.notes.comms.NoteStore
 import org.standardnotes.notes.store.ValueStore
 
 /**
@@ -17,6 +18,7 @@ class SApplication : Application() {
     val comms: CommsManager by lazy { CommsManager("https://n3.standardnotes.org") }
     val valueStore: ValueStore by lazy { ValueStore(this) }
     val gson: Gson by lazy { GsonBuilder().registerTypeAdapter(DateTime::class.java, CommsManager.DateTimeDeserializer()).create() }
+    val noteStore: NoteStore by lazy { NoteStore() }
 
     override fun onCreate() {
         super.onCreate()
