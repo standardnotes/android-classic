@@ -11,6 +11,7 @@ import org.standardnotes.notes.SApplication;
 import org.standardnotes.notes.comms.data.EncryptedItem;
 import org.standardnotes.notes.comms.data.Note;
 
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
@@ -89,44 +90,69 @@ public class Crypt {
         return data;
     }
 
+    public static EncryptedItem encrypt(Note note) {
+        try {
+            EncryptedItem item = note.getOriginal();
+            String[] keys = Crypt.getItemKeys(item);
+            String ek = keys[0];
+            String ak = keys[1];
+
+            Note justUnencContent = new Note();
+            justUnencContent.setTitle(note.getTitle());
+            justUnencContent.setText(note.getText());
+            String contentJson = SApplication.Companion.getInstance().getGson().toJson(justUnencContent);
+            String contentEnc = "001" + encrypt(contentJson, ek);
+            String hash = createHash(contentEnc, ak);
+            item.setAuthHash(hash);
+            item.setContent(contentEnc);
+            return item;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static Note decrypt(EncryptedItem item) {
-        Note note = new Note();
-        note.setOriginal(item);
         try {
 
             if (item.getContent() != null) {
-
-                String[] keys = Crypt.getItemKeys(item);
-                String ek = keys[0];
-                String ak = keys[1];
-
-                // authenticate
-                byte[] contentData = item.getContent().getBytes(Charsets.UTF_8);
-                byte[] akHexData = Hex.decode(ak);
-                Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
-                SecretKey secret_key = new SecretKeySpec(akHexData, "HmacSHA256");
-                sha256_HMAC.init(secret_key);
-                String hash = Crypt.bytesToHex(sha256_HMAC.doFinal(contentData));
-                if (!hash.equals(item.getAuthHash())) {
-                    throw new Exception("could not authenticate item");
-                }
-                // TODO make above use spongycastle
-
-                JSONObject contentJson;
+                String contentJson;
                 String contentWithoutType = item.getContent().substring(3);
                 if (item.getContent().startsWith("000")) {
-                    contentJson = new JSONObject(new String(Base64.decode(contentWithoutType, Base64.NO_PADDING), Charsets.UTF_8));
+                    contentJson = new String(Base64.decode(contentWithoutType, Base64.NO_PADDING), Charsets.UTF_8);
                 } else {
-                    contentJson = new JSONObject(Crypt.decrypt(contentWithoutType, ek));
+                    String[] keys = Crypt.getItemKeys(item);
+                    String ek = keys[0];
+                    String ak = keys[1];
+
+                    // authenticate
+                    String hash = createHash(item.getContent(), ak);
+                    if (!hash.equals(item.getAuthHash())) {
+                        throw new Exception("could not authenticate item");
+                    }
+                    // TODO make above use spongycastle
+
+                    contentJson = Crypt.decrypt(contentWithoutType, ek);
                 }
-                note.setTitle(contentJson.getString("title"));
-                note.setText(contentJson.getString("text"));
+
+                Note note = SApplication.Companion.getInstance().getGson().fromJson(contentJson, Note.class);
+                note.setOriginal(item);
+                return note;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return note;
+        return null;
+    }
+
+    private static String createHash(String text, String ak) throws NoSuchAlgorithmException, InvalidKeyException {
+        byte[] contentData = text.getBytes(Charsets.UTF_8);
+        byte[] akHexData = Hex.decode(ak);
+        Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+        SecretKey secret_key = new SecretKeySpec(akHexData, "HmacSHA256");
+        sha256_HMAC.init(secret_key);
+        return Crypt.bytesToHex(sha256_HMAC.doFinal(contentData));
     }
 
 //                try {

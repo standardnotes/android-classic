@@ -2,12 +2,39 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true" >
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:fillViewport="true">
 
-    <EditText
-        android:id="@+id/edit"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="top"/>
+        android:orientation="vertical">
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/titleLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:hintAnimationEnabled="false"
+            android:hint="Title">
+
+            <EditText
+                android:id="@+id/titleEdit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="textCapWords"
+                android:imeOptions="actionNext"
+                />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <EditText
+            android:id="@+id/bodyEdit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="top"
+            android:hint="Text"/>
+
+    </LinearLayout>
 
 </ScrollView>

@@ -7,7 +7,7 @@ import net.danlew.android.joda.JodaTimeAndroid
 import org.joda.time.DateTime
 
 import org.standardnotes.notes.comms.CommsManager
-import org.standardnotes.notes.comms.NoteStore
+import org.standardnotes.notes.store.NoteStore
 import org.standardnotes.notes.store.ValueStore
 
 /**

@@ -16,6 +16,9 @@ import org.joda.time.DateTime;
 @Generated("org.jsonschema2pojo")
 public class EncryptedItem {
 
+    @SerializedName("uuid")
+    @Expose
+    private String uuid;
     @SerializedName("content")
     @Expose
     private String content;
@@ -40,6 +43,24 @@ public class EncryptedItem {
     @SerializedName("deleted")
     @Expose
     private Boolean deleted;
+
+    /**
+     * 
+     * @return
+     *     The uuid
+     */
+    public String getUuid() {
+        return uuid;
+    }
+
+    /**
+     * 
+     * @param uuid
+     *     The uuid
+     */
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
 
     /**
      * 

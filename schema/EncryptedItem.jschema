@@ -3,6 +3,9 @@
 	"type": "object",
 	"javaType": "org.standardnotes.notes.comms.data.EncryptedItem",
 	"properties": {
+	    "uuid": {
+	        "type": "string"
+	    },
 		"content": {
 			"type": "string"
 		},

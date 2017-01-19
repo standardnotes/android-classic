@@ -1,5 +1,6 @@
 package org.standardnotes.notes.frag
 
+import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
@@ -15,6 +16,7 @@ import org.joda.time.format.DateTimeFormat
 import org.standardnotes.notes.NoteActivity
 import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
+import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.SyncItems
 import org.standardnotes.notes.comms.data.UploadSyncItems
@@ -26,6 +28,9 @@ import java.util.*
 
 
 class NoteListFragment : Fragment() {
+
+
+    private val REQ_EDIT_NOTE: Int = 1
 
     val adapter: Adapter by lazy { Adapter() }
 
@@ -43,7 +48,7 @@ class NoteListFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        list.layoutManager = LinearLayoutManager(activity)
+        list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
         list.adapter = adapter
 //        list.addItemDecoration(object : RecyclerView.ItemDecoration() {
 //            internal var eight = 8.dpToPixels()
@@ -59,9 +64,29 @@ class NoteListFragment : Fragment() {
         sync()
     }
 
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+//        if (resultCode == RESULT_OK) {
+            if (requestCode == REQ_EDIT_NOTE) {
+                if (SApplication.instance!!.noteStore.isNotesToSave() > 0) {
+                    sync()
+                }
+            }
+//        }
+    }
+
     fun sync() {
         val uploadSyncItems = UploadSyncItems()
         uploadSyncItems.syncToken = SApplication.instance!!.noteStore.syncToken
+        val dirtyItems = SApplication.instance!!.noteStore.popNotesToSave()
+        for (dirtyItem in dirtyItems) {
+            val encItem = Crypt.encrypt(dirtyItem)
+            if (encItem == null) {
+//                SApplication.instance.noteStore.setDirty()
+            }
+            uploadSyncItems.items.add(encItem)
+        }
         SApplication.instance!!.comms.api.sync(uploadSyncItems).enqueue(object : Callback<SyncItems> {
             override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {
                 notes.clear()
@@ -76,6 +101,7 @@ class NoteListFragment : Fragment() {
             }
         })
     }
+
 
     inner class NoteHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -98,7 +124,7 @@ class NoteListFragment : Fragment() {
             itemView.setOnClickListener {
                 val intent: Intent = Intent(activity, NoteActivity::class.java)
                 intent.putExtra("note", SApplication.instance!!.gson.toJson(note))
-                startActivity(intent)
+                startActivityForResult(intent, REQ_EDIT_NOTE)
             }
         }
 

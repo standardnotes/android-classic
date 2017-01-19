@@ -10,6 +10,7 @@ import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.data.Note
 
 import kotlinx.android.synthetic.main.frag_note.*
+import kotlinx.android.synthetic.main.item_note.*
 import org.standardnotes.notes.comms.data.EncryptedItem
 import org.standardnotes.notes.comms.data.UploadSyncItems
 
@@ -33,7 +34,18 @@ class NoteFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        edit.setText(note!!.text)
+        titleEdit.setText(note!!.title)
+        bodyEdit.setText(note!!.text)
+        titleLayout.isHintAnimationEnabled = true
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (activity.isFinishing) {
+            note!!.title = titleEdit.text.toString()
+            note!!.text = bodyEdit.text.toString()
+            SApplication.instance!!.noteStore.setDirty(note!!)
+        }
     }
 
 
