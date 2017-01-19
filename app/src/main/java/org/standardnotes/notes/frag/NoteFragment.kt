@@ -10,9 +10,7 @@ import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.data.Note
 
 import kotlinx.android.synthetic.main.frag_note.*
-import kotlinx.android.synthetic.main.item_note.*
-import org.standardnotes.notes.comms.data.EncryptedItem
-import org.standardnotes.notes.comms.data.UploadSyncItems
+import org.standardnotes.notes.comms.data.DirtyNote
 
 /**
  * Created by carl on 15/01/17.
@@ -39,12 +37,13 @@ class NoteFragment : Fragment() {
         titleLayout.isHintAnimationEnabled = true
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onPause() {
+        super.onPause()
         if (activity.isFinishing) {
-            note!!.title = titleEdit.text.toString()
-            note!!.text = bodyEdit.text.toString()
-            SApplication.instance!!.noteStore.setDirty(note!!)
+            val dn = DirtyNote(note!!)
+            dn.title = titleEdit.text.toString()
+            dn.text = bodyEdit.text.toString()
+            SApplication.instance!!.noteStore.setDirty(dn)
         }
     }
 

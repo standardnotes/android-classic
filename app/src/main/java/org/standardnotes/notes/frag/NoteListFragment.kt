@@ -1,8 +1,6 @@
 package org.standardnotes.notes.frag
 
-import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -20,7 +18,6 @@ import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.SyncItems
 import org.standardnotes.notes.comms.data.UploadSyncItems
-import org.standardnotes.notes.dpToPixels
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -59,7 +56,6 @@ class NoteListFragment : Fragment() {
 //                outRect.set(sixteen, eight, sixteen, if (position == adapter.itemCount - 1) eight else 0)
 //            }
 //        })
-        swipeRefreshLayout.isRefreshing = true
         swipeRefreshLayout.setOnRefreshListener { sync() }
         sync()
     }
@@ -69,7 +65,7 @@ class NoteListFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
 //        if (resultCode == RESULT_OK) {
             if (requestCode == REQ_EDIT_NOTE) {
-                if (SApplication.instance!!.noteStore.isNotesToSave() > 0) {
+                if (SApplication.instance!!.noteStore.notesToSaveCount() > 0) {
                     sync()
                 }
             }
@@ -77,6 +73,7 @@ class NoteListFragment : Fragment() {
     }
 
     fun sync() {
+        swipeRefreshLayout.isRefreshing = true
         val uploadSyncItems = UploadSyncItems()
         uploadSyncItems.syncToken = SApplication.instance!!.noteStore.syncToken
         val dirtyItems = SApplication.instance!!.noteStore.popNotesToSave()

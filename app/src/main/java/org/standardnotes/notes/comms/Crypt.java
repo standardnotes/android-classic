@@ -2,12 +2,12 @@ package org.standardnotes.notes.comms;
 
 import android.util.Base64;
 
-import org.json.JSONObject;
 import org.spongycastle.crypto.digests.SHA512Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.util.encoders.Hex;
 import org.standardnotes.notes.SApplication;
+import org.standardnotes.notes.comms.data.DirtyNote;
 import org.standardnotes.notes.comms.data.EncryptedItem;
 import org.standardnotes.notes.comms.data.Note;
 
@@ -90,7 +90,7 @@ public class Crypt {
         return data;
     }
 
-    public static EncryptedItem encrypt(Note note) {
+    public static EncryptedItem encrypt(DirtyNote note) {
         try {
             EncryptedItem item = note.getOriginal();
             String[] keys = Crypt.getItemKeys(item);

@@ -1,6 +1,7 @@
 package org.standardnotes.notes.store
 
 import org.standardnotes.notes.comms.Crypt
+import org.standardnotes.notes.comms.data.DirtyNote
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.SyncItems
 import java.util.*
@@ -12,7 +13,7 @@ import java.util.*
 class NoteStore {
 
     private val list = HashMap<String, Note>()
-    private val toSave = HashSet<Note>()
+    private val toSave = HashSet<DirtyNote>()
 
     var syncToken: String? = null
         get
@@ -46,15 +47,15 @@ class NoteStore {
         list.put(newNote.original.uuid, newNote)
     }
 
-    @Synchronized fun setDirty(note: Note) { toSave += note }
+    @Synchronized fun setDirty(note: DirtyNote) { toSave += note }
 
-    @Synchronized fun popNotesToSave(): Set<Note> {
+    @Synchronized fun popNotesToSave(): Set<DirtyNote> {
         val toSaveCopy = HashSet(toSave)
         toSave.clear()
         return toSaveCopy
     }
 
-    @Synchronized fun isNotesToSave(): Int {
+    @Synchronized fun notesToSaveCount(): Int {
         return toSave.size
     }
 
