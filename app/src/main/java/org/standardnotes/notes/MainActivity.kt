@@ -2,7 +2,6 @@ package org.standardnotes.notes
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.view.Menu
@@ -18,8 +17,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+            startActivity(Intent(this, NoteActivity::class.java))
         }
     }
 
@@ -32,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        // logout
         SApplication.instance!!.valueStore.setTokenAndMasterKey(null, null)
         startActivity(Intent(this, StarterActivity::class.java))
         // TODO clear caches and saved items

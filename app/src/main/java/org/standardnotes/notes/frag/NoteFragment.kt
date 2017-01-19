@@ -22,7 +22,7 @@ class NoteFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        note = SApplication.instance!!.gson.fromJson(arguments.getString("note"), Note::class.java)
+        note = SApplication.instance!!.gson.fromJson(arguments?.getString("note"), Note::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -32,15 +32,15 @@ class NoteFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        titleEdit.setText(note!!.title)
-        bodyEdit.setText(note!!.text)
+        titleEdit.setText(note?.title)
+        bodyEdit.setText(note?.text)
         titleLayout.isHintAnimationEnabled = true
     }
 
     override fun onPause() {
         super.onPause()
         if (activity.isFinishing) {
-            val dn = DirtyNote(note!!)
+            val dn = DirtyNote(note)
             dn.title = titleEdit.text.toString()
             dn.text = bodyEdit.text.toString()
             SApplication.instance!!.noteStore.setDirty(dn)

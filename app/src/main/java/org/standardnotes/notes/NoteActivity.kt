@@ -1,7 +1,10 @@
 package org.standardnotes.notes
 
+import android.content.Intent
 import android.os.Bundle
+import android.support.v4.app.NavUtils
 import android.support.v7.app.AppCompatActivity
+import android.view.MenuItem
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.frag.NoteFragment
 
@@ -15,11 +18,25 @@ class NoteActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        note = SApplication.instance!!.gson.fromJson(intent.extras.getString("note"), Note::class.java)
-        title = note!!.title
+        note = SApplication.instance!!.gson.fromJson(intent.getStringExtra("note"), Note::class.java)
+        title = note?.title
         val frag: NoteFragment = NoteFragment()
         frag.arguments = intent.extras
         supportFragmentManager.beginTransaction().replace(android.R.id.content, frag).commit()
+        supportActionBar!!.setDisplayShowHomeEnabled(true)
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            if (NavUtils.getParentActivityIntent(this) != null) {
+                NavUtils.navigateUpTo(this, NavUtils.getParentActivityIntent(this).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+            } else {
+                onBackPressed()
+            }
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
 }

@@ -13,7 +13,9 @@ import org.standardnotes.notes.comms.data.Note;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Random;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
@@ -35,9 +37,17 @@ public class Crypt {
         PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
         gen.init(passphraseOrPin, salt, iterations);
         byte[] dk = ((KeyParameter) gen.generateDerivedParameters(outputKeyLength)).getKey();
-
         return dk;
     }
+
+    public static String generateKey(int size) throws Exception {
+        byte[] key = new byte[size / 8];
+        Random rand = new Random();
+        rand.nextBytes(key);
+        String keyHex = bytesToHex(key);
+        return encrypt(keyHex, SApplication.Companion.getInstance().getValueStore().getMasterKey());
+    }
+
 
     public static String[] getItemKeys(EncryptedItem item) throws Exception {
         String itemKey = decrypt(item.getEncItemKey(), SApplication.Companion.getInstance().getValueStore().getMasterKey());
