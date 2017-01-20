@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import kotlinx.android.synthetic.main.frag_note_list.*
 import org.joda.time.format.DateTimeFormat
 import org.standardnotes.notes.NoteActivity
@@ -31,7 +32,7 @@ class NoteListFragment : Fragment() {
 
     val adapter: Adapter by lazy { Adapter() }
 
-    val notes = ArrayList<Note>()
+    var notes = ArrayList<Note>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +47,6 @@ class NoteListFragment : Fragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-        list.adapter = adapter
 //        list.addItemDecoration(object : RecyclerView.ItemDecoration() {
 //            internal var eight = 8.dpToPixels()
 //            internal var sixteen = 16.dpToPixels()
@@ -58,6 +58,7 @@ class NoteListFragment : Fragment() {
 //        })
         swipeRefreshLayout.setOnRefreshListener { sync() }
         sync()
+        list.adapter = adapter
     }
 
 
@@ -65,6 +66,8 @@ class NoteListFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
 //        if (resultCode == RESULT_OK) {
             if (requestCode == REQ_EDIT_NOTE) {
+                notes = ArrayList(SApplication.instance!!.noteStore.notesList)
+                adapter.notifyDataSetChanged()
                 if (SApplication.instance!!.noteStore.notesToSaveCount() > 0) {
                     sync()
                 }
@@ -76,24 +79,21 @@ class NoteListFragment : Fragment() {
         swipeRefreshLayout.isRefreshing = true
         val uploadSyncItems = UploadSyncItems()
         uploadSyncItems.syncToken = SApplication.instance!!.noteStore.syncToken
-        val dirtyItems = SApplication.instance!!.noteStore.popNotesToSave()
-        for (dirtyItem in dirtyItems) {
-            val encItem = Crypt.encrypt(dirtyItem)
-            if (encItem == null) {
-//                SApplication.instance.noteStore.setDirty()
-            }
-            uploadSyncItems.items.add(encItem)
-        }
+        val dirtyItems = SApplication.instance!!.noteStore.toSave
+        dirtyItems
+                .map { Crypt.encrypt(it) }
+                .forEach { uploadSyncItems.items.add(it) }
         SApplication.instance!!.comms.api.sync(uploadSyncItems).enqueue(object : Callback<SyncItems> {
             override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {
                 notes.clear()
                 SApplication.instance!!.noteStore.putNotes(response.body())
-                notes.addAll(SApplication.instance!!.noteStore.notesList)
+                notes = ArrayList(SApplication.instance!!.noteStore.notesList)
                 swipeRefreshLayout.isRefreshing = false
                 adapter.notifyDataSetChanged()
             }
 
             override fun onFailure(call: Call<SyncItems>, t: Throwable) {
+                Toast.makeText(activity, "Failed to sync", Toast.LENGTH_SHORT).show()
                 swipeRefreshLayout.isRefreshing = false
             }
         })
@@ -107,15 +107,17 @@ class NoteListFragment : Fragment() {
             set(value) {
                 field = value
                 title.text = note?.title
-                date.text = DateTimeFormat.shortDateTime().print(note?.original?.updatedAt)
+                date.text = DateTimeFormat.shortDateTime().print(note?.updatedAt)
                 var noteText = note?.text ?: ""
                 noteText = noteText.substring(0, Math.min(256, noteText.length))
                 noteText.replace('\n', ' ')
                 text.text = noteText
+                synced.visibility = if (note?.dirty == true) View.VISIBLE else View.INVISIBLE
             }
         private val title: TextView = itemView.findViewById(R.id.title) as TextView
         private val date: TextView = itemView.findViewById(R.id.date) as TextView
         private val text: TextView = itemView.findViewById(R.id.text) as TextView
+        private val synced: View = itemView.findViewById(R.id.synced)
 
         init {
             itemView.setOnClickListener {

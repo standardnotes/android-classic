@@ -1,0 +1,16 @@
+{
+	"title": "",
+	"type": "object",
+	"javaType": "org.standardnotes.notes.comms.data.Tag",
+    "extends" : {
+        "$ref" : "EncryptableItem.jschema"
+    },
+	"properties": {
+        "title": {
+			"type": "string"
+		},
+        "dirty": {
+		    "type": "boolean"
+		}
+	}
+}

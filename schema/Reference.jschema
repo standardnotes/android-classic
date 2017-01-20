@@ -1,0 +1,13 @@
+{
+	"title": "",
+	"type": "object",
+	"javaType": "org.standardnotes.notes.comms.data.Reference",
+	"properties": {
+        "uuid": {
+	        "type": "string"
+	    },
+	    "content_type": {
+	        "type": "string"
+	    }
+	}
+}

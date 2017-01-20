@@ -2,12 +2,13 @@ package org.standardnotes.notes.comms;
 
 import android.util.Base64;
 
+import org.joda.time.DateTime;
 import org.spongycastle.crypto.digests.SHA512Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.util.encoders.Hex;
 import org.standardnotes.notes.SApplication;
-import org.standardnotes.notes.comms.data.DirtyNote;
+import org.standardnotes.notes.comms.data.EncryptableItem;
 import org.standardnotes.notes.comms.data.EncryptedItem;
 import org.standardnotes.notes.comms.data.Note;
 
@@ -15,7 +16,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Random;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
@@ -31,6 +31,11 @@ import kotlin.text.Charsets;
 
 public class Crypt {
 
+    private static class Keys {
+        String ek;
+        String ak;
+    }
+
     final static IvParameterSpec ivSpec = new IvParameterSpec(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     public static byte[] generateKey(byte[] passphraseOrPin, byte[] salt, int iterations, int outputKeyLength) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -42,18 +47,18 @@ public class Crypt {
 
     public static String generateKey(int size) throws Exception {
         byte[] key = new byte[size / 8];
-        Random rand = new Random();
+        SecureRandom rand = new SecureRandom();
         rand.nextBytes(key);
         String keyHex = bytesToHex(key);
         return encrypt(keyHex, SApplication.Companion.getInstance().getValueStore().getMasterKey());
     }
 
 
-    public static String[] getItemKeys(EncryptedItem item) throws Exception {
+    public static Keys getItemKeys(EncryptedItem item) throws Exception {
         String itemKey = decrypt(item.getEncItemKey(), SApplication.Companion.getInstance().getValueStore().getMasterKey());
-        String[] val = new String[2];
-        val[0] = itemKey.substring(0, itemKey.length() / 2);
-        val[1] = itemKey.substring(itemKey.length() / 2);
+        Keys val = new Keys();
+        val.ek = itemKey.substring(0, itemKey.length() / 2);
+        val.ak = itemKey.substring(itemKey.length() / 2);
         return val;
     }
 
@@ -100,19 +105,19 @@ public class Crypt {
         return data;
     }
 
-    public static EncryptedItem encrypt(DirtyNote note) {
+    public static EncryptedItem encrypt(Note note) {
         try {
-            EncryptedItem item = note.getOriginal();
-            String[] keys = Crypt.getItemKeys(item);
-            String ek = keys[0];
-            String ak = keys[1];
-
+            EncryptedItem item = new EncryptedItem();
+            copyInEncryptableItemFields(note, item);
+            item.setUpdatedAt(DateTime.now());
+            item.setContentType("Note");
+            Keys keys = Crypt.getItemKeys(item);
             Note justUnencContent = new Note();
             justUnencContent.setTitle(note.getTitle());
             justUnencContent.setText(note.getText());
             String contentJson = SApplication.Companion.getInstance().getGson().toJson(justUnencContent);
-            String contentEnc = "001" + encrypt(contentJson, ek);
-            String hash = createHash(contentEnc, ak);
+            String contentEnc = "001" + encrypt(contentJson, keys.ek);
+            String hash = createHash(contentEnc, keys.ak);
             item.setAuthHash(hash);
             item.setContent(contentEnc);
             return item;
@@ -131,22 +136,19 @@ public class Crypt {
                 if (item.getContent().startsWith("000")) {
                     contentJson = new String(Base64.decode(contentWithoutType, Base64.NO_PADDING), Charsets.UTF_8);
                 } else {
-                    String[] keys = Crypt.getItemKeys(item);
-                    String ek = keys[0];
-                    String ak = keys[1];
+                    Keys keys = Crypt.getItemKeys(item);
 
                     // authenticate
-                    String hash = createHash(item.getContent(), ak);
+                    String hash = createHash(item.getContent(), keys.ak);
                     if (!hash.equals(item.getAuthHash())) {
                         throw new Exception("could not authenticate item");
                     }
-                    // TODO make above use spongycastle
 
-                    contentJson = Crypt.decrypt(contentWithoutType, ek);
+                    contentJson = Crypt.decrypt(contentWithoutType, keys.ek);
                 }
 
                 Note note = SApplication.Companion.getInstance().getGson().fromJson(contentJson, Note.class);
-                note.setOriginal(item);
+                copyInEncryptableItemFields(item, note);
                 return note;
             }
 
@@ -157,6 +159,7 @@ public class Crypt {
     }
 
     private static String createHash(String text, String ak) throws NoSuchAlgorithmException, InvalidKeyException {
+        // TODO make use spongycastle
         byte[] contentData = text.getBytes(Charsets.UTF_8);
         byte[] akHexData = Hex.decode(ak);
         Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
@@ -177,4 +180,13 @@ public class Crypt {
 //                }
 
 
+    static void copyInEncryptableItemFields(EncryptableItem source, EncryptableItem target) {
+        target.setUuid(source.getUuid());
+        target.setCreatedAt(source.getCreatedAt());
+        target.setUpdatedAt(source.getUpdatedAt());
+        target.setEncItemKey(source.getEncItemKey());
+        target.setPresentationName(source.getPresentationName());
+        target.setDeleted(source.getDeleted());
+    }
 }
+

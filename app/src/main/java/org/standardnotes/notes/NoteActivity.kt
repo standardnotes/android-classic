@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v4.app.NavUtils
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
+import android.view.WindowManager
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.frag.NoteFragment
 
@@ -18,6 +19,8 @@ class NoteActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE)
         note = SApplication.instance!!.gson.fromJson(intent.getStringExtra("note"), Note::class.java)
         title = note?.title
         val frag: NoteFragment = NoteFragment()

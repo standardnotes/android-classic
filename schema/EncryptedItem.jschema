@@ -2,36 +2,18 @@
 	"title": "",
 	"type": "object",
 	"javaType": "org.standardnotes.notes.comms.data.EncryptedItem",
+    "extends" : {
+        "$ref" : "EncryptableItem.jschema"
+    },
 	"properties": {
-	    "uuid": {
-	        "type": "string"
-	    },
 		"content": {
 			"type": "string"
 		},
         "content_type": {
 			"type": "string"
 		},
-		"created_at": {
-		    "type": "string",
-		    "format": "date-time"
-		},
-        "updated_at": {
-		    "type": "string",
-		    "format": "date-time"
-		},
-		"enc_item_key": {
-		    "type": "string"
-		},
         "auth_hash": {
 		    "type": "string"
-		},
-        "presentation_name": {
-		    "type": "string",
-		    "default": null
-		},
-        "deleted": {
-		    "type": "boolean"
 		}
 	}
 }

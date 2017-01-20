@@ -13,36 +13,31 @@ import com.google.gson.annotations.SerializedName;
  * 
  */
 @Generated("org.jsonschema2pojo")
-public class EncryptedItem
-    extends EncryptableItem
-{
+public class Reference {
 
-    @SerializedName("content")
+    @SerializedName("uuid")
     @Expose
-    private String content;
+    private String uuid;
     @SerializedName("content_type")
     @Expose
     private String contentType;
-    @SerializedName("auth_hash")
-    @Expose
-    private String authHash;
 
     /**
      * 
      * @return
-     *     The content
+     *     The uuid
      */
-    public String getContent() {
-        return content;
+    public String getUuid() {
+        return uuid;
     }
 
     /**
      * 
-     * @param content
-     *     The content
+     * @param uuid
+     *     The uuid
      */
-    public void setContent(String content) {
-        this.content = content;
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     /**
@@ -61,24 +56,6 @@ public class EncryptedItem
      */
     public void setContentType(String contentType) {
         this.contentType = contentType;
-    }
-
-    /**
-     * 
-     * @return
-     *     The authHash
-     */
-    public String getAuthHash() {
-        return authHash;
-    }
-
-    /**
-     * 
-     * @param authHash
-     *     The auth_hash
-     */
-    public void setAuthHash(String authHash) {
-        this.authHash = authHash;
     }
 
 }

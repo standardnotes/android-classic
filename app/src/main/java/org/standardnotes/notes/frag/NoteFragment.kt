@@ -10,7 +10,6 @@ import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.data.Note
 
 import kotlinx.android.synthetic.main.frag_note.*
-import org.standardnotes.notes.comms.data.DirtyNote
 
 /**
  * Created by carl on 15/01/17.
@@ -40,10 +39,9 @@ class NoteFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         if (activity.isFinishing) {
-            val dn = DirtyNote(note)
-            dn.title = titleEdit.text.toString()
-            dn.text = bodyEdit.text.toString()
-            SApplication.instance!!.noteStore.setDirty(dn)
+            note!!.title = titleEdit.text.toString()
+            note!!.text = bodyEdit.text.toString()
+            SApplication.instance!!.noteStore.setDirty(note!!)
         }
     }
 

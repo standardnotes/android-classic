@@ -1,7 +1,6 @@
 package org.standardnotes.notes.store
 
 import org.standardnotes.notes.comms.Crypt
-import org.standardnotes.notes.comms.data.DirtyNote
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.SyncItems
 import java.util.*
@@ -13,15 +12,16 @@ import java.util.*
 class NoteStore {
 
     private val list = HashMap<String, Note>()
-    private val toSave = HashSet<DirtyNote>()
 
     var syncToken: String? = null
         get
         private set
 
-    var notesList: List<Note> = ArrayList(0)
-        get() = list.values.sortedByDescending { it.original.updatedAt }
-        private set
+    val notesList: List<Note>
+        get() = list.values.sortedByDescending { it.updatedAt }
+
+    val toSave: Collection<Note>
+        get() = list.values.filter { it.dirty == true }
 
 
     fun putNotes(items: SyncItems) {
@@ -44,15 +44,12 @@ class NoteStore {
 
     private fun merge(newNote: Note) {
         //TODO merge properly
-        list.put(newNote.original.uuid, newNote)
+        list.put(newNote.uuid, newNote)
     }
 
-    @Synchronized fun setDirty(note: DirtyNote) { toSave += note }
-
-    @Synchronized fun popNotesToSave(): Set<DirtyNote> {
-        val toSaveCopy = HashSet(toSave)
-        toSave.clear()
-        return toSaveCopy
+    @Synchronized fun setDirty(note: Note) {
+        list[note.uuid] = note
+        note.dirty = true
     }
 
     @Synchronized fun notesToSaveCount(): Int {

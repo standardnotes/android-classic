@@ -1,0 +1,28 @@
+{
+	"title": "",
+	"type": "object",
+	"javaType": "org.standardnotes.notes.comms.data.EncryptableItem",
+	"properties": {
+        "uuid": {
+	        "type": "string"
+	    },
+		"created_at": {
+		    "type": "string",
+		    "format": "date-time"
+		},
+        "updated_at": {
+		    "type": "string",
+		    "format": "date-time"
+		},
+		"enc_item_key": {
+		    "type": "string"
+		},
+        "presentation_name": {
+		    "type": "string",
+		    "default": null
+		},
+        "deleted": {
+		    "type": "boolean"
+		}
+	}
+}
