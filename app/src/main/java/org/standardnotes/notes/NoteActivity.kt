@@ -22,12 +22,12 @@ class NoteActivity : AppCompatActivity() {
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE,
                 WindowManager.LayoutParams.FLAG_SECURE)
         note = SApplication.instance!!.gson.fromJson(intent.getStringExtra("note"), Note::class.java)
-        title = note?.title
+        title = note?.title ?: "New note"
         val frag: NoteFragment = NoteFragment()
         frag.arguments = intent.extras
         supportFragmentManager.beginTransaction().replace(android.R.id.content, frag).commit()
-        supportActionBar!!.setDisplayShowHomeEnabled(true)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

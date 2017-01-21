@@ -8,6 +8,7 @@ import java.util.*
  * Created by carl on 17/01/17.
  */
 
+// TODO back by persistent storage
 class NoteStore {
 
     private val noteList = HashMap<String, Note>()
@@ -28,7 +29,7 @@ class NoteStore {
         syncToken = items.syncToken
         val allItems = items.retrievedItems + items.savedItems
         for (newItem in allItems) {
-            if (newItem.content == null  // hack until I have delete to clear up blank items
+            if (newItem.content == null  // HACK until I have delete to clear up accidentally created blank items
                     || newItem.deleted) {
                 noteList.remove(newItem.uuid)
                 continue

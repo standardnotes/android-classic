@@ -42,6 +42,7 @@ class NoteFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         if (activity.isFinishing) {
+            // If we are leaving then lets save it locally
             if (note == null) {
                 note = newNote()
             }
@@ -52,17 +53,10 @@ class NoteFragment : Fragment() {
     }
 
 
-//    override fun onStop() {
-//        super.onStop()
-//        val uSync = UploadSyncItems()
-//        val thisItem = note!!.encrypted()
-//        uSync.items.add(thisItem)
-//        SApplication.instance!!.comms.api.sync(uSync)
-//    }
-
 }
 
 fun newNote(): Note {
+    // Move to a factory
     val note = Note()
     note.uuid = UUID.randomUUID().toString()
     note.encItemKey = Crypt.generateKey(512)

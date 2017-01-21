@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        // logout
+        // only item is logout
         SApplication.instance!!.valueStore.setTokenAndMasterKey(null, null)
         startActivity(Intent(this, StarterActivity::class.java))
         // TODO clear caches and saved items

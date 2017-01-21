@@ -1,11 +1,17 @@
 package org.standardnotes.notes.comms;
 
-import org.standardnotes.notes.comms.data.*;
-
-import java.util.List;
+import org.standardnotes.notes.comms.data.AuthParamsResponse;
+import org.standardnotes.notes.comms.data.SigninResponse;
+import org.standardnotes.notes.comms.data.SyncItems;
+import org.standardnotes.notes.comms.data.UploadSyncItems;
 
 import retrofit2.Call;
-import retrofit2.http.*;
+import retrofit2.http.Body;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.Query;
 
 /**
  * Created by carl on 04/01/17.

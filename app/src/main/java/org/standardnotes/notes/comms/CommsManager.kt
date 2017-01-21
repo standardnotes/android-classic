@@ -33,15 +33,12 @@ class CommsManager(serverBaseUrl: String) {
         okHttpClient = OkHttpClient.Builder()
                 .addNetworkInterceptor(logger)
                 .addInterceptor { chain ->
+                    // Add auth to header if we have a token
                     val original = chain.request()
-
-                    //                        if (SApplication.getInstance().getToken() != null) {
-                    // Request customization: add request headers
                     val requestBuilder = original.newBuilder()
                     if (SApplication.instance!!.valueStore.token != null) {
                         requestBuilder.header("Authorization", "Bearer " + SApplication.instance!!.valueStore.token)
                     }
-
                     val request = requestBuilder.build()
                     chain.proceed(request)
                 }
@@ -59,17 +56,10 @@ class CommsManager(serverBaseUrl: String) {
         @Throws(JsonParseException::class)
         override fun deserialize(je: JsonElement, type: Type,
                                  jdc: JsonDeserializationContext): DateTime? {
-            if (je.asString.length == 0) {
+            if (je.asString.isEmpty()) {
                 return null
             } else {
-                var parsed: DateTime
-                try {
-                    parsed = DATE_TIME_FORMATTER.parseDateTime(je.asString)
-                } catch (e: IllegalArgumentException) {
-                    parsed = DATE_TIME_FORMATTER_NOMILLIS.parseDateTime(je.asString)
-                }
-
-                return parsed
+                return DATE_TIME_FORMATTER.parseDateTime(je.asString)
             }
         }
 
@@ -80,7 +70,6 @@ class CommsManager(serverBaseUrl: String) {
 
         companion object {
             val DATE_TIME_FORMATTER: org.joda.time.format.DateTimeFormatter = ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC)
-            val DATE_TIME_FORMATTER_NOMILLIS: org.joda.time.format.DateTimeFormatter = ISODateTimeFormat.dateTimeNoMillis().withZone(DateTimeZone.UTC)
         }
     }
 }

@@ -32,6 +32,9 @@ import kotlin.text.Charsets;
 
 public class Crypt {
 
+    public static final String AES_CBC_PKCS5_PADDING = "AES/CBC/PKCS5Padding";
+    public static final String AES = "AES";
+    public static final String HMAC_SHA_256 = "HmacSHA256";
     private static ContentDecryptor<Note> noteDecryptor = new ContentDecryptor<>(Note.class);
     private static ContentDecryptor<Tag> tagDecryptor = new ContentDecryptor<>(Tag.class);
 
@@ -68,18 +71,18 @@ public class Crypt {
 
     public static String decrypt(String base64Text, String hexKey) throws Exception {
         byte[] base64Data = Base64.decode(base64Text, Base64.NO_WRAP);
-        Cipher ecipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        Cipher ecipher = Cipher.getInstance(AES_CBC_PKCS5_PADDING);
         byte[] key = Hex.decode(hexKey);
-        SecretKey sks = new SecretKeySpec(key, "AES");
+        SecretKey sks = new SecretKeySpec(key, AES);
         ecipher.init(Cipher.DECRYPT_MODE, sks, ivSpec);
         byte[] resultData = ecipher.doFinal(base64Data);
         return new String(resultData, Charsets.UTF_8);
     }
 
     public static String encrypt(String text, String hexKey) throws Exception {
-        Cipher ecipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        Cipher ecipher = Cipher.getInstance(AES_CBC_PKCS5_PADDING);
         byte[] key = Hex.decode(hexKey);
-        SecretKey sks = new SecretKeySpec(key, "AES");
+        SecretKey sks = new SecretKeySpec(key, AES);
         ecipher.init(Cipher.ENCRYPT_MODE, sks, ivSpec);
         byte[] resultData = ecipher.doFinal(text.getBytes(Charsets.UTF_8));
         String base64Encr = Base64.encodeToString(resultData, Base64.NO_WRAP);
@@ -145,22 +148,11 @@ public class Crypt {
         // TODO make use spongycastle
         byte[] contentData = text.getBytes(Charsets.UTF_8);
         byte[] akHexData = Hex.decode(ak);
-        Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
-        SecretKey secret_key = new SecretKeySpec(akHexData, "HmacSHA256");
+        Mac sha256_HMAC = Mac.getInstance(HMAC_SHA_256);
+        SecretKey secret_key = new SecretKeySpec(akHexData, HMAC_SHA_256);
         sha256_HMAC.init(secret_key);
         return Crypt.bytesToHex(sha256_HMAC.doFinal(contentData));
     }
-
-//                try {
-//                    byte[] kk = generateKey("password".getBytes(Charsets.UTF_8),
-//                            "f462222159791bd70be5fac46d6d5073ec9c15a8".getBytes(Charsets.UTF_8),
-//                            5000,
-//                            512);
-//                    byte[] ss = Arrays.copyOfRange(kk, 0, kk.length/2);
-//                    String hh = bytesToHex(ss);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
 
 
     static void copyInEncryptableItemFields(EncryptableItem source, EncryptableItem target) {

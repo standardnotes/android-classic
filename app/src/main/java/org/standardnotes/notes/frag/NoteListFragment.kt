@@ -52,8 +52,7 @@ class NoteListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
         list.addItemDecoration(object : RecyclerView.ItemDecoration() {
-//            internal var eight = 8.dpToPixels()
-//            internal var sixteen = 16.dpToPixels()
+            // Horzontal divider lines between each item
             val paint = Paint()
 
             init {
@@ -94,6 +93,7 @@ class NoteListFragment : Fragment() {
 //        }
     }
 
+    // TODO move this out to some manager class
     fun sync() {
         swipeRefreshLayout.isRefreshing = true
         val uploadSyncItems = UploadSyncItems()
@@ -148,8 +148,6 @@ class NoteListFragment : Fragment() {
                 startActivityForResult(intent, REQ_EDIT_NOTE)
             }
         }
-
-
     }
 
     inner class Adapter : RecyclerView.Adapter<NoteHolder>() {
