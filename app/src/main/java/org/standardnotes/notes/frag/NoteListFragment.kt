@@ -86,7 +86,7 @@ class NoteListFragment : Fragment() {
         SApplication.instance!!.comms.api.sync(uploadSyncItems).enqueue(object : Callback<SyncItems> {
             override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {
                 notes.clear()
-                SApplication.instance!!.noteStore.putNotes(response.body())
+                SApplication.instance!!.noteStore.putItems(response.body())
                 notes = ArrayList(SApplication.instance!!.noteStore.notesList)
                 swipeRefreshLayout.isRefreshing = false
                 adapter.notifyDataSetChanged()

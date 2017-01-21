@@ -11,6 +11,7 @@ import org.standardnotes.notes.SApplication;
 import org.standardnotes.notes.comms.data.EncryptableItem;
 import org.standardnotes.notes.comms.data.EncryptedItem;
 import org.standardnotes.notes.comms.data.Note;
+import org.standardnotes.notes.comms.data.Tag;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -30,6 +31,9 @@ import kotlin.text.Charsets;
  */
 
 public class Crypt {
+
+    private static ContentDecryptor<Note> noteDecryptor = new ContentDecryptor<>(Note.class);
+    private static ContentDecryptor<Tag> tagDecryptor = new ContentDecryptor<>(Tag.class);
 
     private static class Keys {
         String ek;
@@ -127,36 +131,15 @@ public class Crypt {
         return null;
     }
 
-    public static Note decrypt(EncryptedItem item) {
-        try {
-
-            if (item.getContent() != null) {
-                String contentJson;
-                String contentWithoutType = item.getContent().substring(3);
-                if (item.getContent().startsWith("000")) {
-                    contentJson = new String(Base64.decode(contentWithoutType, Base64.NO_PADDING), Charsets.UTF_8);
-                } else {
-                    Keys keys = Crypt.getItemKeys(item);
-
-                    // authenticate
-                    String hash = createHash(item.getContent(), keys.ak);
-                    if (!hash.equals(item.getAuthHash())) {
-                        throw new Exception("could not authenticate item");
-                    }
-
-                    contentJson = Crypt.decrypt(contentWithoutType, keys.ek);
-                }
-
-                Note note = SApplication.Companion.getInstance().getGson().fromJson(contentJson, Note.class);
-                copyInEncryptableItemFields(item, note);
-                return note;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+    public static Note decryptNote(EncryptedItem item) {
+        return noteDecryptor.decrypt(item);
     }
+
+    public static Tag decryptTag(EncryptedItem item) {
+        return tagDecryptor.decrypt(item);
+    }
+
+
 
     private static String createHash(String text, String ak) throws NoSuchAlgorithmException, InvalidKeyException {
         // TODO make use spongycastle
@@ -188,5 +171,44 @@ public class Crypt {
         target.setPresentationName(source.getPresentationName());
         target.setDeleted(source.getDeleted());
     }
+
+    static class ContentDecryptor<T extends EncryptableItem> {
+        private Class<T> type;
+        public ContentDecryptor(Class<T> type) {
+            this.type = type;
+        }
+
+        public T decrypt(EncryptedItem item) {
+            try {
+
+                if (item.getContent() != null) {
+                    String contentJson;
+                    String contentWithoutType = item.getContent().substring(3);
+                    if (item.getContent().startsWith("000")) {
+                        contentJson = new String(Base64.decode(contentWithoutType, Base64.NO_PADDING), Charsets.UTF_8);
+                    } else {
+                        Keys keys = Crypt.getItemKeys(item);
+
+                        // authenticate
+                        String hash = createHash(item.getContent(), keys.ak);
+                        if (!hash.equals(item.getAuthHash())) {
+                            throw new Exception("could not authenticate item");
+                        }
+
+                        contentJson = Crypt.decrypt(contentWithoutType, keys.ek);
+                    }
+
+                    T thing = SApplication.Companion.getInstance().getGson().fromJson(contentJson, type);
+                    copyInEncryptableItemFields(item, thing);
+                    return thing;
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
 }
 
