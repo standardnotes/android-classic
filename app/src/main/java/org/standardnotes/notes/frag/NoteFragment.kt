@@ -10,6 +10,9 @@ import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.data.Note
 
 import kotlinx.android.synthetic.main.frag_note.*
+import org.joda.time.DateTime
+import org.standardnotes.notes.comms.Crypt
+import java.util.*
 
 /**
  * Created by carl on 15/01/17.
@@ -39,6 +42,9 @@ class NoteFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         if (activity.isFinishing) {
+            if (note == null) {
+                note = newNote()
+            }
             note!!.title = titleEdit.text.toString()
             note!!.text = bodyEdit.text.toString()
             SApplication.instance!!.noteStore.setDirty(note!!)
@@ -54,11 +60,13 @@ class NoteFragment : Fragment() {
 //        SApplication.instance!!.comms.api.sync(uSync)
 //    }
 
-//    fun Note.encrypted(): EncryptedItem {
-//        val item = EncryptedItem()
-//        item.contentType = original.contentType
-//        item.createdAt = original.createdAt
-//        item.
-//    }
+}
 
+fun newNote(): Note {
+    val note = Note()
+    note.uuid = UUID.randomUUID().toString()
+    note.encItemKey = Crypt.generateKey(512)
+    note.createdAt = DateTime.now()
+    note.updatedAt = note.createdAt
+    return note
 }

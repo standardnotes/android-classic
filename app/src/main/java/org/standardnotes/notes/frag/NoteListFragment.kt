@@ -1,6 +1,9 @@
 package org.standardnotes.notes.frag
 
 import android.content.Intent
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -19,6 +22,7 @@ import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.SyncItems
 import org.standardnotes.notes.comms.data.UploadSyncItems
+import org.standardnotes.notes.dpToPixels
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -47,15 +51,30 @@ class NoteListFragment : Fragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-//        list.addItemDecoration(object : RecyclerView.ItemDecoration() {
+        list.addItemDecoration(object : RecyclerView.ItemDecoration() {
 //            internal var eight = 8.dpToPixels()
 //            internal var sixteen = 16.dpToPixels()
-//
-//            override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State?) {
-//                val position = parent.getChildAdapterPosition(view)
-//                outRect.set(sixteen, eight, sixteen, if (position == adapter.itemCount - 1) eight else 0)
-//            }
-//        })
+            val paint = Paint()
+
+            init {
+                paint.color = resources.getColor(R.color.feint_gray)
+            }
+
+            override fun onDraw(c: Canvas, parent: RecyclerView, state: RecyclerView.State?) {
+                super.onDraw(c, parent, state)
+                val left = parent.paddingLeft + 16.dpToPixels().toFloat()
+                val right = parent.width - parent.paddingRight.toFloat()
+                val childCount = parent.childCount
+                for (i in 0..childCount - 1) {
+                    val child = parent.getChildAt(i)
+                    val params = child
+                            .layoutParams as RecyclerView.LayoutParams
+                    val top = child.bottom + params.bottomMargin.toFloat()
+                    val bottom = top + 1.dpToPixels()
+                    c.drawRect(left, top, right, bottom, paint)
+                }
+            }
+        })
         swipeRefreshLayout.setOnRefreshListener { sync() }
         sync()
         list.adapter = adapter
@@ -99,6 +118,9 @@ class NoteListFragment : Fragment() {
         })
     }
 
+    fun startNewNote() {
+        startActivityForResult(Intent(activity, NoteActivity::class.java), REQ_EDIT_NOTE)
+    }
 
     inner class NoteHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 

@@ -8,6 +8,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
 import kotlinx.android.synthetic.main.activity_main.*
+import org.standardnotes.notes.frag.NoteListFragment
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,8 +23,12 @@ class MainActivity : AppCompatActivity() {
         title = "Standard Notes"
 
         fab.setOnClickListener { view ->
-            startActivity(Intent(this, NoteActivity::class.java))
+            (supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment).startNewNote()
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
