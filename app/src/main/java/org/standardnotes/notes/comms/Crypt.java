@@ -122,6 +122,7 @@ public class Crypt {
             Note justUnencContent = new Note();
             justUnencContent.setTitle(note.getTitle());
             justUnencContent.setText(note.getText());
+            justUnencContent.setReferences(note.getReferences());
             String contentJson = SApplication.Companion.getInstance().getGson().toJson(justUnencContent);
             String contentEnc = "001" + encrypt(contentJson, keys.ek);
             String hash = createHash(contentEnc, keys.ak);

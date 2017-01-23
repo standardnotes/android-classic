@@ -1,8 +1,6 @@
 
 package org.standardnotes.notes.comms.data;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.annotation.Generated;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -25,9 +23,6 @@ public class Note
     @SerializedName("text")
     @Expose
     private String text;
-    @SerializedName("references")
-    @Expose
-    private List<Reference> references = new ArrayList<Reference>();
 
     /**
      * 
@@ -63,24 +58,6 @@ public class Note
      */
     public void setText(String text) {
         this.text = text;
-    }
-
-    /**
-     * 
-     * @return
-     *     The references
-     */
-    public List<Reference> getReferences() {
-        return references;
-    }
-
-    /**
-     * 
-     * @param references
-     *     The references
-     */
-    public void setReferences(List<Reference> references) {
-        this.references = references;
     }
 
 }

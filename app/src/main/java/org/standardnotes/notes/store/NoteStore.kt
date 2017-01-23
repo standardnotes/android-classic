@@ -3,6 +3,7 @@ package org.standardnotes.notes.store
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.google.gson.reflect.TypeToken
 import org.joda.time.DateTime
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
@@ -39,10 +40,6 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     private val KEY_TEXT = "TEXT"
     private val KEY_DIRTY = "DIRTY"
 
-    private val TABLE_NOTE_TAG = "NOTE_TAG"
-    private val KEY_NOTE_UUID = "NOTE_ID"
-    private val KEY_TAG_UUID = "TAG_ID"
-
     private val TABLE_TAG = "TAG"
     // also contains KEY_TITLE, KEY_UUID
 
@@ -52,17 +49,16 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     private val KEY_ENC_ITEM_KEY = "ENC_ITEM_KEY"
     private val KEY_PRESENTATION_NAME = "PRESENTATION_NAME"
     private val KEY_DELETED = "DELETED"
+    private val KEY_REFERENCES = "REFS"
     // also contains KEY_UUID
 
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE $TABLE_NOTE ($KEY_UUID TEXT, $KEY_TITLE TEXT, $KEY_TEXT TEXT)")
         db.execSQL("CREATE TABLE $TABLE_TAG ($KEY_UUID TEXT, $KEY_TITLE TEXT)")
-        db.execSQL("CREATE TABLE $TABLE_NOTE_TAG ($KEY_NOTE_UUID TEXT, $KEY_TAG_UUID TEXT)")
-        db.execSQL("CREATE TABLE $TABLE_ENCRYPTABLE ($KEY_UUID TEXT, $KEY_CREATED_AT INTEGER, $KEY_UPDATED_AT INTEGER, $KEY_ENC_ITEM_KEY TEXT, $KEY_PRESENTATION_NAME TEXT, $KEY_DELETED BOOLEAN, $KEY_DIRTY BOOLEAN)")
+        db.execSQL("CREATE TABLE $TABLE_ENCRYPTABLE ($KEY_UUID TEXT, $KEY_CREATED_AT INTEGER, $KEY_UPDATED_AT INTEGER, $KEY_ENC_ITEM_KEY TEXT, $KEY_PRESENTATION_NAME TEXT, $KEY_DELETED BOOLEAN, $KEY_DIRTY BOOLEAN, $KEY_REFERENCES TEXT)")
 
         db.execSQL("CREATE INDEX IDX_NOTE ON $TABLE_NOTE ($KEY_UUID)")
-        db.execSQL("CREATE INDEX IDX_NOTE_TAG ON $TABLE_NOTE_TAG ($KEY_NOTE_UUID, $KEY_TAG_UUID)")
         db.execSQL("CREATE INDEX IDX_TAG ON $TABLE_TAG ($KEY_UUID)")
         db.execSQL("CREATE INDEX IDX_ENCRTYPTABLE ON $TABLE_ENCRYPTABLE ($KEY_UUID)")
     }
@@ -78,7 +74,6 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             db.beginTransaction()
             db.delete(TABLE_NOTE, "$KEY_UUID=?", arrayOf(uuid))
             db.delete(TABLE_ENCRYPTABLE, "$KEY_UUID=?", arrayOf(uuid))
-            db.delete(TABLE_NOTE_TAG, "$KEY_NOTE_UUID=?", arrayOf(uuid))
             if (item != null && !item.deleted) {
                 db.insert(TABLE_NOTE, null, ContentValues().apply {
                     put(KEY_UUID, item.uuid)
@@ -86,14 +81,6 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                     put(KEY_TEXT, item.text)
                 })
                 insertEncryptable(db, item)
-                item.references
-                        .filter { ContentType.valueOf(it.contentType) == ContentType.Tag }
-                        .forEach {
-                            db.insert(TABLE_NOTE_TAG, null, ContentValues().apply {
-                                put(KEY_NOTE_UUID, item.uuid)
-                                put(KEY_TAG_UUID, it.uuid)
-                            })
-                        }
             }
             db.setTransactionSuccessful()
             db.endTransaction()
@@ -127,6 +114,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             put(KEY_PRESENTATION_NAME, item.presentationName)
             put(KEY_DELETED, item.deleted)
             put(KEY_DIRTY, item.dirty)
+            put(KEY_REFERENCES, SApplication.instance!!.gson.toJson(item.references))
         })
     }
 
@@ -149,6 +137,8 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 note.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
                 note.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
                 note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
+                val listType = object : TypeToken<List<Reference>>() {}.type
+                note.references = SApplication.instance!!.gson.fromJson(cur.getString(cur.getColumnIndex(KEY_REFERENCES)), listType)
                 items.add(note)
             }
             items.sortByDescending { it.updatedAt }
@@ -165,23 +155,28 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     }
 
     fun getTagsForNote(noteUuid: String): List<Tag> {
+        val note = getNote(noteUuid)
         val db = readableDatabase
         db.use {
-            val cur = db.rawQuery("SELECT * FROM $TABLE_TAG n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID" +
-                    " INNER JOIN $TABLE_NOTE_TAG nt ON nt.$KEY_TAG_UUID=n.$KEY_UUID" +
-                    " WHERE nt.$KEY_NOTE_UUID=?", arrayOf(noteUuid))
-            val items = ArrayList<Tag>(cur.count)
-            while (cur.moveToNext()) {
-                val tag = Tag()
-                tag.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
-                tag.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
-                tag.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
-                tag.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
-                tag.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
-                tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
-                tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
-                tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
-                items.add(tag)
+            val items = ArrayList<Tag>(note?.references?.size ?: 0)
+            note?.references?.filter { it.contentType == ContentType.Tag.toString() }
+                    ?.forEach {
+                val cur = db.rawQuery("SELECT * FROM $TABLE_TAG n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID" +
+                        " WHERE n.$KEY_UUID=?", arrayOf(it.uuid))
+                while (cur.moveToNext()) {
+                    val tag = Tag()
+                    tag.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
+                    tag.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
+                    tag.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
+                    tag.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
+                    tag.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
+                    tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
+                    tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                    tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
+                    val listType = object : TypeToken<List<Reference>>() {}.type
+                    tag.references = SApplication.instance!!.gson.fromJson(cur.getString(cur.getColumnIndex(KEY_REFERENCES)), listType)
+                    items.add(tag)
+                }
             }
             return items
         }
@@ -276,7 +271,6 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         writableDatabase.use {
             writableDatabase.delete(TABLE_NOTE, null, null)
             writableDatabase.delete(TABLE_TAG, null, null)
-            writableDatabase.delete(TABLE_NOTE_TAG, null, null)
             writableDatabase.delete(TABLE_ENCRYPTABLE, null, null)
         }
         close()
