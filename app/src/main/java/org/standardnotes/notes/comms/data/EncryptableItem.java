@@ -33,7 +33,10 @@ public class EncryptableItem {
     private String presentationName = null;
     @SerializedName("deleted")
     @Expose
-    private Boolean deleted;
+    private Boolean deleted = false;
+    @SerializedName("dirty")
+    @Expose
+    private Boolean dirty = false;
 
     /**
      * 
@@ -141,6 +144,24 @@ public class EncryptableItem {
      */
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
+    }
+
+    /**
+     * 
+     * @return
+     *     The dirty
+     */
+    public Boolean getDirty() {
+        return dirty;
+    }
+
+    /**
+     * 
+     * @param dirty
+     *     The dirty
+     */
+    public void setDirty(Boolean dirty) {
+        this.dirty = dirty;
     }
 
 }

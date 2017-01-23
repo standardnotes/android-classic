@@ -28,6 +28,12 @@
 
         </android.support.design.widget.TextInputLayout>
 
+        <HorizontalScrollView
+            android:id="@+id/tagsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
         <EditText
             android:id="@+id/bodyEdit"
             android:layout_width="match_parent"

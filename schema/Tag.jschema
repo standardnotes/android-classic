@@ -8,9 +8,6 @@
 	"properties": {
         "title": {
 			"type": "string"
-		},
-        "dirty": {
-		    "type": "boolean"
 		}
 	}
 }

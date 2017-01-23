@@ -75,6 +75,7 @@ class NoteListFragment : Fragment() {
             }
         })
         swipeRefreshLayout.setOnRefreshListener { sync() }
+        notes = ArrayList(SApplication.instance!!.noteStore.notesList)
         sync()
         list.adapter = adapter
     }
@@ -144,7 +145,7 @@ class NoteListFragment : Fragment() {
         init {
             itemView.setOnClickListener {
                 val intent: Intent = Intent(activity, NoteActivity::class.java)
-                intent.putExtra("note", SApplication.instance!!.gson.toJson(note))
+                intent.putExtra("noteId", note?.uuid)
                 startActivityForResult(intent, REQ_EDIT_NOTE)
             }
         }

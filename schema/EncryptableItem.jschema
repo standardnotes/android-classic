@@ -22,7 +22,12 @@
 		    "default": null
 		},
         "deleted": {
-		    "type": "boolean"
+		    "type": "boolean",
+		    "default": false
+		},
+        "dirty": {
+		    "type": "boolean",
+		    "default": false
 		}
 	}
 }

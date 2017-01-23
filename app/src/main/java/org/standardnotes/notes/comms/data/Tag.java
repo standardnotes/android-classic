@@ -20,9 +20,6 @@ public class Tag
     @SerializedName("title")
     @Expose
     private String title;
-    @SerializedName("dirty")
-    @Expose
-    private Boolean dirty;
 
     /**
      * 
@@ -40,24 +37,6 @@ public class Tag
      */
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    /**
-     * 
-     * @return
-     *     The dirty
-     */
-    public Boolean getDirty() {
-        return dirty;
-    }
-
-    /**
-     * 
-     * @param dirty
-     *     The dirty
-     */
-    public void setDirty(Boolean dirty) {
-        this.dirty = dirty;
     }
 
 }

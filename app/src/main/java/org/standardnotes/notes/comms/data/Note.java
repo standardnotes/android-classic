@@ -28,9 +28,6 @@ public class Note
     @SerializedName("references")
     @Expose
     private List<Reference> references = new ArrayList<Reference>();
-    @SerializedName("dirty")
-    @Expose
-    private Boolean dirty;
 
     /**
      * 
@@ -84,24 +81,6 @@ public class Note
      */
     public void setReferences(List<Reference> references) {
         this.references = references;
-    }
-
-    /**
-     * 
-     * @return
-     *     The dirty
-     */
-    public Boolean getDirty() {
-        return dirty;
-    }
-
-    /**
-     * 
-     * @param dirty
-     *     The dirty
-     */
-    public void setDirty(Boolean dirty) {
-        this.dirty = dirty;
     }
 
 }

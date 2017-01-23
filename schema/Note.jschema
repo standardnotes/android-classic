@@ -18,9 +18,6 @@
                 "javaType": "com.standardnote.notes.comms.data.Reference",
                 "$ref": "Reference.jschema"
             }
-		},
-        "dirty": {
-		    "type": "boolean"
 		}
 	}
 }

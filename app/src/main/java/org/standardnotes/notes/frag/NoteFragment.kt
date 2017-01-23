@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.data.Note
@@ -12,6 +13,7 @@ import org.standardnotes.notes.comms.data.Note
 import kotlinx.android.synthetic.main.frag_note.*
 import org.joda.time.DateTime
 import org.standardnotes.notes.comms.Crypt
+import org.standardnotes.notes.comms.data.Tag
 import java.util.*
 
 /**
@@ -21,10 +23,15 @@ import java.util.*
 class NoteFragment : Fragment() {
 
     var note: Note? = null
+    var tags: List<Tag> = Collections.emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        note = SApplication.instance!!.gson.fromJson(arguments?.getString("note"), Note::class.java)
+        val noteUuid = arguments?.getString("noteId")
+        if (noteUuid != null) {
+            note = SApplication.instance!!.noteStore.getNote(noteUuid)
+            tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -36,6 +43,14 @@ class NoteFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         titleEdit.setText(note?.title)
         bodyEdit.setText(note?.text)
+        if (tags.count() > 0) {
+            tagsLayout.visibility = View.VISIBLE
+            tags.forEach {
+                val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag, tagsLayout, false)
+                (tagItem.findViewById(R.id.tagText) as TextView).text = it.title
+                tagsLayout.addView(tagItem)
+            }
+        }
         titleLayout.isHintAnimationEnabled = true
     }
 
@@ -46,9 +61,12 @@ class NoteFragment : Fragment() {
             if (note == null) {
                 note = newNote()
             }
-            note!!.title = titleEdit.text.toString()
-            note!!.text = bodyEdit.text.toString()
-            SApplication.instance!!.noteStore.setDirty(note!!)
+            if (note!!.title != titleEdit.text.toString() ||
+                    note!!.text != bodyEdit.text.toString()) {
+                note!!.title = titleEdit.text.toString()
+                note!!.text = bodyEdit.text.toString()
+                SApplication.instance!!.noteStore.setDirty(note!!)
+            }
         }
     }
 

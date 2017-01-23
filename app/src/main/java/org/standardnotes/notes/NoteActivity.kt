@@ -15,14 +15,12 @@ import org.standardnotes.notes.frag.NoteFragment
 
 class NoteActivity : AppCompatActivity() {
 
-    var note: Note? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE,
                 WindowManager.LayoutParams.FLAG_SECURE)
-        note = SApplication.instance!!.gson.fromJson(intent.getStringExtra("note"), Note::class.java)
-        title = note?.title ?: "New note"
+//        val noteId = intent.getStringExtra("noteId")
+        //title = note?.title ?: "New note"
         val frag: NoteFragment = NoteFragment()
         frag.arguments = intent.extras
         supportFragmentManager.beginTransaction().replace(android.R.id.content, frag).commit()
