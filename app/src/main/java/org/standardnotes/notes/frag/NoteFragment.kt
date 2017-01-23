@@ -44,7 +44,7 @@ class NoteFragment : Fragment() {
         titleEdit.setText(note?.title)
         bodyEdit.setText(note?.text)
         if (tags.count() > 0) {
-            tagsLayout.visibility = View.VISIBLE
+            (tagsLayout.parent as View).visibility = View.VISIBLE
             tags.forEach {
                 val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag, tagsLayout, false)
                 (tagItem.findViewById(R.id.tagText) as TextView).text = it.title

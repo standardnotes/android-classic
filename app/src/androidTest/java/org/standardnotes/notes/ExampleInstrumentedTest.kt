@@ -13,6 +13,7 @@ import org.standardnotes.notes.comms.data.Tag
 import org.standardnotes.notes.store.NoteStore
 
 import org.junit.Assert.*
+import org.junit.Before
 import org.standardnotes.notes.comms.data.ContentType
 import org.standardnotes.notes.comms.data.Reference
 import java.util.*
@@ -24,13 +25,14 @@ import java.util.*
  */
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
-    @Test
+    @Before
     @Throws(Exception::class)
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
 
-        assertEquals("org.standardnotes.notes", appContext.packageName)
+        assertEquals("Run tests with the dummy product flavor, otherwise you will write over your app data",
+                "org.standardnotes.notes.buildfortest", appContext.packageName)
     }
 
     @Test
@@ -46,7 +48,7 @@ class ExampleInstrumentedTest {
         n.updatedAt = time
         ns.putNote(n.uuid, n)
         val n1 = ns.getNote(n.uuid)
-        Assert.assertEquals(n.uuid, n1!!.uuid)
+        assertEquals(n.uuid, n1!!.uuid)
         Assert.assertEquals(n.title, n1.title)
         Assert.assertEquals(n.text, n1.text)
         Assert.assertEquals(n.createdAt, n1.createdAt)
@@ -73,8 +75,8 @@ class ExampleInstrumentedTest {
     fun noteStoreWithTag() {
         val ns = SApplication.instance!!.noteStore
         val n = Note()
-        n.text = "text"
-        n.title = "title"
+        n.text = UUID.randomUUID().toString()
+        n.title = UUID.randomUUID().toString()
         n.uuid = UUID.randomUUID().toString()
         n.encItemKey = "123"
         val time = DateTime.now()
@@ -82,7 +84,7 @@ class ExampleInstrumentedTest {
         n.updatedAt = time
 
         val t = Tag()
-        t.title = "title"
+        t.title = UUID.randomUUID().toString()
         t.uuid = UUID.randomUUID().toString()
         t.encItemKey = "123"
         t.createdAt = time
@@ -105,5 +107,6 @@ class ExampleInstrumentedTest {
         val t1 = ns.getTagsForNote(n.uuid)
         Assert.assertEquals(1, t1.count())
         Assert.assertEquals(ref.uuid, t1[0].uuid)
+        Assert.assertEquals(n.references[0].uuid, t1[0].uuid)
     }
 }

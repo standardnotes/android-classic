@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fillViewport="true">
 
     <LinearLayout
@@ -14,32 +14,46 @@
             android:id="@+id/titleLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:hintAnimationEnabled="false"
-            android:hint="Title">
+            android:hint="Title"
+            app:hintAnimationEnabled="false">
 
             <EditText
                 android:id="@+id/titleEdit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:inputType="textCapWords"
                 android:imeOptions="actionNext"
-                />
+                android:inputType="textCapWords"
+                android:maxLines="1" />
 
         </android.support.design.widget.TextInputLayout>
 
-        <HorizontalScrollView
-            android:id="@+id/tagsLayout"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="gone" />
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:paddingLeft="4dp"
+                android:text="Tags:"/>
+
+            <HorizontalScrollView
+                android:id="@+id/tagsLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+        </LinearLayout>
 
         <EditText
             android:id="@+id/bodyEdit"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="top"
-            android:hint="Text"/>
+            android:hint="Text" />
 
     </LinearLayout>
 
