@@ -7,8 +7,10 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
+import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -147,6 +149,19 @@ class NoteListFragment : Fragment() {
                 val intent: Intent = Intent(activity, NoteActivity::class.java)
                 intent.putExtra("noteId", note?.uuid)
                 startActivityForResult(intent, REQ_EDIT_NOTE)
+            }
+            itemView.setOnLongClickListener {
+                val popup = PopupMenu(activity, itemView)
+                popup.menu.add("Delete")
+                popup.setOnMenuItemClickListener {
+                    SApplication.instance!!.noteStore.deleteItem(note!!.uuid)
+                    notes = ArrayList(SApplication.instance!!.noteStore.notesList)
+                    adapter.notifyDataSetChanged()
+                    sync()
+                    true
+                }
+                popup.show()
+                true
             }
         }
     }

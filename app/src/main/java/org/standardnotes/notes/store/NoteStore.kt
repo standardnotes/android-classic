@@ -31,7 +31,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     val notesList: List<Note>
         get() = getAllNotes()
 
-    val toSave: Collection<Note>
+    val toSave: Collection<Note> // TODO inefficient, convert to query
         get() = getAllNotes().filter { it.dirty == true }
 
     private val TABLE_NOTE = "NOTE"
@@ -118,6 +118,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         })
     }
 
+    // TODO: should we display notes that are deleted but that deletion is not synced with the server?
     fun getAllNotes(uuid: String?): List<Note> {
         val db = readableDatabase
         db.use {
@@ -128,6 +129,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             val items = ArrayList<Note>(cur.count)
             while (cur.moveToNext()) {
                 val note = Note()
+                note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
                 note.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
                 note.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
                 note.text = cur.getString(cur.getColumnIndex(KEY_TEXT))
@@ -136,7 +138,6 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 note.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
                 note.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
                 note.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
-                note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
                 val listType = object : TypeToken<List<Reference>>() {}.type
                 note.references = SApplication.instance!!.gson.fromJson(cur.getString(cur.getColumnIndex(KEY_REFERENCES)), listType)
                 items.add(note)
@@ -161,23 +162,23 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             val items = ArrayList<Tag>(note?.references?.size ?: 0)
             note?.references?.filter { it.contentType == ContentType.Tag.toString() }
                     ?.forEach {
-                val cur = db.rawQuery("SELECT * FROM $TABLE_TAG n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID" +
-                        " WHERE n.$KEY_UUID=?", arrayOf(it.uuid))
-                while (cur.moveToNext()) {
-                    val tag = Tag()
-                    tag.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
-                    tag.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
-                    tag.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
-                    tag.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
-                    tag.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
-                    tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
-                    tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
-                    tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
-                    val listType = object : TypeToken<List<Reference>>() {}.type
-                    tag.references = SApplication.instance!!.gson.fromJson(cur.getString(cur.getColumnIndex(KEY_REFERENCES)), listType)
-                    items.add(tag)
-                }
-            }
+                        val cur = db.rawQuery("SELECT * FROM $TABLE_TAG n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID" +
+                                " WHERE n.$KEY_UUID=?", arrayOf(it.uuid))
+                        while (cur.moveToNext()) {
+                            val tag = Tag()
+                            tag.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
+                            tag.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
+                            tag.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
+                            tag.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
+                            tag.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
+                            tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
+                            tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                            tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
+                            val listType = object : TypeToken<List<Reference>>() {}.type
+                            tag.references = SApplication.instance!!.gson.fromJson(cur.getString(cur.getColumnIndex(KEY_REFERENCES)), listType)
+                            items.add(tag)
+                        }
+                    }
             return items
         }
     }
@@ -214,6 +215,21 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         return getAllTags(null)
     }
 
+    fun deleteItem(uuid: String) {
+        val db = writableDatabase
+        db.use {
+            db.beginTransaction()
+            db.update(TABLE_ENCRYPTABLE,
+                    ContentValues().apply {
+                        put(KEY_DELETED, true)
+                        put(KEY_DIRTY, true)
+                    },
+                    "$KEY_UUID=?", arrayOf(uuid))
+            db.setTransactionSuccessful()
+            db.endTransaction()
+        }
+    }
+
     fun putItems(items: SyncItems) {
         syncToken = items.syncToken
         val allItems = items.retrievedItems + items.savedItems
@@ -223,7 +239,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             if (type == ContentType.Note) {
                 var newNote: Note?
                 if (//newItem.content == null || // HACK until I have delete to clear up accidentally created blank items
-                    newItem.deleted) {
+                newItem.deleted) {
                     newNote = null
                 } else {
                     newNote = Crypt.decryptNote(newItem)
@@ -233,7 +249,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             } else if (type == ContentType.Tag) {
                 var newTag: Tag?
                 if (//newItem.content == null || // HACK until I have delete to clear up accidentally created blank items
-                    newItem.deleted) {
+                newItem.deleted) {
                     newTag = null
                 } else {
                     newTag = Crypt.decryptTag(newItem)
