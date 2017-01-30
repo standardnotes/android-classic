@@ -28,6 +28,7 @@
         </android.support.design.widget.TextInputLayout>
 
         <LinearLayout
+            android:id="@+id/tagsRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -38,13 +39,21 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:paddingLeft="4dp"
-                android:text="Tags:"/>
+                android:text="Tags:" />
 
             <HorizontalScrollView
-                android:id="@+id/tagsLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:id="@+id/tagsLayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    />
+
+            </HorizontalScrollView>
 
         </LinearLayout>
 
