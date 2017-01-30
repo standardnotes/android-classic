@@ -266,7 +266,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         }
     }
 
-    private fun mergeNote(uuid: String, newNote: Note?) {
+    fun mergeNote(uuid: String, newNote: Note?) {
         // TODO if content_type changes, we have a problem
         val old = getNote(uuid)
         if (old != null && newNote != null) {
@@ -286,7 +286,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         oldNote.dirty = false // We're saving so we can clear the dirty flag
     }
 
-    private fun mergeTag(uuid: String, newTag: Tag?) {
+    fun mergeTag(uuid: String, newTag: Tag?) {
         // TODO if content_type changes, we have a problem
         val old = getTag(uuid)
         putTag(uuid, newTag)
@@ -300,19 +300,19 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         }
     }
 
-    @Synchronized fun setDirty(uuids: Array<String>, dirty: Boolean) {
-        val db = writableDatabase
-        db.use {
-            db.beginTransaction()
-            db.update(TABLE_ENCRYPTABLE,
-                    ContentValues().apply {
-                        put(KEY_DIRTY, dirty)
-                    },
-                    "$KEY_UUID=?", uuids)
-            db.setTransactionSuccessful()
-            db.endTransaction()
-        }
-    }
+//    @Synchronized fun setDirty(uuids: Array<String>, dirty: Boolean) {
+//        val db = writableDatabase
+//        db.use {
+//            db.beginTransaction()
+//            db.update(TABLE_ENCRYPTABLE,
+//                    ContentValues().apply {
+//                        put(KEY_DIRTY, dirty)
+//                    },
+//                    "$KEY_UUID=?", uuids)
+//            db.setTransactionSuccessful()
+//            db.endTransaction()
+//        }
+//    }
 
     @Synchronized fun notesToSaveCount(): Int {
         return toSave.size

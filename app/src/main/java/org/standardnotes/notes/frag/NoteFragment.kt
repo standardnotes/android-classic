@@ -67,6 +67,7 @@ class NoteFragment : Fragment() {
                 noteV.title = titleEdit.text.toString()
                 noteV.text = bodyEdit.text.toString()
                 noteV.dirty = true
+                noteV.updatedAt = DateTime.now()
                 SApplication.instance!!.noteStore.putNote(noteV.uuid, noteV)
             }
         }

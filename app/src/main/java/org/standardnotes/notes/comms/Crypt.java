@@ -116,7 +116,6 @@ public class Crypt {
         try {
             EncryptedItem item = new EncryptedItem();
             copyInEncryptableItemFields(note, item);
-            item.setUpdatedAt(DateTime.now());
             item.setContentType("Note");
             Keys keys = Crypt.getItemKeys(item);
             Note justUnencContent = new Note();
