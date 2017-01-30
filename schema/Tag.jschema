@@ -7,7 +7,8 @@
     },
 	"properties": {
         "title": {
-			"type": "string"
+			"type": "string",
+			"default": ""
 		}
 	}
 }

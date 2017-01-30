@@ -21,4 +21,7 @@ class ValueStore(context: Context) {
     val token: String?
         get() = prefs.getString("token", null)
 
+    var syncToken: String?
+        get() = prefs.getString("syncToken", null)
+        set(token) { prefs.edit().putString("syncToken", token).apply() }
 }

@@ -61,11 +61,13 @@ class NoteFragment : Fragment() {
             if (note == null) {
                 note = newNote()
             }
-            if (note!!.title != titleEdit.text.toString() ||
-                    note!!.text != bodyEdit.text.toString()) {
-                note!!.title = titleEdit.text.toString()
-                note!!.text = bodyEdit.text.toString()
-                SApplication.instance!!.noteStore.setDirty(note!!)
+            val noteV = note!!
+            if (noteV.title != titleEdit.text.toString() ||
+                    noteV.text != bodyEdit.text.toString()) {
+                noteV.title = titleEdit.text.toString()
+                noteV.text = bodyEdit.text.toString()
+                noteV.dirty = true
+                SApplication.instance!!.noteStore.putNote(noteV.uuid, noteV)
             }
         }
     }

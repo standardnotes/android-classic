@@ -19,7 +19,7 @@ public class Tag
 
     @SerializedName("title")
     @Expose
-    private String title;
+    private String title = "";
 
     /**
      * 

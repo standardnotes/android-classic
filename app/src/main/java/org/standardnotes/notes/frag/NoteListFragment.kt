@@ -100,7 +100,7 @@ class NoteListFragment : Fragment() {
     fun sync() {
         swipeRefreshLayout.isRefreshing = true
         val uploadSyncItems = UploadSyncItems()
-        uploadSyncItems.syncToken = SApplication.instance!!.noteStore.syncToken
+        uploadSyncItems.syncToken = SApplication.instance!!.valueStore.syncToken
         val dirtyItems = SApplication.instance!!.noteStore.toSave
         dirtyItems
                 .map { Crypt.encrypt(it) }

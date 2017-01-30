@@ -13,7 +13,7 @@ enum class ContentType {
 
 }
 
-fun contentTypeFromString(str: String): ContentType? {
+fun contentTypeFromString(str: String?): ContentType? {
     if (str == "Note") return ContentType.Note
     if (str == "Tag") return ContentType.Tag
     return null
