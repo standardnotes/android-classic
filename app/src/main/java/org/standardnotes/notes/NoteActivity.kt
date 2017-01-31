@@ -21,9 +21,11 @@ class NoteActivity : AppCompatActivity() {
                 WindowManager.LayoutParams.FLAG_SECURE)
 //        val noteId = intent.getStringExtra("noteId")
         //title = note?.title ?: "New note"
-        val frag: NoteFragment = NoteFragment()
-        frag.arguments = intent.extras
-        supportFragmentManager.beginTransaction().replace(android.R.id.content, frag).commit()
+        if (savedInstanceState == null) {
+            val frag: NoteFragment = NoteFragment()
+            frag.arguments = intent.extras
+            supportFragmentManager.beginTransaction().replace(android.R.id.content, frag).commit()
+        }
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }

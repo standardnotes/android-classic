@@ -41,8 +41,10 @@ class NoteFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        titleEdit.setText(note?.title)
-        bodyEdit.setText(note?.text)
+        if (savedInstanceState == null) {
+            titleEdit.setText(note?.title)
+            bodyEdit.setText(note?.text)
+        }
         if (tags.count() > 0) {
             tagsRow.visibility = View.VISIBLE
             tags.forEach {
