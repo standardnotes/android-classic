@@ -3,10 +3,6 @@ package org.standardnotes.notes.store
 import android.content.Context
 import android.content.SharedPreferences
 
-/**
- * Created by carl on 03/01/17.
- */
-
 class ValueStore(context: Context) {
 
     private val prefs: SharedPreferences = context.getSharedPreferences("values", Context.MODE_PRIVATE)

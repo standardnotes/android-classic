@@ -10,10 +10,6 @@ import org.standardnotes.notes.comms.CommsManager
 import org.standardnotes.notes.store.NoteStore
 import org.standardnotes.notes.store.ValueStore
 
-/**
- * Created by carl on 03/01/17.
- */
-
 class SApplication : Application() {
     val comms: CommsManager by lazy { CommsManager("https://n3.standardnotes.org") }
     val valueStore: ValueStore by lazy { ValueStore(this) }
@@ -31,5 +27,4 @@ class SApplication : Application() {
         var instance: SApplication? = null
             private set
     }
-
 }

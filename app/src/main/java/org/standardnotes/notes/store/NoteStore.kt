@@ -10,11 +10,6 @@ import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.*
 import java.util.*
 
-/**
- * Created by carl on 17/01/17.
- */
-
-
 val CURRENT_DB_VERSION: Int = 1
 
 // TODO move this to async access
@@ -328,8 +323,6 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         close()
         SApplication.instance!!.deleteDatabase("note")
     }
-
-
 }
 
 private fun EncryptedItem.isValid(): Boolean {

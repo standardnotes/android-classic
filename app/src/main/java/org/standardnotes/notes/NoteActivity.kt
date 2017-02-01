@@ -6,12 +6,7 @@ import android.support.v4.app.NavUtils
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import android.view.WindowManager
-import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.frag.NoteFragment
-
-/**
- * Created by carl on 15/01/17.
- */
 
 class NoteActivity : AppCompatActivity() {
 
@@ -41,5 +36,4 @@ class NoteActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-
 }
