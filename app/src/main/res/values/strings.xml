@@ -10,5 +10,11 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
+    <string name="error_incorrect_details">Incorrect details</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="action_logout">Log out</string>
+
+    <!-- Strings related to notes -->
+    <string name="action_delete">Delete</string>
+    <string name="error_fail_sync">Failed to sync</string>
 </resources>
