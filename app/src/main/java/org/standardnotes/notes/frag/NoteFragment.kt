@@ -23,7 +23,7 @@ class NoteFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val noteUuid = arguments?.getString("noteId")
+        val noteUuid = arguments?.getString(NoteListFragment.NOTE_FRAGMENT_INTENT)
         if (noteUuid != null) {
             note = SApplication.instance!!.noteStore.getNote(noteUuid)
             tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
