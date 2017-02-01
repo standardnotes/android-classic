@@ -39,7 +39,6 @@ dependencies {
     })
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-
     compile 'org.glassfish:javax.annotation:10.0-b28'
     compile 'com.android.support:appcompat-v7:25.1.0'
     compile 'com.android.support:design:25.1.0'

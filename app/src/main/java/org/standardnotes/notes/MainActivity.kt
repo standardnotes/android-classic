@@ -47,8 +47,4 @@ class MainActivity : AppCompatActivity() {
         finish()
         return true
     }
-
-
-
-
 }

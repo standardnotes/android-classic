@@ -16,10 +16,6 @@ import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.Tag
 import java.util.*
 
-/**
- * Created by carl on 15/01/17.
- */
-
 class NoteFragment : Fragment() {
 
     var note: Note? = null
@@ -74,8 +70,6 @@ class NoteFragment : Fragment() {
             }
         }
     }
-
-
 }
 
 fun newNote(): Note {

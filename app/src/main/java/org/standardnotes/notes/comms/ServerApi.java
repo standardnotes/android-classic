@@ -13,10 +13,6 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 
-/**
- * Created by carl on 04/01/17.
- */
-
 public interface ServerApi {
 
     @GET("/api/auth/params/")
@@ -28,5 +24,4 @@ public interface ServerApi {
 
     @POST("/api/items/sync/")
     Call<SyncItems> sync(@Body UploadSyncItems data);
-
 }
