@@ -21,4 +21,8 @@ class ValueStore(context: Context) {
     val token: String?
         get() = prefs.getString("token", null)
 
+    var server: String?
+        get() = prefs.getString("server", null)
+        set(value) { prefs.edit().putString("server", value).apply() }
+
 }
