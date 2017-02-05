@@ -19,10 +19,10 @@ public class Note
 
     @SerializedName("title")
     @Expose
-    private String title;
+    private String title = "";
     @SerializedName("text")
     @Expose
-    private String text;
+    private String text = "";
 
     /**
      * 

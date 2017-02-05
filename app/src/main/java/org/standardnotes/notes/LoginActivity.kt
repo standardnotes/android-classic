@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
-import android.view.View.OnClickListener
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -22,7 +21,6 @@ import retrofit2.Response
  * A login screen that offers login via email/password.
  */
 class LoginActivity : AppCompatActivity() {
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +65,7 @@ class LoginActivity : AppCompatActivity() {
                                 }
                             })
                         } catch (e: Exception) {
+                            Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                             e.printStackTrace()
                         }
 
@@ -83,7 +82,5 @@ class LoginActivity : AppCompatActivity() {
             }
         }
     }
-
-
 }
 

@@ -2,7 +2,6 @@ package org.standardnotes.notes.comms;
 
 import android.util.Base64;
 
-import org.joda.time.DateTime;
 import org.spongycastle.crypto.digests.SHA512Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
@@ -25,10 +24,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import kotlin.text.Charsets;
-
-/**
- * Created by carl on 14/01/17.
- */
 
 public class Crypt {
 
@@ -60,7 +55,6 @@ public class Crypt {
         return encrypt(keyHex, SApplication.Companion.getInstance().getValueStore().getMasterKey());
     }
 
-
     public static Keys getItemKeys(EncryptedItem item) throws Exception {
         String itemKey = decrypt(item.getEncItemKey(), SApplication.Companion.getInstance().getValueStore().getMasterKey());
         Keys val = new Keys();
@@ -89,8 +83,6 @@ public class Crypt {
         return base64Encr;
     }
 
-
-
     final protected static char[] hexArray = "0123456789abcdef".toCharArray();
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
@@ -116,7 +108,6 @@ public class Crypt {
         try {
             EncryptedItem item = new EncryptedItem();
             copyInEncryptableItemFields(note, item);
-            item.setUpdatedAt(DateTime.now());
             item.setContentType("Note");
             Keys keys = Crypt.getItemKeys(item);
             Note justUnencContent = new Note();
@@ -143,8 +134,6 @@ public class Crypt {
         return tagDecryptor.decrypt(item);
     }
 
-
-
     private static String createHash(String text, String ak) throws NoSuchAlgorithmException, InvalidKeyException {
         // TODO make use spongycastle
         byte[] contentData = text.getBytes(Charsets.UTF_8);
@@ -154,7 +143,6 @@ public class Crypt {
         sha256_HMAC.init(secret_key);
         return Crypt.bytesToHex(sha256_HMAC.doFinal(contentData));
     }
-
 
     static void copyInEncryptableItemFields(EncryptableItem source, EncryptableItem target) {
         target.setUuid(source.getUuid());
@@ -167,6 +155,7 @@ public class Crypt {
 
     static class ContentDecryptor<T extends EncryptableItem> {
         private Class<T> type;
+
         public ContentDecryptor(Class<T> type) {
             this.type = type;
         }
@@ -202,6 +191,5 @@ public class Crypt {
             return null;
         }
     }
-
 }
 

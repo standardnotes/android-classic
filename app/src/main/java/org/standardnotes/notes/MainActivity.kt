@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
-        title = "Standard Notes"
+        title = getString(R.string.app_name)
 
         fab.setOnClickListener { view ->
             (supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment).startNewNote()
@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         super.onCreateOptionsMenu(menu)
-        val item = menu.add("Log out")
+        val item = menu.add(getString(R.string.action_logout))
         item.setIcon(android.R.drawable.ic_menu_search)
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
         return true
@@ -47,8 +47,4 @@ class MainActivity : AppCompatActivity() {
         finish()
         return true
     }
-
-
-
-
 }

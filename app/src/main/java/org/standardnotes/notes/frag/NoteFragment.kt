@@ -16,10 +16,6 @@ import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.Tag
 import java.util.*
 
-/**
- * Created by carl on 15/01/17.
- */
-
 class NoteFragment : Fragment() {
 
     var note: Note? = null
@@ -27,7 +23,7 @@ class NoteFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val noteUuid = arguments?.getString("noteId")
+        val noteUuid = arguments?.getString(NoteListFragment.NOTE_FRAGMENT_INTENT)
         if (noteUuid != null) {
             note = SApplication.instance!!.noteStore.getNote(noteUuid)
             tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
@@ -41,10 +37,12 @@ class NoteFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        titleEdit.setText(note?.title)
-        bodyEdit.setText(note?.text)
+        if (savedInstanceState == null) {
+            titleEdit.setText(note?.title)
+            bodyEdit.setText(note?.text)
+        }
         if (tags.count() > 0) {
-            (tagsLayout.parent as View).visibility = View.VISIBLE
+            tagsRow.visibility = View.VISIBLE
             tags.forEach {
                 val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag, tagsLayout, false)
                 (tagItem.findViewById(R.id.tagText) as TextView).text = it.title
@@ -61,16 +59,17 @@ class NoteFragment : Fragment() {
             if (note == null) {
                 note = newNote()
             }
-            if (note!!.title != titleEdit.text.toString() ||
-                    note!!.text != bodyEdit.text.toString()) {
-                note!!.title = titleEdit.text.toString()
-                note!!.text = bodyEdit.text.toString()
-                SApplication.instance!!.noteStore.setDirty(note!!)
+            val noteV = note!!
+            if (noteV.title != titleEdit.text.toString() ||
+                    noteV.text != bodyEdit.text.toString()) {
+                noteV.title = titleEdit.text.toString()
+                noteV.text = bodyEdit.text.toString()
+                noteV.dirty = true
+                noteV.updatedAt = DateTime.now()
+                SApplication.instance!!.noteStore.putNote(noteV.uuid, noteV)
             }
         }
     }
-
-
 }
 
 fun newNote(): Note {

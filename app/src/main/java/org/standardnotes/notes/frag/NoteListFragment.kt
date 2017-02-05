@@ -3,14 +3,12 @@ package org.standardnotes.notes.frag
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
-import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -33,12 +31,15 @@ import java.util.*
 
 class NoteListFragment : Fragment() {
 
-
     private val REQ_EDIT_NOTE: Int = 1
 
     val adapter: Adapter by lazy { Adapter() }
 
     var notes = ArrayList<Note>()
+
+    companion object {
+        const val NOTE_FRAGMENT_INTENT = "noteId"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,7 +101,7 @@ class NoteListFragment : Fragment() {
     fun sync() {
         swipeRefreshLayout.isRefreshing = true
         val uploadSyncItems = UploadSyncItems()
-        uploadSyncItems.syncToken = SApplication.instance!!.noteStore.syncToken
+        uploadSyncItems.syncToken = SApplication.instance!!.valueStore.syncToken
         val dirtyItems = SApplication.instance!!.noteStore.toSave
         dirtyItems
                 .map { Crypt.encrypt(it) }
@@ -115,7 +116,7 @@ class NoteListFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<SyncItems>, t: Throwable) {
-                Toast.makeText(activity, "Failed to sync", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, activity.getString(R.string.error_fail_sync), Toast.LENGTH_SHORT).show()
                 swipeRefreshLayout.isRefreshing = false
             }
         })
@@ -147,12 +148,12 @@ class NoteListFragment : Fragment() {
         init {
             itemView.setOnClickListener {
                 val intent: Intent = Intent(activity, NoteActivity::class.java)
-                intent.putExtra("noteId", note?.uuid)
+                intent.putExtra(NOTE_FRAGMENT_INTENT, note?.uuid)
                 startActivityForResult(intent, REQ_EDIT_NOTE)
             }
             itemView.setOnLongClickListener {
                 val popup = PopupMenu(activity, itemView)
-                popup.menu.add("Delete")
+                popup.menu.add(activity.getString(R.string.action_delete))
                 popup.setOnMenuItemClickListener {
                     SApplication.instance!!.noteStore.deleteItem(note!!.uuid)
                     notes = ArrayList(SApplication.instance!!.noteStore.notesList)
@@ -182,5 +183,4 @@ class NoteListFragment : Fragment() {
         }
 
     }
-
 }

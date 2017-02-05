@@ -11,10 +11,6 @@ import org.standardnotes.notes.comms.CommsManager
 import org.standardnotes.notes.store.NoteStore
 import org.standardnotes.notes.store.ValueStore
 
-/**
- * Created by carl on 03/01/17.
- */
-
 class SApplication : Application() {
     private var commsActual: CommsManager? = null
 
@@ -46,5 +42,4 @@ class SApplication : Application() {
         var instance: SApplication? = null
             private set
     }
-
 }

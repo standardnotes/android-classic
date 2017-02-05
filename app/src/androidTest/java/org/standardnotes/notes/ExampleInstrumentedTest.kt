@@ -14,8 +14,10 @@ import org.standardnotes.notes.store.NoteStore
 
 import org.junit.Assert.*
 import org.junit.Before
+import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.ContentType
 import org.standardnotes.notes.comms.data.Reference
+import org.standardnotes.notes.frag.newNote
 import java.util.*
 
 /**
@@ -52,6 +54,21 @@ class ExampleInstrumentedTest {
         Assert.assertEquals(n.title, n1.title)
         Assert.assertEquals(n.text, n1.text)
         Assert.assertEquals(n.createdAt, n1.createdAt)
+
+        n.title = UUID.randomUUID().toString()
+        ns.putNote(n.uuid, n)
+        val changedNote = ns.getNote(n.uuid)
+        Assert.assertEquals(changedNote!!.title, n.title)
+
+        val oldTitle = changedNote.title
+        changedNote.title = UUID.randomUUID().toString()
+        changedNote.updatedAt = DateTime.now()
+        ns.mergeNote(changedNote.uuid, changedNote)
+        val mergedNote = ns.getNote(changedNote.uuid)
+        Assert.assertEquals(oldTitle, mergedNote!!.title)
+        Assert.assertEquals(n.text, mergedNote!!.text)
+        Assert.assertEquals(changedNote.updatedAt, mergedNote.updatedAt)
+
     }
 
     @Test
@@ -108,5 +125,26 @@ class ExampleInstrumentedTest {
         Assert.assertEquals(1, t1.count())
         Assert.assertEquals(ref.uuid, t1[0].uuid)
         Assert.assertEquals(n.references[0].uuid, t1[0].uuid)
+
     }
+
+    @Test
+    fun encrypt() {
+        val mk = "96fbfbace17d0d268cc5a57900fe785e50a40cf7ae2d23a3dcdd2f28d5fd09d8"
+        SApplication.instance!!.valueStore.setTokenAndMasterKey("", mk)
+
+        val n = newNote()
+        n.text = UUID.randomUUID().toString()
+        n.title = UUID.randomUUID().toString()
+
+        val cn = Crypt.encrypt(n)
+        val n2 = Crypt.decryptNote(cn)
+        Assert.assertEquals(n.uuid, n2.uuid)
+        Assert.assertEquals(n.title, n2.title)
+        Assert.assertEquals(n.text, n2.text)
+        Assert.assertEquals(n.createdAt, n2.createdAt)
+        Assert.assertEquals(n.updatedAt, n2.updatedAt)
+
+    }
+
 }

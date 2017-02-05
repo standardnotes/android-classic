@@ -3,12 +3,7 @@ package org.standardnotes.notes.comms
 import com.google.gson.*
 import org.standardnotes.notes.SApplication
 
-import java.io.IOException
-
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
@@ -16,10 +11,6 @@ import org.joda.time.format.ISODateTimeFormat
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
-
-/**
- * Created by carl on 03/01/17.
- */
 
 class CommsManager(serverBaseUrl: String) {
 

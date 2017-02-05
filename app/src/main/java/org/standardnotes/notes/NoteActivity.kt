@@ -6,12 +6,7 @@ import android.support.v4.app.NavUtils
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import android.view.WindowManager
-import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.frag.NoteFragment
-
-/**
- * Created by carl on 15/01/17.
- */
 
 class NoteActivity : AppCompatActivity() {
 
@@ -21,9 +16,11 @@ class NoteActivity : AppCompatActivity() {
                 WindowManager.LayoutParams.FLAG_SECURE)
 //        val noteId = intent.getStringExtra("noteId")
         //title = note?.title ?: "New note"
-        val frag: NoteFragment = NoteFragment()
-        frag.arguments = intent.extras
-        supportFragmentManager.beginTransaction().replace(android.R.id.content, frag).commit()
+        if (savedInstanceState == null) {
+            val frag: NoteFragment = NoteFragment()
+            frag.arguments = intent.extras
+            supportFragmentManager.beginTransaction().replace(android.R.id.content, frag).commit()
+        }
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
@@ -39,5 +36,4 @@ class NoteActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-
 }

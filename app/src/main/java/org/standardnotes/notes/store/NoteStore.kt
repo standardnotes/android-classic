@@ -10,11 +10,6 @@ import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.*
 import java.util.*
 
-/**
- * Created by carl on 17/01/17.
- */
-
-
 val CURRENT_DB_VERSION: Int = 1
 
 // TODO move this to async access
@@ -24,9 +19,6 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
 //    private val noteList = HashMap<String, Note>()
 //    private val tagList = HashMap<String, Tag>()
 
-    var syncToken: String? = null // TODO store this permanently
-        get
-        private set
 
     val notesList: List<Note>
         get() = getAllNotes()
@@ -231,59 +223,98 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     }
 
     fun putItems(items: SyncItems) {
-        syncToken = items.syncToken
-        val allItems = items.retrievedItems + items.savedItems
-        for (newItem in allItems) {
+        SApplication.instance!!.valueStore.syncToken = items.syncToken
+        items.retrievedItems.forEach { putItem(it, false) }
+        items.savedItems.forEach { putItem(it, true) }
+    }
 
-            val type = contentTypeFromString(newItem.contentType)
-            if (type == ContentType.Note) {
-                var newNote: Note?
-                if (//newItem.content == null || // HACK until I have delete to clear up accidentally created blank items
-                newItem.deleted) {
-                    newNote = null
-                } else {
-                    newNote = Crypt.decryptNote(newItem)
-                }
+    private fun putItem(item: EncryptedItem, mergeWithOld: Boolean) {
+        if (!item.isValid()) return
 
-                mergeNote(newItem.uuid, newNote)
-            } else if (type == ContentType.Tag) {
-                var newTag: Tag?
-                if (//newItem.content == null || // HACK until I have delete to clear up accidentally created blank items
-                newItem.deleted) {
-                    newTag = null
-                } else {
-                    newTag = Crypt.decryptTag(newItem)
-                }
+        val type = contentTypeFromString(item.contentType)
+        if (type == ContentType.Note) {
+            var newNote: Note?
+            if (item.deleted) {
+                newNote = null
+            } else {
+                newNote = Crypt.decryptNote(item)
+            }
 
-                mergeTag(newItem.uuid, newTag)
+            if (mergeWithOld) {
+                mergeNote(item.uuid, newNote)
+            } else {
+                putNote(item.uuid, newNote)
+            }
+        } else if (type == ContentType.Tag) {
+            var newTag: Tag?
+            if (item.deleted) {
+                newTag = null
+            } else {
+                newTag = Crypt.decryptTag(item)
+            }
+
+            if (mergeWithOld) {
+                mergeTag(item.uuid, newTag)
+            } else {
+                putTag(item.uuid, newTag)
             }
         }
     }
 
-    private fun mergeNote(uuid: String, newNote: Note?) {
+    fun mergeNote(uuid: String, newNote: Note?) {
+        // TODO if content_type changes, we have a problem
         val old = getNote(uuid)
-        //TODO merge properly
-        putNote(uuid, newNote)
+        if (old != null && newNote != null) {
+            assert(!newNote.deleted)
+            copyMetadataIntoOld(newNote, old)
+            putNote(uuid, old)
+        } else {
+            putNote(uuid, newNote)
+        }
     }
 
-    private fun mergeTag(uuid: String, newTag: Tag?) {
-        //TODO merge properly
+    private fun copyMetadataIntoOld(newNote: EncryptableItem, oldNote: EncryptableItem) {
+        oldNote.presentationName = newNote.presentationName
+        oldNote.createdAt = newNote.createdAt
+        oldNote.references = newNote.references
+        oldNote.updatedAt = newNote.updatedAt
+        oldNote.dirty = false // We're saving so we can clear the dirty flag
+    }
+
+    fun mergeTag(uuid: String, newTag: Tag?) {
+        // TODO if content_type changes, we have a problem
         val old = getTag(uuid)
-        //TODO merge properly
         putTag(uuid, newTag)
+
+        if (old != null && newTag != null) {
+            assert(!newTag.deleted)
+            copyMetadataIntoOld(newTag, old)
+            putTag(uuid, old)
+        } else {
+            putTag(uuid, newTag)
+        }
     }
 
-    @Synchronized fun setDirty(note: Note) {
-        note.dirty = true
-        putNote(note.uuid, note)
-    }
+//    @Synchronized fun setDirty(uuids: Array<String>, dirty: Boolean) {
+//        val db = writableDatabase
+//        db.use {
+//            db.beginTransaction()
+//            db.update(TABLE_ENCRYPTABLE,
+//                    ContentValues().apply {
+//                        put(KEY_DIRTY, dirty)
+//                    },
+//                    "$KEY_UUID=?", uuids)
+//            db.setTransactionSuccessful()
+//            db.endTransaction()
+//        }
+//    }
 
     @Synchronized fun notesToSaveCount(): Int {
         return toSave.size
     }
 
     @Synchronized fun deleteAll() {
-        syncToken = null
+        SApplication.instance!!.valueStore.syncToken = null
         writableDatabase.use {
             writableDatabase.delete(TABLE_NOTE, null, null)
             writableDatabase.delete(TABLE_TAG, null, null)
@@ -292,7 +323,11 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         close()
         SApplication.instance!!.deleteDatabase("note")
     }
+}
 
-
+private fun EncryptedItem.isValid(): Boolean {
+    return (contentTypeFromString(contentType) != null && // Not a type this client understands
+            content != null &&
+            uuid != null)
 }
 

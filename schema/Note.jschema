@@ -7,10 +7,12 @@
     },
 	"properties": {
         "title": {
-			"type": "string"
+			"type": "string",
+			"default": ""
 		},
 		"text": {
-		    "type": "string"
+		    "type": "string",
+		    "default": ""
 		}
 	}
 }
