@@ -17,6 +17,9 @@
         },
 		"pw_salt": {
 			"type": "string"
+		},
+		"pw_nonce": {
+		    "type": "string"
 		}
 	}
 }

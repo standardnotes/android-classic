@@ -76,7 +76,7 @@ fun newNote(): Note {
     // Move to a factory
     val note = Note()
     note.uuid = UUID.randomUUID().toString()
-    note.encItemKey = Crypt.generateKey(512)
+    note.encItemKey = Crypt.generateEncryptedKey(512)
     note.createdAt = DateTime.now()
     note.updatedAt = note.createdAt
     return note

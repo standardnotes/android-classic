@@ -1,18 +1,28 @@
 package org.standardnotes.notes.comms;
 
+import android.content.Context;
+import android.os.AsyncTask;
 import android.util.Base64;
+import android.widget.Toast;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.spongycastle.crypto.digests.SHA512Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.util.encoders.Hex;
+import org.standardnotes.notes.R;
 import org.standardnotes.notes.SApplication;
+import org.standardnotes.notes.comms.data.AuthParamsResponse;
 import org.standardnotes.notes.comms.data.EncryptableItem;
 import org.standardnotes.notes.comms.data.EncryptedItem;
 import org.standardnotes.notes.comms.data.Note;
+import org.standardnotes.notes.comms.data.SigninResponse;
 import org.standardnotes.notes.comms.data.Tag;
 
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -24,6 +34,9 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import kotlin.text.Charsets;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class Crypt {
 
@@ -32,6 +45,90 @@ public class Crypt {
     public static final String HMAC_SHA_256 = "HmacSHA256";
     private static ContentDecryptor<Note> noteDecryptor = new ContentDecryptor<>(Note.class);
     private static ContentDecryptor<Tag> tagDecryptor = new ContentDecryptor<>(Tag.class);
+
+    @NotNull
+    public static boolean isParamsSupported(Context context, AuthParamsResponse params) {
+        if (!"sha512".equals(params.getPwAlg())) {
+            Toast.makeText(context, context.getString(R.string.error_unsupported_algorithm, params.getPwAlg()), Toast.LENGTH_LONG).show();
+            return false;
+        }
+        return true;
+    }
+
+    public static void doLogin(final String email, final String password, final AuthParamsResponse params, final Callback<SigninResponse> callback) {
+        Thread loginThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    byte[] key = Crypt.generateKey(
+                            password.getBytes(Charsets.UTF_8),
+                            params.getPwSalt().getBytes(Charsets.UTF_8),
+                            params.getPwCost(),
+                            params.getPwKeySize());
+                    String fullHashedPassword = Crypt.bytesToHex(key);
+                    String serverHashedPassword = fullHashedPassword.substring(0, fullHashedPassword.length() / 2);
+                    final String mk = fullHashedPassword.substring(fullHashedPassword.length() / 2);
+                    SApplication.Companion.getInstance().getComms().getApi().signin(email, serverHashedPassword).enqueue(new Callback<SigninResponse>() {
+                        @Override
+                        public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
+                            if (response.isSuccessful()) {
+                                SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk);
+                            }
+                            callback.onResponse(call, response);
+                        }
+
+                        @Override
+                        public void onFailure(Call<SigninResponse> call, Throwable t) {
+                            callback.onFailure(call, t);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    callback.onFailure(null, e);
+                }
+            }
+        });
+        loginThread.start();
+    }
+
+    public static void doRegister(final String email, final String password, final Callback<SigninResponse> callback) {
+        Thread loginThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    AuthParamsResponse params = Crypt.getDefaultAuthParams(email);
+                    byte[] key = Crypt.generateKey(
+                            password.getBytes(Charsets.UTF_8),
+                            params.getPwSalt().getBytes(Charsets.UTF_8),
+                            params.getPwCost(),
+                            params.getPwKeySize());
+                    String fullHashedPassword = Crypt.bytesToHex(key);
+                    String serverHashedPassword = fullHashedPassword.substring(0, fullHashedPassword.length() / 2);
+                    final String mk = fullHashedPassword.substring(fullHashedPassword.length() / 2);
+                    SApplication.Companion.getInstance().getComms().getApi().register(email, serverHashedPassword,
+                            params.getPwSalt(), params.getPwNonce(), params.getPwFunc(), params.getPwAlg(), params.getPwCost(), params.getPwKeySize()).enqueue(new Callback<SigninResponse>() {
+                        @Override
+                        public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
+                            if (response.isSuccessful()) {
+                                SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk);
+                            }
+                            callback.onResponse(call, response);
+                        }
+
+                        @Override
+                        public void onFailure(Call<SigninResponse> call, Throwable t) {
+                            callback.onFailure(call, t);
+                        }
+                    });
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    callback.onFailure(null, e);
+                }
+            }
+        });
+        loginThread.start();
+    }
 
     private static class Keys {
         String ek;
@@ -52,7 +149,11 @@ public class Crypt {
         SecureRandom rand = new SecureRandom();
         rand.nextBytes(key);
         String keyHex = bytesToHex(key);
-        return encrypt(keyHex, SApplication.Companion.getInstance().getValueStore().getMasterKey());
+        return keyHex;
+    }
+
+    public static String generateEncryptedKey(int size) throws Exception {
+        return encrypt(generateKey(size), SApplication.Companion.getInstance().getValueStore().getMasterKey());
     }
 
     public static Keys getItemKeys(EncryptedItem item) throws Exception {
@@ -144,6 +245,14 @@ public class Crypt {
         return Crypt.bytesToHex(sha256_HMAC.doFinal(contentData));
     }
 
+    public static String hashSha1(String text) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        byte[] textBytes = text.getBytes(Charsets.UTF_8);
+        md.update(textBytes, 0, textBytes.length);
+        byte[] sha1hash = md.digest();
+        return bytesToHex(sha1hash);
+    }
+
     static void copyInEncryptableItemFields(EncryptableItem source, EncryptableItem target) {
         target.setUuid(source.getUuid());
         target.setCreatedAt(source.getCreatedAt());
@@ -190,6 +299,18 @@ public class Crypt {
             }
             return null;
         }
+    }
+
+    public static AuthParamsResponse getDefaultAuthParams(String email) throws Exception {
+        AuthParamsResponse defaultAuthParams = new AuthParamsResponse();
+        defaultAuthParams.setPwCost(60000);
+        defaultAuthParams.setPwKeySize(512);
+        defaultAuthParams.setPwFunc("pbkdf2");
+        defaultAuthParams.setPwAlg("sha512");
+        String nonce = generateKey(256);
+        defaultAuthParams.setPwNonce(nonce);
+        defaultAuthParams.setPwSalt(hashSha1(email + "SN" + nonce));
+        return defaultAuthParams;
     }
 }
 

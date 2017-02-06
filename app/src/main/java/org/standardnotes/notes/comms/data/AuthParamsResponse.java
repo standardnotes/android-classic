@@ -30,6 +30,9 @@ public class AuthParamsResponse {
     @SerializedName("pw_salt")
     @Expose
     private String pwSalt;
+    @SerializedName("pw_nonce")
+    @Expose
+    private String pwNonce;
 
     /**
      * 
@@ -119,6 +122,24 @@ public class AuthParamsResponse {
      */
     public void setPwSalt(String pwSalt) {
         this.pwSalt = pwSalt;
+    }
+
+    /**
+     * 
+     * @return
+     *     The pwNonce
+     */
+    public String getPwNonce() {
+        return pwNonce;
+    }
+
+    /**
+     * 
+     * @param pwNonce
+     *     The pw_nonce
+     */
+    public void setPwNonce(String pwNonce) {
+        this.pwNonce = pwNonce;
     }
 
 }

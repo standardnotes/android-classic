@@ -22,6 +22,13 @@ public interface ServerApi {
     @POST("/api/auth/sign_in/")
     Call<SigninResponse> signin(@Field("email") String email, @Field("password") String hashedPassword);
 
+    @FormUrlEncoded
+    @POST("/api/auth/")
+    Call<SigninResponse> register(@Field("email") String email, @Field("password") String hashedPassword,
+                                  @Field("pw_salt") String pwSalt, @Field("pw_nonce") String pwNonce,
+                                  @Field("pw_func") String pwFunc, @Field("pw_alg") String pwAlg,
+                                  @Field("pw_cost") Integer pwCost, @Field("pw_key_size") Integer pwKeySize);
+
     @POST("/api/items/sync/")
     Call<SyncItems> sync(@Body UploadSyncItems data);
 }
