@@ -83,10 +83,14 @@ class NoteFragment : Fragment() {
         titleEdit.setSelection(titleEdit.text.length)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        saveHandler.removeCallbacks(saveRunnable)
+    }
+
     override fun onPause() {
         super.onPause()
         if (activity.isFinishing) {
-            saveHandler.removeCallbacks(saveRunnable)
             // If we are leaving then lets save it locally
             if (note == null) {
                 note = newNote()
