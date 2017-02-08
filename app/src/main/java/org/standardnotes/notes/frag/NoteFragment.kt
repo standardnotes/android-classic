@@ -24,7 +24,7 @@ class NoteFragment : Fragment() {
     var saveHandler: Handler = Handler()
     var saveRunnable: Runnable = object : Runnable {
         override fun run() {
-            saveNote(note!!)
+            saveNote(note)
             saveHandler.postDelayed(this, SAVE_INTERVAL)
         }
     }
@@ -100,9 +100,9 @@ class NoteFragment : Fragment() {
         saveHandler.postDelayed(saveRunnable, SAVE_INTERVAL)
     }
 
-    fun saveNote(note: Note) {
-        if (note.title != titleEdit.text.toString() ||
-                note.text != bodyEdit.text.toString()) {
+    fun saveNote(note: Note?) {
+        if (note != null && (note.title != titleEdit.text.toString() ||
+                note.text != bodyEdit.text.toString())) {
             note.title = titleEdit.text.toString()
             note.text = bodyEdit.text.toString()
             note.dirty = true
