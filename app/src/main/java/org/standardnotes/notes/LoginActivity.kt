@@ -1,6 +1,7 @@
 package org.standardnotes.notes
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
@@ -28,7 +29,6 @@ import retrofit2.Response
  */
 class LoginActivity : AppCompatActivity() {
 
-    @Override
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -168,7 +168,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun showProgress() {
-        // TODO lock orientation changes?
+        // HACK to prevent activity restarts and mess up the UI state when logging in
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
         server.isEnabled = false
         email.isEnabled = false
         password.isEnabled = false
@@ -178,7 +179,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun hideProgress() {
-        // TODO unlock orientation changes?
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         server.isEnabled = true
         email.isEnabled = true
         password.isEnabled = true
