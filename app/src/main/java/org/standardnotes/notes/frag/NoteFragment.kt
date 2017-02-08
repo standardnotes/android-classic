@@ -5,7 +5,6 @@ import android.os.Handler
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -97,13 +96,11 @@ class NoteFragment : Fragment() {
     }
 
     fun startSaveTimer() {
-        Log.d("zzz", "restarting timer")
         saveHandler.removeCallbacks(saveRunnable)
         saveHandler.postDelayed(saveRunnable, SAVE_INTERVAL)
     }
 
     fun saveNote(note: Note) {
-        Log.d("zzz", "saving note")
         if (note.title != titleEdit.text.toString() ||
                 note.text != bodyEdit.text.toString()) {
             note.title = titleEdit.text.toString()
