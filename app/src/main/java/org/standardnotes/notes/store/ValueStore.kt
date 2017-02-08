@@ -2,6 +2,7 @@ package org.standardnotes.notes.store
 
 import android.content.Context
 import android.content.SharedPreferences
+import org.standardnotes.notes.BuildConfig
 
 class ValueStore(context: Context) {
 
@@ -18,7 +19,7 @@ class ValueStore(context: Context) {
         get() = prefs.getString("token", null)
 
     var server: String?
-        get() = prefs.getString("server", null)
+        get() = prefs.getString("server", BuildConfig.SERVER_DEFAULT)
         set(value) { prefs.edit().putString("server", value).apply() }
 
     var syncToken: String?
