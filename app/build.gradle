@@ -12,6 +12,7 @@ android {
         versionCode 1
         versionName "0.0.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "SERVER_DEFAULT", "\"https://n3.standardnotes.org/\""
     }
     buildTypes {
         release {
