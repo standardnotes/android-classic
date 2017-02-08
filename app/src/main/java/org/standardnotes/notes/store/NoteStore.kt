@@ -327,7 +327,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
 
 private fun EncryptedItem.isValid(): Boolean {
     return (contentTypeFromString(contentType) != null && // Not a type this client understands
-            content != null &&
+            (content != null || deleted) &&
             uuid != null)
 }
 
