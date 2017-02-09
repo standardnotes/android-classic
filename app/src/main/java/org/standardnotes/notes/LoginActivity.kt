@@ -44,7 +44,7 @@ class LoginActivity : AppCompatActivity() {
         val signInCallback: Crypt.AuthCallback = object : Crypt.AuthCallback {
             override fun onSuccess(masterKey: String?, token: String?) {
                 hideProgress()
-                SApplication.instance!!.addAccount(accountID, server.text.toString(), email.text.toString(), masterKey, token)
+                SApplication.instance!!.addAccount(accountID!!, server.text.toString(), email.text.toString(), masterKey, token)
                 startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                 finish()
             }

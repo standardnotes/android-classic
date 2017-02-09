@@ -1,6 +1,7 @@
 package org.standardnotes.notes
 
 import android.accounts.Account
+import android.accounts.AccountManager
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
@@ -9,8 +10,10 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.WindowManager
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.frag.NoteListFragment
 
 class MainActivity : AppCompatActivity() {
@@ -36,15 +39,70 @@ class MainActivity : AppCompatActivity() {
         mDrawerToggle!!.isDrawerIndicatorEnabled = true
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
+        val header = drawer.inflateHeaderView(R.layout.view_navigation_header)
         val values = SApplication.instance!!.valueStore(account!!)
-        main_account_server.text = values.server
-        main_account_email.text = values.email
+        header.main_account_server.text = values.server
+        header.main_account_email.text = values.email
+        enableNavigationMenu(header)
 
         title = getString(R.string.app_name)
 
         fab.setOnClickListener { view ->
             (supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment).startNewNote()
         }
+
+        drawer.setNavigationItemSelectedListener {
+            drawerMenuHandler(it)
+        }
+    }
+
+    fun drawerMenuHandler(it: MenuItem): Boolean {
+        when (it.itemId) {
+            R.id.menu_account_add -> {
+                finish()
+                addNewAccount(this)
+            }
+        }
+        return true
+    }
+
+    fun enableNavigationMenu(header: View) {
+        var accountMenu = false
+        fun accountMenuItem(it: MenuItem, acc: Account) {
+            if (account!!.equals(acc)) {
+                it.isChecked = true
+            }
+            it.setOnMenuItemClickListener {
+                SApplication.instance!!.changeAccount(acc)
+                finish()
+                startActivity(Intent(this, MainActivity::class.java))
+                return@setOnMenuItemClickListener true
+            }
+
+        }
+        fun changeMenu() {
+            val icon = if (accountMenu) R.drawable.ic_menu_up else R.drawable.ic_menu_down
+            header.main_account_menu_icon.setImageResource(icon)
+            drawer.menu.clear()
+            drawer.inflateMenu(if (accountMenu) R.menu.account_accounts else R.menu.account_normal)
+            if (accountMenu) {
+                // Add sub-items
+                val mitem = drawer.menu.findItem(R.id.menu_account_accounts)
+                val accounts = AccountManager.get(this).getAccountsByType(getString(R.string.account_type))
+                for (acc in accounts) {
+                    val values = SApplication.instance!!.valueStore(acc)
+                    val menuItem = mitem.subMenu.add(values.email)
+                    accountMenuItem(menuItem, acc)
+                }
+            } else {
+                // Show tags
+            }
+        }
+        header.main_account_title.setOnClickListener {
+            accountMenu = !accountMenu
+            changeMenu()
+        }
+        changeMenu()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

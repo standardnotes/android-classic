@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="Accounts" android:id="@+id/menu_account_accounts">
+        <menu/>
+    </item>
+    <item android:title="Add new account" android:id="@+id/menu_account_add"></item>
+    <item android:title="Logout" android:id="@+id/menu_account_logout"></item>
+</menu>

@@ -71,7 +71,7 @@ class SApplication : Application() {
         return null
     }
 
-    fun addAccount(accountID: String?, server: String, email: String, masterKey: String?, token: String?): Boolean {
+    fun addAccount(accountID: String, server: String, email: String, masterKey: String?, token: String?): Boolean {
         val bundle = Bundle()
         val name = String.format("%s@%s", email, server)
         bundle.putString("email", email)
@@ -80,7 +80,15 @@ class SApplication : Application() {
         bundle.putString("token", token)
         bundle.putString("uuid", accountID)
         val account = Account(name, getString(R.string.account_type))
-        return AccountManager.get(this).addAccountExplicitly(account, "", bundle)
+        val result = AccountManager.get(this).addAccountExplicitly(account, "", bundle)
+        if (result) {
+            prefs.edit().putString(getString(R.string.account_default), accountID).commit()
+        }
+        return result
+    }
+
+    fun changeAccount(account: Account) {
+        prefs.edit().putString(getString(R.string.account_default), valueStore(account).uuid).commit()
     }
 
     fun getMasterKey(account: Account): String? {
