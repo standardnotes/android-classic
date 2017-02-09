@@ -2,7 +2,9 @@ package org.standardnotes.notes
 
 import android.accounts.Account
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
+import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.view.Menu
@@ -14,6 +16,8 @@ import org.standardnotes.notes.frag.NoteListFragment
 class MainActivity : AppCompatActivity() {
 
     private var account: Account? = null
+
+    private var mDrawerToggle: ActionBarDrawerToggle? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +31,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
+        mDrawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
+        drawer_layout.addDrawerListener(mDrawerToggle!!)
+        mDrawerToggle!!.isDrawerIndicatorEnabled = true
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        supportActionBar!!.setHomeButtonEnabled(true)
 
         title = getString(R.string.app_name)
 
@@ -48,12 +57,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (mDrawerToggle!!.onOptionsItemSelected(item)) {
+            return true
+        }
         // only item is logout
 //        SApplication.instance!!.valueStore.setTokenAndMasterKey(null, null)
 //        SApplication.instance!!.noteStore.deleteAll()
         // TODO: Remove account
-        startActivity(Intent(this, StarterActivity::class.java))
-        finish()
+//        startActivity(Intent(this, StarterActivity::class.java))
+//        finish()
         return true
+    }
+
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        mDrawerToggle?.syncState()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        mDrawerToggle?.onConfigurationChanged(newConfig)
     }
 }
