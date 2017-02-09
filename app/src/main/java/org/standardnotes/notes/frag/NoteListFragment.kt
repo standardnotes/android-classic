@@ -1,10 +1,9 @@
 package org.standardnotes.notes.frag
 
 import android.content.Intent
-import android.graphics.Canvas
-import android.graphics.Paint
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.RecyclerView
@@ -22,11 +21,12 @@ import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.SyncItems
 import org.standardnotes.notes.comms.data.UploadSyncItems
-import org.standardnotes.notes.dpToPixels
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.*
+
+
 
 
 class NoteListFragment : Fragment() {
@@ -54,29 +54,7 @@ class NoteListFragment : Fragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-        list.addItemDecoration(object : RecyclerView.ItemDecoration() {
-            // Horzontal divider lines between each item
-            val paint = Paint()
-
-            init {
-                paint.color = resources.getColor(R.color.feint_gray)
-            }
-
-            override fun onDraw(c: Canvas, parent: RecyclerView, state: RecyclerView.State?) {
-                super.onDraw(c, parent, state)
-                val left = parent.paddingLeft + 16.dpToPixels().toFloat()
-                val right = parent.width - parent.paddingRight.toFloat()
-                val childCount = parent.childCount
-                for (i in 0..childCount - 1) {
-                    val child = parent.getChildAt(i)
-                    val params = child
-                            .layoutParams as RecyclerView.LayoutParams
-                    val top = child.bottom + params.bottomMargin.toFloat()
-                    val bottom = top + 1.dpToPixels()
-                    c.drawRect(left, top, right, bottom, paint)
-                }
-            }
-        })
+        list.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
         swipeRefreshLayout.setOnRefreshListener { sync() }
         notes = ArrayList(SApplication.instance!!.noteStore.notesList)
         sync()
