@@ -19,13 +19,13 @@ import java.util.*
 class SApplication : Application() {
     private val prefs: SharedPreferences by lazy { getSharedPreferences("app", Context.MODE_PRIVATE) }
 
-    val commMananagers = HashMap<Account, CommsManager>()
+    val commManagers = HashMap<Account, CommsManager>()
 
     fun commManager(server: String): CommsManager {
         return CommsManager(null, server)
     }
     fun commManager(account: Account): CommsManager {
-        return commMananagers.getOrPut(account, { CommsManager(account, null) })
+        return commManagers.getOrPut(account, { CommsManager(account, null) })
     }
 
     val valueStores = HashMap<Account, ValueStore>()
@@ -33,7 +33,6 @@ class SApplication : Application() {
         return valueStores.getOrPut(account, {ValueStore(this, account)})
     }
 
-//    val valueStore: ValueStore by lazy { ValueStore(this) }
     val gson: Gson by lazy { GsonBuilder().registerTypeAdapter(DateTime::class.java, CommsManager.DateTimeDeserializer()).create() }
 
     val noteStores = HashMap<Account, NoteStore>()
@@ -41,7 +40,7 @@ class SApplication : Application() {
         return noteStores.getOrPut(account, { NoteStore(account) })
     }
     fun resetComms() {
-        commMananagers.clear()
+        commManagers.clear()
     }
 
     override fun onCreate() {
