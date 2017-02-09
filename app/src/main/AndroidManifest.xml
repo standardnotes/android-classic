@@ -36,7 +36,7 @@
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".NoteActivity"
-            android:windowSoftInputMode="adjustResize"
+            android:windowSoftInputMode="stateHidden|adjustResize"
             />
     </application>
 

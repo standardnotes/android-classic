@@ -1,22 +1,33 @@
 package org.standardnotes.notes.frag
 
 import android.os.Bundle
+import android.os.Handler
 import android.support.v4.app.Fragment
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import org.standardnotes.notes.R
-import org.standardnotes.notes.SApplication
-import org.standardnotes.notes.comms.data.Note
-
 import kotlinx.android.synthetic.main.frag_note.*
 import org.joda.time.DateTime
+import org.standardnotes.notes.R
+import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
+import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.Tag
 import java.util.*
 
 class NoteFragment : Fragment() {
+
+    val SAVE_INTERVAL = 250L
+    var saveHandler: Handler = Handler()
+    var saveRunnable: Runnable = object : Runnable {
+        override fun run() {
+            saveNote(note)
+            saveHandler.postDelayed(this, SAVE_INTERVAL)
+        }
+    }
 
     var note: Note? = null
     var tags: List<Tag> = Collections.emptyList()
@@ -28,6 +39,8 @@ class NoteFragment : Fragment() {
             note = SApplication.instance!!.noteStore.getNote(noteUuid)
             tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
         }
+
+        startSaveTimer()
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -50,6 +63,29 @@ class NoteFragment : Fragment() {
             }
         }
         titleLayout.isHintAnimationEnabled = true
+
+        val textWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                //
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                startSaveTimer()
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                //
+            }
+        }
+        titleEdit.addTextChangedListener(textWatcher)
+        bodyEdit.addTextChangedListener(textWatcher)
+
+        titleEdit.setSelection(titleEdit.text.length)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        saveHandler.removeCallbacks(saveRunnable)
     }
 
     override fun onPause() {
@@ -59,15 +95,23 @@ class NoteFragment : Fragment() {
             if (note == null) {
                 note = newNote()
             }
-            val noteV = note!!
-            if (noteV.title != titleEdit.text.toString() ||
-                    noteV.text != bodyEdit.text.toString()) {
-                noteV.title = titleEdit.text.toString()
-                noteV.text = bodyEdit.text.toString()
-                noteV.dirty = true
-                noteV.updatedAt = DateTime.now()
-                SApplication.instance!!.noteStore.putNote(noteV.uuid, noteV)
-            }
+            saveNote(note!!)
+        }
+    }
+
+    fun startSaveTimer() {
+        saveHandler.removeCallbacks(saveRunnable)
+        saveHandler.postDelayed(saveRunnable, SAVE_INTERVAL)
+    }
+
+    fun saveNote(note: Note?) {
+        if (note != null && (note.title != titleEdit.text.toString() ||
+                note.text != bodyEdit.text.toString())) {
+            note.title = titleEdit.text.toString()
+            note.text = bodyEdit.text.toString()
+            note.dirty = true
+            note.updatedAt = DateTime.now()
+            SApplication.instance!!.noteStore.putNote(note.uuid, note)
         }
     }
 }
