@@ -18,18 +18,13 @@ import org.joda.time.format.DateTimeFormat
 import org.standardnotes.notes.NoteActivity
 import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
-import org.standardnotes.notes.comms.Crypt
+import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.Note
-import org.standardnotes.notes.comms.data.SyncItems
-import org.standardnotes.notes.comms.data.UploadSyncItems
 import org.standardnotes.notes.dpToPixels
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.util.*
 
 
-class NoteListFragment : Fragment() {
+class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     private val REQ_EDIT_NOTE: Int = 1
 
@@ -41,10 +36,6 @@ class NoteListFragment : Fragment() {
         const val NOTE_FRAGMENT_INTENT = "noteId"
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val view = inflater!!.inflate(R.layout.frag_note_list, container, false)
@@ -53,6 +44,7 @@ class NoteListFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        SyncManager.subscribe(this)
         list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
         list.addItemDecoration(object : RecyclerView.ItemDecoration() {
             // Horzontal divider lines between each item
@@ -83,6 +75,10 @@ class NoteListFragment : Fragment() {
         list.adapter = adapter
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        SyncManager.unsubscribe(this)
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -97,29 +93,20 @@ class NoteListFragment : Fragment() {
 //        }
     }
 
-    // TODO move this out to some manager class
     fun sync() {
         swipeRefreshLayout.isRefreshing = true
-        val uploadSyncItems = UploadSyncItems()
-        uploadSyncItems.syncToken = SApplication.instance!!.valueStore.syncToken
-        val dirtyItems = SApplication.instance!!.noteStore.toSave
-        dirtyItems
-                .map { Crypt.encrypt(it) }
-                .forEach { uploadSyncItems.items.add(it) }
-        SApplication.instance!!.comms.api.sync(uploadSyncItems).enqueue(object : Callback<SyncItems> {
-            override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {
-                notes.clear()
-                SApplication.instance!!.noteStore.putItems(response.body())
-                notes = ArrayList(SApplication.instance!!.noteStore.notesList)
-                swipeRefreshLayout.isRefreshing = false
-                adapter.notifyDataSetChanged()
-            }
+        SyncManager.sync()
+    }
 
-            override fun onFailure(call: Call<SyncItems>, t: Throwable) {
-                Toast.makeText(activity, activity.getString(R.string.error_fail_sync), Toast.LENGTH_SHORT).show()
-                swipeRefreshLayout.isRefreshing = false
-            }
-        })
+    override fun onSyncCompleted(syncedNotes: List<Note>) {
+        notes = ArrayList(syncedNotes)
+        swipeRefreshLayout.isRefreshing = false
+        adapter.notifyDataSetChanged()
+    }
+
+    override fun onSyncFailed() {
+        Toast.makeText(activity, activity.getString(R.string.error_fail_sync), Toast.LENGTH_SHORT).show()
+        swipeRefreshLayout.isRefreshing = false
     }
 
     fun startNewNote() {

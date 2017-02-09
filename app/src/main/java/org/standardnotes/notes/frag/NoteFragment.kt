@@ -14,11 +14,12 @@ import org.joda.time.DateTime
 import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
+import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.Tag
 import java.util.*
 
-class NoteFragment : Fragment() {
+class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     val SAVE_INTERVAL = 250L
     var saveHandler: Handler = Handler()
@@ -39,7 +40,6 @@ class NoteFragment : Fragment() {
             note = SApplication.instance!!.noteStore.getNote(noteUuid)
             tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
         }
-
         startSaveTimer()
     }
 
@@ -50,10 +50,9 @@ class NoteFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (savedInstanceState == null) {
-            titleEdit.setText(note?.title)
-            bodyEdit.setText(note?.text)
-        }
+        setupUI()
+        SyncManager.subscribe(this)
+
         if (tags.count() > 0) {
             tagsRow.visibility = View.VISIBLE
             tags.forEach {
@@ -86,16 +85,9 @@ class NoteFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         saveHandler.removeCallbacks(saveRunnable)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (activity.isFinishing) {
-            // If we are leaving then lets save it locally
-            if (note == null) {
-                note = newNote()
-            }
-            saveNote(note!!)
+        SyncManager.unsubscribe(this)
+        if (saveNote(note)) {
+            SyncManager.sync()
         }
     }
 
@@ -104,7 +96,7 @@ class NoteFragment : Fragment() {
         saveHandler.postDelayed(saveRunnable, SAVE_INTERVAL)
     }
 
-    fun saveNote(note: Note?) {
+    fun saveNote(note: Note?): Boolean {
         if (note != null && (note.title != titleEdit.text.toString() ||
                 note.text != bodyEdit.text.toString())) {
             note.title = titleEdit.text.toString()
@@ -112,8 +104,32 @@ class NoteFragment : Fragment() {
             note.dirty = true
             note.updatedAt = DateTime.now()
             SApplication.instance!!.noteStore.putNote(note.uuid, note)
+            return true
+        }
+        return false
+    }
+
+    fun setupUI() {
+        if (note != null) {
+            titleEdit.setText(note?.title)
+            bodyEdit.setText(note?.text)
         }
     }
+
+    override fun onSyncCompleted(notes: List<Note>) {
+        for (newnote: Note in notes) {
+            if (newnote.uuid == note?.uuid) {
+                note = newnote
+                setupUI()
+                break
+            }
+        }
+    }
+
+    override fun onSyncFailed() {
+        //
+    }
+
 }
 
 fun newNote(): Note {
