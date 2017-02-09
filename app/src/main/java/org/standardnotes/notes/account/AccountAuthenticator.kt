@@ -34,7 +34,13 @@ class AccountAuthenticator(context: Context) : AbstractAccountAuthenticator(cont
     }
 
     override fun getAuthToken(p0: AccountAuthenticatorResponse?, p1: Account?, p2: String?, p3: Bundle?): Bundle {
-        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
+        // Request master key
+        var bundle = Bundle()
+        bundle.putString(AccountManager.KEY_ACCOUNT_NAME, p1!!.name)
+        bundle.putString(AccountManager.KEY_ACCOUNT_TYPE, p1!!.type)
+        val masterKey = AccountManager.get(mContext).getUserData(p1, "masterKey")
+        bundle.putString(AccountManager.KEY_AUTHTOKEN, masterKey)
+        return bundle
     }
 
     override fun hasFeatures(p0: AccountAuthenticatorResponse?, p1: Account?, p2: Array<out String>?): Bundle {

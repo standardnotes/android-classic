@@ -58,15 +58,14 @@ class SApplication : Application() {
 
     fun account(intent: Intent?): Account? {
         var accounts = AccountManager.get(this).getAccountsByType(getString(R.string.account_type))
-        var uuid: String? = intent!!.getStringExtra("account")
+        var uuid: String? = intent?.getStringExtra("account")
         if (null == uuid) {
             uuid = prefs.getString(getString(R.string.account_default), uuid)
         }
         if (uuid != null) {
-            for (account in accounts) {
-                if (account.name.equals(uuid))
-                    return account
-            }
+            accounts
+                    .filter { uuid.equals(valueStore(it).uuid) }
+                    .forEach { return it }
         }
         if (accounts.isNotEmpty())
             return accounts[0] // First account
@@ -75,10 +74,17 @@ class SApplication : Application() {
 
     fun addAccount(accountID: String?, server: String, email: String, masterKey: String?, token: String?): Boolean {
         val bundle = Bundle()
+        val name = String.format("%s@%s", email, server)
         bundle.putString("email", email)
         bundle.putString("masterKey", masterKey)
         bundle.putString("server", server)
-        val account = Account(accountID, getString(R.string.account_type))
-        return AccountManager.get(this).addAccountExplicitly(account, "", bundle);
+        bundle.putString("token", token)
+        bundle.putString("uuid", accountID)
+        val account = Account(name, getString(R.string.account_type))
+        return AccountManager.get(this).addAccountExplicitly(account, "", bundle)
+    }
+
+    fun getMasterKey(account: Account): String? {
+        return AccountManager.get(this).getUserData(account, "masterKey")
     }
 }

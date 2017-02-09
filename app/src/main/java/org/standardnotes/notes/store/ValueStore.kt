@@ -20,6 +20,9 @@ class ValueStore(context: Context, var account: Account) {
     val server: String?
         get() = manager.getUserData(account, "server")
 
+    val uuid: String?
+        get() = manager.getUserData(account, "uuid")
+
     var syncToken: String?
         get() = manager.getUserData(account, "syncToken")
         set(token) { manager.setUserData(account, "syncToken", token) }

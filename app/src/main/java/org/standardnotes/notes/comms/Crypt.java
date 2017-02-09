@@ -1,5 +1,6 @@
 package org.standardnotes.notes.comms;
 
+import android.accounts.Account;
 import android.content.Context;
 import android.util.Base64;
 import android.widget.Toast;
@@ -158,12 +159,12 @@ public class Crypt {
         return keyHex;
     }
 
-    public static String generateEncryptedKey(int size) throws Exception {
-        return encrypt(generateKey(size), SApplication.Companion.getInstance().getValueStore().getMasterKey());
+    public static String generateEncryptedKey(Account account, int size) throws Exception {
+        return encrypt(generateKey(size), SApplication.Companion.getInstance().getMasterKey(account));
     }
 
-    public static Keys getItemKeys(EncryptedItem item) throws Exception {
-        String itemKey = decrypt(item.getEncItemKey(), SApplication.Companion.getInstance().getValueStore().getMasterKey());
+    public static Keys getItemKeys(Account account, EncryptedItem item) throws Exception {
+        String itemKey = decrypt(item.getEncItemKey(), SApplication.Companion.getInstance().getMasterKey(account));
         Keys val = new Keys();
         val.ek = itemKey.substring(0, itemKey.length() / 2);
         val.ak = itemKey.substring(itemKey.length() / 2);
@@ -211,12 +212,12 @@ public class Crypt {
         return data;
     }
 
-    public static EncryptedItem encrypt(Note note) {
+    public static EncryptedItem encrypt(Account account, Note note) {
         try {
             EncryptedItem item = new EncryptedItem();
             copyInEncryptableItemFields(note, item);
             item.setContentType("Note");
-            Keys keys = Crypt.getItemKeys(item);
+            Keys keys = Crypt.getItemKeys(account, item);
             Note justUnencContent = new Note();
             justUnencContent.setTitle(note.getTitle());
             justUnencContent.setText(note.getText());
@@ -233,12 +234,12 @@ public class Crypt {
         return null;
     }
 
-    public static Note decryptNote(EncryptedItem item) {
-        return noteDecryptor.decrypt(item);
+    public static Note decryptNote(Account account, EncryptedItem item) {
+        return noteDecryptor.decrypt(account, item);
     }
 
-    public static Tag decryptTag(EncryptedItem item) {
-        return tagDecryptor.decrypt(item);
+    public static Tag decryptTag(Account account, EncryptedItem item) {
+        return tagDecryptor.decrypt(account, item);
     }
 
     private static String createHash(String text, String ak) throws NoSuchAlgorithmException, InvalidKeyException {
@@ -268,14 +269,15 @@ public class Crypt {
         target.setDeleted(source.getDeleted());
     }
 
-    static class ContentDecryptor<T extends EncryptableItem> {
+    private static class ContentDecryptor<T extends EncryptableItem> {
+
         private Class<T> type;
 
         public ContentDecryptor(Class<T> type) {
             this.type = type;
         }
 
-        public T decrypt(EncryptedItem item) {
+        public T decrypt(Account account, EncryptedItem item) {
             try {
 
                 if (item.getContent() != null) {
@@ -284,7 +286,7 @@ public class Crypt {
                     if (item.getContent().startsWith("000")) {
                         contentJson = new String(Base64.decode(contentWithoutType, Base64.NO_PADDING), Charsets.UTF_8);
                     } else {
-                        Keys keys = Crypt.getItemKeys(item);
+                        Keys keys = Crypt.getItemKeys(account, item);
 
                         // authenticate
                         String hash = createHash(item.getContent(), keys.ak);

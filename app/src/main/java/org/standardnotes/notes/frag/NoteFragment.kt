@@ -1,5 +1,6 @@
 package org.standardnotes.notes.frag
 
+import android.accounts.Account
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.app.Fragment
@@ -32,14 +33,18 @@ class NoteFragment : Fragment() {
     var note: Note? = null
     var tags: List<Tag> = Collections.emptyList()
 
+    private var account: Account? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        account = SApplication.instance!!.account(null)!! // TODO: Fixme
+        if (null == account)
+            return
         val noteUuid = arguments?.getString(NoteListFragment.NOTE_FRAGMENT_INTENT)
         if (noteUuid != null) {
-            note = SApplication.instance!!.noteStore.getNote(noteUuid)
-            tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
+            note = SApplication.instance!!.noteStore(account!!).getNote(noteUuid)
+            tags = SApplication.instance!!.noteStore(account!!).getTagsForNote(noteUuid)
         }
-
         startSaveTimer()
     }
 
@@ -111,17 +116,18 @@ class NoteFragment : Fragment() {
             note.text = bodyEdit.text.toString()
             note.dirty = true
             note.updatedAt = DateTime.now()
-            SApplication.instance!!.noteStore.putNote(note.uuid, note)
+            SApplication.instance!!.noteStore(account!!).putNote(note.uuid, note)
         }
+    }
+
+    fun newNote(): Note {
+        // Move to a factory
+        val note = Note()
+        note.uuid = UUID.randomUUID().toString()
+        note.encItemKey = Crypt.generateEncryptedKey(account!!, 512)
+        note.createdAt = DateTime.now()
+        note.updatedAt = note.createdAt
+        return note
     }
 }
 
-fun newNote(): Note {
-    // Move to a factory
-    val note = Note()
-    note.uuid = UUID.randomUUID().toString()
-    note.encItemKey = Crypt.generateEncryptedKey(512)
-    note.createdAt = DateTime.now()
-    note.updatedAt = note.createdAt
-    return note
-}

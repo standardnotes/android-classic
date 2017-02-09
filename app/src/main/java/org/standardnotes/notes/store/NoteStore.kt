@@ -14,7 +14,11 @@ import java.util.*
 val CURRENT_DB_VERSION: Int = 1
 
 // TODO move this to async access
-class NoteStore(var account: Account) : SQLiteOpenHelper(SApplication.instance, account.name, null, CURRENT_DB_VERSION) {
+class NoteStore(var account: Account) : SQLiteOpenHelper(
+        SApplication.instance,
+        SApplication.instance!!.valueStore(account).uuid,
+        null,
+        CURRENT_DB_VERSION) {
 
 
 //    private val noteList = HashMap<String, Note>()
@@ -238,7 +242,7 @@ class NoteStore(var account: Account) : SQLiteOpenHelper(SApplication.instance, 
             if (item.deleted) {
                 newNote = null
             } else {
-                newNote = Crypt.decryptNote(item)
+                newNote = Crypt.decryptNote(account, item)
             }
 
             if (mergeWithOld) {
@@ -251,7 +255,7 @@ class NoteStore(var account: Account) : SQLiteOpenHelper(SApplication.instance, 
             if (item.deleted) {
                 newTag = null
             } else {
-                newTag = Crypt.decryptTag(item)
+                newTag = Crypt.decryptTag(account, item)
             }
 
             if (mergeWithOld) {
