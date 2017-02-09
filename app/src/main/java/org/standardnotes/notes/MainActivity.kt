@@ -36,6 +36,9 @@ class MainActivity : AppCompatActivity() {
         mDrawerToggle!!.isDrawerIndicatorEnabled = true
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
+        val values = SApplication.instance!!.valueStore(account!!)
+        main_account_server.text = values.server
+        main_account_email.text = values.email
 
         title = getString(R.string.app_name)
 
@@ -60,12 +63,7 @@ class MainActivity : AppCompatActivity() {
         if (mDrawerToggle!!.onOptionsItemSelected(item)) {
             return true
         }
-        // only item is logout
-//        SApplication.instance!!.valueStore.setTokenAndMasterKey(null, null)
-//        SApplication.instance!!.noteStore.deleteAll()
         // TODO: Remove account
-//        startActivity(Intent(this, StarterActivity::class.java))
-//        finish()
         return true
     }
 

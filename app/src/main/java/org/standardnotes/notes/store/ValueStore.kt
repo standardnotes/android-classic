@@ -20,6 +20,9 @@ class ValueStore(context: Context, var account: Account) {
     val server: String?
         get() = manager.getUserData(account, "server")
 
+    val email: String?
+        get() = manager.getUserData(account, "email")
+
     val uuid: String?
         get() = manager.getUserData(account, "uuid")
 
