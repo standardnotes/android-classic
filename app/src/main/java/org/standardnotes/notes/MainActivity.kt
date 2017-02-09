@@ -1,5 +1,6 @@
 package org.standardnotes.notes
 
+import android.accounts.Account
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -12,8 +13,15 @@ import org.standardnotes.notes.frag.NoteListFragment
 
 class MainActivity : AppCompatActivity() {
 
+    private var account: Account? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        account = SApplication.instance!!.account(intent)
+        if (null == account) {
+            finish()
+            return
+        }
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE,
                 WindowManager.LayoutParams.FLAG_SECURE)
         setContentView(R.layout.activity_main)
@@ -41,8 +49,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         // only item is logout
-        SApplication.instance!!.valueStore.setTokenAndMasterKey(null, null)
-        SApplication.instance!!.noteStore.deleteAll()
+//        SApplication.instance!!.valueStore.setTokenAndMasterKey(null, null)
+//        SApplication.instance!!.noteStore.deleteAll()
+        // TODO: Remove account
         startActivity(Intent(this, StarterActivity::class.java))
         finish()
         return true

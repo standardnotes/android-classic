@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="account_type">org.standardnotes.notes.ACCOUNT</string>
+    <string name="account_default">account_default</string>
+</resources>

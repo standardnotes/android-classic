@@ -1,5 +1,7 @@
 package org.standardnotes.notes
 
+import android.accounts.AccountAuthenticatorResponse
+import android.accounts.AccountManager
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
@@ -17,11 +19,10 @@ import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_login.*
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.AuthParamsResponse
-import org.standardnotes.notes.comms.data.SigninResponse
-import org.standardnotes.notes.store.ValueStore
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
 
 
 /**
@@ -29,23 +30,26 @@ import retrofit2.Response
  */
 class LoginActivity : AppCompatActivity() {
 
+    private var mResponse: AccountAuthenticatorResponse? = null
+
+    private var accountID: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        mResponse = intent.getParcelableExtra<AccountAuthenticatorResponse>(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE)
+        accountID = UUID.randomUUID().toString()
         // Set up the login form.
 
-        val signInCallback: Callback<SigninResponse> = object : Callback<SigninResponse> {
-            override fun onResponse(call: Call<SigninResponse>, response: Response<SigninResponse>) {
-                if (response.isSuccessful) {
-                    startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                    finish()
-                } else {
-                    Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
-                }
+        val signInCallback: Crypt.AuthCallback = object : Crypt.AuthCallback {
+            override fun onSuccess(masterKey: String?, token: String?) {
                 hideProgress()
+                SApplication.instance!!.addAccount(accountID, server.text.toString(), email.text.toString(), masterKey, token);
+                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                finish()
             }
 
-            override fun onFailure(call: Call<SigninResponse>, t: Throwable) {
+            override fun onError(t: Throwable?) {
                 Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                 hideProgress()
             }
@@ -54,9 +58,9 @@ class LoginActivity : AppCompatActivity() {
         email_sign_in_button.setOnClickListener {
             try {
                 showProgress()
-                SApplication.instance!!.valueStore.server = server.text.toString()
                 SApplication.instance!!.resetComms()
-                SApplication.instance!!.comms.api.getAuthParamsForEmail(email.text.toString()).enqueue(object : Callback<AuthParamsResponse> {
+                val comm = SApplication.instance!!.commManager(server.text.toString())
+                comm.api.getAuthParamsForEmail(email.text.toString()).enqueue(object : Callback<AuthParamsResponse> {
                     override fun onResponse(call: Call<AuthParamsResponse>, response: Response<AuthParamsResponse>) {
                         try {
                             val params = response.body()
@@ -64,7 +68,7 @@ class LoginActivity : AppCompatActivity() {
                                 hideProgress()
                                 return
                             }
-                            Crypt.doLogin(email.text.toString(), password.text.toString(), params, signInCallback)
+                            Crypt.doLogin(comm, email.text.toString(), password.text.toString(), params, signInCallback)
                         } catch (e: Exception) {
                             Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                             e.printStackTrace()
@@ -85,9 +89,9 @@ class LoginActivity : AppCompatActivity() {
         }
         sign_up.setOnClickListener {
             try {
-                SApplication.instance!!.valueStore.server = server.text.toString()
                 SApplication.instance!!.resetComms()
 
+                val comm = SApplication.instance!!.commManager(server.text.toString())
                 val layout = LayoutInflater.from(this).inflate(R.layout.view_password_confirm, null, false)
                 val input = layout.findViewById(R.id.password) as EditText
                 val dialog = AlertDialog.Builder(this).setTitle(R.string.prompt_confirm_password)
@@ -95,7 +99,7 @@ class LoginActivity : AppCompatActivity() {
                         .setPositiveButton(R.string.action_ok, { dialogInterface, i ->
                             if (input.text.toString() == password.text.toString()) {
                                 showProgress()
-                                Crypt.doRegister(email.text.toString(), password.text.toString(), signInCallback)
+                                Crypt.doRegister(comm, email.text.toString(), password.text.toString(), signInCallback)
                             } else {
                                 Toast.makeText(this@LoginActivity, R.string.error_passwords_mismatch, Toast.LENGTH_LONG).show()
                             }
@@ -157,7 +161,7 @@ class LoginActivity : AppCompatActivity() {
         email.addTextChangedListener(textWatcher)
         password.addTextChangedListener(textWatcher)
 
-        server.setText(ValueStore(this).server)
+        server.setText(BuildConfig.SERVER_DEFAULT)
         email.requestFocus()
     }
 

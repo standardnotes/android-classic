@@ -1,34 +1,47 @@
 package org.standardnotes.notes
 
+import android.accounts.Account
+import android.accounts.AccountManager
 import android.app.Application
-import android.widget.Toast
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Bundle
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import net.danlew.android.joda.JodaTimeAndroid
 import org.joda.time.DateTime
-
 import org.standardnotes.notes.comms.CommsManager
 import org.standardnotes.notes.store.NoteStore
 import org.standardnotes.notes.store.ValueStore
+import java.util.*
 
 class SApplication : Application() {
-    private var commsActual: CommsManager? = null
+    private val prefs: SharedPreferences by lazy { getSharedPreferences("app", Context.MODE_PRIVATE) }
 
-    val comms: CommsManager
-    get() {
-        if (commsActual == null) {
-            val server = valueStore.server
-            if (server != null)
-                commsActual = CommsManager(server)
-        }
-        return commsActual!! // Should not be called before there's a valueStore.server
+    val commMananagers = HashMap<Account, CommsManager>()
+
+    fun commManager(server: String): CommsManager {
+        return CommsManager(null, server)
     }
-    val valueStore: ValueStore by lazy { ValueStore(this) }
-    val gson: Gson by lazy { GsonBuilder().registerTypeAdapter(DateTime::class.java, CommsManager.DateTimeDeserializer()).create() }
-    val noteStore: NoteStore by lazy { NoteStore() }
+    fun commManager(account: Account): CommsManager {
+        return commMananagers.getOrPut(account, { CommsManager(account, null) })
+    }
 
+    val valueStores = HashMap<Account, ValueStore>()
+    fun valueStore(account: Account): ValueStore {
+        return valueStores.getOrPut(account, {ValueStore(this, account)})
+    }
+
+//    val valueStore: ValueStore by lazy { ValueStore(this) }
+    val gson: Gson by lazy { GsonBuilder().registerTypeAdapter(DateTime::class.java, CommsManager.DateTimeDeserializer()).create() }
+
+    val noteStores = HashMap<Account, NoteStore>()
+    fun noteStore(account: Account): NoteStore {
+        return noteStores.getOrPut(account, { NoteStore(account) })
+    }
     fun resetComms() {
-        commsActual = null
+        commMananagers.clear()
     }
 
     override fun onCreate() {
@@ -41,5 +54,31 @@ class SApplication : Application() {
 
         var instance: SApplication? = null
             private set
+    }
+
+    fun account(intent: Intent?): Account? {
+        var accounts = AccountManager.get(this).getAccountsByType(getString(R.string.account_type))
+        var uuid: String? = intent!!.getStringExtra("account")
+        if (null == uuid) {
+            uuid = prefs.getString(getString(R.string.account_default), uuid)
+        }
+        if (uuid != null) {
+            for (account in accounts) {
+                if (account.name.equals(uuid))
+                    return account
+            }
+        }
+        if (accounts.isNotEmpty())
+            return accounts[0] // First account
+        return null
+    }
+
+    fun addAccount(accountID: String?, server: String, email: String, masterKey: String?, token: String?): Boolean {
+        val bundle = Bundle()
+        bundle.putString("email", email)
+        bundle.putString("masterKey", masterKey)
+        bundle.putString("server", server)
+        val account = Account(accountID, getString(R.string.account_type))
+        return AccountManager.get(this).addAccountExplicitly(account, "", bundle);
     }
 }

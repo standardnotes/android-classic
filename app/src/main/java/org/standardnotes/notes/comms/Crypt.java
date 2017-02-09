@@ -1,12 +1,10 @@
 package org.standardnotes.notes.comms;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Base64;
 import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.spongycastle.crypto.digests.SHA512Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
@@ -55,7 +53,13 @@ public class Crypt {
         return true;
     }
 
-    public static void doLogin(final String email, final String password, final AuthParamsResponse params, final Callback<SigninResponse> callback) {
+    public interface AuthCallback {
+        public void onSuccess(String masterKey, String token);
+
+        public void onError(Throwable t);
+    }
+
+    public static void doLogin(final CommsManager comm, final String email, final String password, final AuthParamsResponse params, final AuthCallback callback) {
         Thread loginThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -68,30 +72,31 @@ public class Crypt {
                     String fullHashedPassword = Crypt.bytesToHex(key);
                     String serverHashedPassword = fullHashedPassword.substring(0, fullHashedPassword.length() / 2);
                     final String mk = fullHashedPassword.substring(fullHashedPassword.length() / 2);
-                    SApplication.Companion.getInstance().getComms().getApi().signin(email, serverHashedPassword).enqueue(new Callback<SigninResponse>() {
+                    comm.getApi().signin(email, serverHashedPassword).enqueue(new Callback<SigninResponse>() {
                         @Override
                         public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
                             if (response.isSuccessful()) {
-                                SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk);
+                                callback.onSuccess(mk, response.body().getToken());
+                            } else {
+                                callback.onError(new Exception(response.message()));
                             }
-                            callback.onResponse(call, response);
                         }
 
                         @Override
                         public void onFailure(Call<SigninResponse> call, Throwable t) {
-                            callback.onFailure(call, t);
+                            callback.onError(t);
                         }
                     });
                 } catch (Exception e) {
                     e.printStackTrace();
-                    callback.onFailure(null, e);
+                    callback.onError(e);
                 }
             }
         });
         loginThread.start();
     }
 
-    public static void doRegister(final String email, final String password, final Callback<SigninResponse> callback) {
+    public static void doRegister(final CommsManager comm, final String email, final String password, final AuthCallback callback) {
         Thread loginThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -105,25 +110,26 @@ public class Crypt {
                     String fullHashedPassword = Crypt.bytesToHex(key);
                     String serverHashedPassword = fullHashedPassword.substring(0, fullHashedPassword.length() / 2);
                     final String mk = fullHashedPassword.substring(fullHashedPassword.length() / 2);
-                    SApplication.Companion.getInstance().getComms().getApi().register(email, serverHashedPassword,
+                    comm.getApi().register(email, serverHashedPassword,
                             params.getPwSalt(), params.getPwNonce(), params.getPwFunc(), params.getPwAlg(), params.getPwCost(), params.getPwKeySize()).enqueue(new Callback<SigninResponse>() {
-                        @Override
+
                         public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
                             if (response.isSuccessful()) {
-                                SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk);
+                                callback.onSuccess(mk, response.body().getToken());
+                            } else {
+                                callback.onError(new Exception(response.message()));
                             }
-                            callback.onResponse(call, response);
                         }
 
                         @Override
                         public void onFailure(Call<SigninResponse> call, Throwable t) {
-                            callback.onFailure(call, t);
+                            callback.onError(t);
                         }
                     });
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    callback.onFailure(null, e);
+                    callback.onError(e);
                 }
             }
         });
