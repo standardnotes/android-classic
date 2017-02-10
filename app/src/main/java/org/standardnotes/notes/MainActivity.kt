@@ -62,6 +62,10 @@ class MainActivity : AppCompatActivity() {
                 finish()
                 addNewAccount(this)
             }
+            R.id.menu_account_logout -> {
+                finish()
+                SApplication.instance!!.removeAccount(account!!, this)
+            }
         }
         return true
     }
@@ -69,7 +73,7 @@ class MainActivity : AppCompatActivity() {
     fun enableNavigationMenu(header: View) {
         var accountMenu = false
         fun accountMenuItem(it: MenuItem, acc: Account) {
-            if (account!!.equals(acc)) {
+            if (acc.equals(account)) {
                 it.isChecked = true
             }
             it.setOnMenuItemClickListener {

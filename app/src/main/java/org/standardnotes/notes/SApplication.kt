@@ -2,6 +2,7 @@ package org.standardnotes.notes
 
 import android.accounts.Account
 import android.accounts.AccountManager
+import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -62,12 +63,15 @@ class SApplication : Application() {
             uuid = prefs.getString(getString(R.string.account_default), uuid)
         }
         if (uuid != null) {
-            accounts
-                    .filter { uuid.equals(valueStore(it).uuid) }
-                    .forEach { return it }
+            for (account in accounts) {
+                if (uuid.equals(valueStore(account).uuid)) {
+                    return account
+                }
+            }
         }
-        if (accounts.isNotEmpty())
+        if (accounts.isNotEmpty()) {
             return accounts[0] // First account
+        }
         return null
     }
 
@@ -85,6 +89,23 @@ class SApplication : Application() {
             prefs.edit().putString(getString(R.string.account_default), accountID).commit()
         }
         return result
+    }
+
+    fun removeAccount(account: Account, activity: Activity) {
+        val thread = Thread {
+            kotlin.run {
+                val future = AccountManager.get(this@SApplication).removeAccount(account, null, null)
+                if(future.result) {
+                    noteStore(account).deleteAll()
+                    prefs.edit().remove(getString(R.string.account_default)).commit()
+                    noteStores.clear()
+                    valueStores.clear()
+                    commManagers.clear()
+                }
+
+            }
+        }
+        thread.start()
     }
 
     fun changeAccount(account: Account) {

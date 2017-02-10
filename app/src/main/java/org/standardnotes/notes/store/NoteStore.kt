@@ -326,7 +326,7 @@ class NoteStore(var account: Account) : SQLiteOpenHelper(
             writableDatabase.delete(TABLE_ENCRYPTABLE, null, null)
         }
         close()
-        SApplication.instance!!.deleteDatabase("note")
+        SApplication.instance!!.deleteDatabase(SApplication.instance!!.valueStore(account).uuid)
     }
 }
 
