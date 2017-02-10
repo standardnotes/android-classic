@@ -40,9 +40,13 @@ dependencies {
     })
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    compile 'org.glassfish:javax.annotation:10.0-b28'
     compile "com.android.support:appcompat-v7:$android_support"
     compile "com.android.support:design:$android_support"
+    compile "com.android.support:support-v4:$android_support"
+    compile "com.android.support:recyclerview-v7:$android_support"
+    compile "com.android.support:preference-v7:$android_support"
+    compile "com.android.support:preference-v14:$android_support"
+    compile 'org.glassfish:javax.annotation:10.0-b28'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
@@ -52,8 +56,6 @@ dependencies {
     compile 'com.madgag.spongycastle:prov:1.54.0.0'
     compile 'com.madgag.spongycastle:pkix:1.54.0.0'
     compile 'com.madgag.spongycastle:pg:1.54.0.0'
-    compile "com.android.support:support-v4:$android_support"
-    compile "com.android.support:recyclerview-v7:$android_support"
     compile 'net.danlew:android.joda:2.9.4.1'
     testCompile 'junit:junit:4.12'
 }

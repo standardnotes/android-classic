@@ -1,7 +1,6 @@
 package org.standardnotes.notes
 
 import android.app.Application
-import android.widget.Toast
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import net.danlew.android.joda.JodaTimeAndroid
