@@ -77,7 +77,7 @@ class SApplication : Application() {
 
     fun addAccount(accountID: String, server: String, email: String, masterKey: String?, token: String?): Boolean {
         val bundle = Bundle()
-        val name = String.format("%s@%s", email, server)
+        val name = String.format("%s %s", email, server)
         bundle.putString("email", email)
         bundle.putString("masterKey", masterKey)
         bundle.putString("server", server)

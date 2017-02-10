@@ -3,5 +3,8 @@
     <item android:title="Tags" android:id="@+id/menu_account_tags">
         <menu/>
     </item>
-    <item android:title="Settings" android:id="@+id/menu_account_settings"></item>
+    <item
+            android:icon="@drawable/ic_settings"
+            android:title="Settings"
+            android:id="@+id/menu_account_settings"/>
 </menu>

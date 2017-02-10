@@ -72,19 +72,23 @@ class MainActivity : AppCompatActivity() {
 
     fun enableNavigationMenu(header: View) {
         var accountMenu = false
-        fun accountMenuItem(it: MenuItem, acc: Account) {
-            if (acc.equals(account)) {
-                it.isChecked = true
-            }
-            it.setOnMenuItemClickListener {
-                SApplication.instance!!.changeAccount(acc)
-                finish()
-                startActivity(Intent(this, MainActivity::class.java))
-                return@setOnMenuItemClickListener true
-            }
-
-        }
         fun changeMenu() {
+            fun accountMenuItem(it: MenuItem, acc: Account) {
+                it.setIcon(R.drawable.ic_account)
+                if (acc.equals(account)) {
+                    it.isChecked = true
+                }
+                it.setOnMenuItemClickListener {
+                    SApplication.instance!!.changeAccount(acc)
+                    finish()
+                    startActivity(Intent(this, MainActivity::class.java))
+                    return@setOnMenuItemClickListener true
+                }
+
+            }
+            fun tagMenuItem(it: MenuItem, uuid: String?) {
+                it.setIcon(R.drawable.ic_tag)
+            }
             val icon = if (accountMenu) R.drawable.ic_menu_up else R.drawable.ic_menu_down
             header.main_account_menu_icon.setImageResource(icon)
             drawer.menu.clear()
@@ -99,7 +103,14 @@ class MainActivity : AppCompatActivity() {
                     accountMenuItem(menuItem, acc)
                 }
             } else {
-                // Show tags
+                val tags = SApplication.instance!!.noteStore(account!!).getAllTags()
+                val mitem = drawer.menu.findItem(R.id.menu_account_tags)
+                val item = mitem.subMenu.add("All notes")
+                tagMenuItem(item, null)
+                for (tag in tags) {
+                    val item = mitem.subMenu.add(tag.title)
+                    tagMenuItem(item, tag.uuid)
+                }
             }
         }
         header.main_account_title.setOnClickListener {
