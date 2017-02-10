@@ -3,6 +3,7 @@ package org.standardnotes.notes.frag
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.app.Fragment
+import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -21,12 +22,11 @@ import java.util.*
 
 class NoteFragment : Fragment(), SyncManager.SyncListener {
 
-    val SAVE_INTERVAL = 250L
-    var saveHandler: Handler = Handler()
-    var saveRunnable: Runnable = object : Runnable {
-        override fun run() {
-            saveNote(note)
-            saveHandler.postDelayed(this, SAVE_INTERVAL)
+    val SYNC_DELAY = 250L
+    val syncHandler: Handler = Handler()
+    val syncRunnable: Runnable = Runnable {
+        if (saveNote(note)) {
+            SyncManager.sync()
         }
     }
 
@@ -39,8 +39,9 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         if (noteUuid != null) {
             note = SApplication.instance!!.noteStore.getNote(noteUuid)
             tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
+        } else {
+            note = newNote()
         }
-        startSaveTimer()
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -50,7 +51,10 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupUI()
+
+        titleEdit.setText(note?.title)
+        bodyEdit.setText(note?.text)
+
         SyncManager.subscribe(this)
 
         if (tags.count() > 0) {
@@ -69,7 +73,8 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                startSaveTimer()
+                syncHandler.removeCallbacks(syncRunnable)
+                syncHandler.postDelayed(syncRunnable, SYNC_DELAY)
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -80,25 +85,25 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         bodyEdit.addTextChangedListener(textWatcher)
 
         titleEdit.setSelection(titleEdit.text.length)
+
+        setSubtitle(if (note!!.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        saveHandler.removeCallbacks(saveRunnable)
+        syncHandler.removeCallbacks(syncRunnable)
         SyncManager.unsubscribe(this)
-        if (saveNote(note)) {
-            SyncManager.sync()
-        }
     }
 
-    fun startSaveTimer() {
-        saveHandler.removeCallbacks(saveRunnable)
-        saveHandler.postDelayed(saveRunnable, SAVE_INTERVAL)
+    fun setSubtitle(subTitle: String) {
+        bodyEdit.postDelayed({
+            (activity as AppCompatActivity).supportActionBar!!.subtitle = subTitle
+        }, 100)
     }
 
     fun saveNote(note: Note?): Boolean {
-        if (note != null && (note.title != titleEdit.text.toString() ||
-                note.text != bodyEdit.text.toString())) {
+        if (note!!.title != titleEdit.text.toString() ||
+                note.text != bodyEdit.text.toString()) {
             note.title = titleEdit.text.toString()
             note.text = bodyEdit.text.toString()
             note.dirty = true
@@ -109,25 +114,16 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         return false
     }
 
-    fun setupUI() {
-        if (note != null) {
-            titleEdit.setText(note?.title)
-            bodyEdit.setText(note?.text)
-        }
+    override fun onSyncStarted() {
+        setSubtitle(getString(R.string.sync_progress_saving))
     }
 
     override fun onSyncCompleted(notes: List<Note>) {
-        for (newnote: Note in notes) {
-            if (newnote.uuid == note?.uuid) {
-                note = newnote
-                setupUI()
-                break
-            }
-        }
+        setSubtitle(getString(R.string.sync_progress_finished))
     }
 
     override fun onSyncFailed() {
-        //
+        setSubtitle(getString(R.string.sync_progress_error))
     }
 
 }

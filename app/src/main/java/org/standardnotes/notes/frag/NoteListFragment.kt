@@ -2,6 +2,7 @@ package org.standardnotes.notes.frag
 
 import android.content.Intent
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
@@ -11,7 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.frag_note_list.*
 import org.joda.time.format.DateTimeFormat
 import org.standardnotes.notes.NoteActivity
@@ -30,6 +31,8 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     var notes = ArrayList<Note>()
 
+    var currentSnackbar: Snackbar? = null
+
     companion object {
         const val NOTE_FRAGMENT_INTENT = "noteId"
     }
@@ -45,9 +48,12 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         SyncManager.subscribe(this)
         list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
         list.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
-        swipeRefreshLayout.setOnRefreshListener { sync() }
+        swipeRefreshLayout.setColorSchemeResources(
+                        R.color.colorPrimary,
+                        R.color.colorPrimaryDark)
+        swipeRefreshLayout.setOnRefreshListener { SyncManager.sync() }
         notes = ArrayList(SApplication.instance!!.noteStore.notesList)
-        sync()
+        SyncManager.sync()
         list.adapter = adapter
     }
 
@@ -63,26 +69,31 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 notes = ArrayList(SApplication.instance!!.noteStore.notesList)
                 adapter.notifyDataSetChanged()
                 if (SApplication.instance!!.noteStore.notesToSaveCount() > 0) {
-                    sync()
+                    SyncManager.sync()
                 }
             }
 //        }
     }
 
-    fun sync() {
+    override fun onSyncStarted() {
         swipeRefreshLayout.isRefreshing = true
-        SyncManager.sync()
+        currentSnackbar?.dismiss()
     }
 
     override fun onSyncCompleted(syncedNotes: List<Note>) {
         notes = ArrayList(syncedNotes)
         swipeRefreshLayout.isRefreshing = false
         adapter.notifyDataSetChanged()
+        currentSnackbar?.dismiss()
     }
 
     override fun onSyncFailed() {
-        Toast.makeText(activity, activity.getString(R.string.error_fail_sync), Toast.LENGTH_SHORT).show()
         swipeRefreshLayout.isRefreshing = false
+        currentSnackbar = Snackbar.make(activity.rootView, R.string.error_fail_sync, Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.sync_retry, {
+                    SyncManager.sync()
+                })
+        currentSnackbar!!.show()
     }
 
     fun startNewNote() {
@@ -121,7 +132,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                     SApplication.instance!!.noteStore.deleteItem(note!!.uuid)
                     notes = ArrayList(SApplication.instance!!.noteStore.notesList)
                     adapter.notifyDataSetChanged()
-                    sync()
+                    SyncManager.sync()
                     true
                 }
                 popup.show()

@@ -8,6 +8,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
 import kotlinx.android.synthetic.main.activity_main.*
+import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.frag.NoteListFragment
 
 class MainActivity : AppCompatActivity() {
@@ -25,6 +26,8 @@ class MainActivity : AppCompatActivity() {
         fab.setOnClickListener { view ->
             (supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment).startNewNote()
         }
+
+        SyncManager.startSyncTimer()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -43,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         // only item is logout
         SApplication.instance!!.valueStore.setTokenAndMasterKey(null, null)
         SApplication.instance!!.noteStore.deleteAll()
+        SyncManager.stopSyncTimer()
         startActivity(Intent(this, StarterActivity::class.java))
         finish()
         return true
