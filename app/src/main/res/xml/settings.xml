@@ -6,4 +6,5 @@
         android:defaultValue="false"
         android:title="@string/action_toggle_screenshots" />
 
+
 </PreferenceScreen>

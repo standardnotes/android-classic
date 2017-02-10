@@ -7,10 +7,4 @@
         android:title="@string/action_settings"
         app:showAsAction="never"/>
 
-    <item
-        android:id="@+id/logout"
-        android:icon="@android:drawable/ic_menu_search"
-        android:title="@string/action_logout"
-        app:showAsAction="never" />
-
 </menu>

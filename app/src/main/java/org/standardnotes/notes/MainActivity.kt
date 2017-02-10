@@ -37,16 +37,10 @@ class MainActivity : BaseActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
-            R.id.logout -> logout()
             R.id.settings -> startActivity(Intent(this, SettingsActivity::class.java))
         }
         return true
     }
 
-    private fun logout() {
-        SApplication.instance!!.valueStore.setTokenAndMasterKey(null, null)
-        SApplication.instance!!.noteStore.deleteAll()
-        startActivity(Intent(this, StarterActivity::class.java))
-        finish()
-    }
+
 }
