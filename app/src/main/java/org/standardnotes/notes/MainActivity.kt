@@ -1,7 +1,6 @@
 package org.standardnotes.notes
 
 import android.content.Intent
-
 import android.os.Bundle
 import android.support.v7.widget.Toolbar
 import android.view.Menu
@@ -25,7 +24,16 @@ class MainActivity : BaseActivity() {
             (supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment).startNewNote()
         }
 
+    }
+
+    override fun onResume() {
+        super.onResume()
         SyncManager.startSyncTimer()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        SyncManager.stopSyncTimer()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

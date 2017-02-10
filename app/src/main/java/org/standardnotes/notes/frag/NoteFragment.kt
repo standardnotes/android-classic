@@ -89,6 +89,11 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         setSubtitle(if (note!!.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
     }
 
+    override fun onPause() {
+        super.onPause()
+        saveNote(note)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         syncHandler.removeCallbacks(syncRunnable)

@@ -1,6 +1,7 @@
 package org.standardnotes.notes.comms
 
 import android.os.Handler
+import android.util.Log
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.SyncItems
@@ -20,7 +21,8 @@ object SyncManager {
         fun onSyncFailed()
     }
 
-    // TODO should we use a service instead?
+    val TAG = SyncManager.javaClass.simpleName
+
     private val SYNC_INTERVAL = 30000L
     private val syncHandler: Handler = Handler()
     private val syncRunnable: Runnable = object : Runnable {
@@ -59,6 +61,7 @@ object SyncManager {
             val listening = iter.next()
             if (listening.get() == null) {
                 iter.remove()
+                Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
             } else {
                 listening.get().onSyncStarted()
             }
@@ -79,6 +82,7 @@ object SyncManager {
                     val listening = iter.next()
                     if (listening.get() == null) {
                         iter.remove()
+                        Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
                     } else {
                         listening.get().onSyncCompleted(notes)
                     }
@@ -93,6 +97,7 @@ object SyncManager {
                     val listening = iter.next()
                     if (listening.get() == null) {
                         iter.remove()
+                        Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
                     } else {
                         listening.get().onSyncFailed()
                     }
