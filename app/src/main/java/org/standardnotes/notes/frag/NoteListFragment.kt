@@ -23,7 +23,7 @@ import org.standardnotes.notes.comms.data.Note
 import java.util.*
 
 
-class NoteListFragment : Fragment(), SyncManager.SyncListener {
+class NoteListFragment : Fragment(), SyncManager.SyncListener  {
 
     private val REQ_EDIT_NOTE: Int = 1
 
