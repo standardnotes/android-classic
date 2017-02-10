@@ -1,36 +1,18 @@
 package org.standardnotes.notes
 
 import android.content.Intent
-import android.content.SharedPreferences
+
 import android.os.Bundle
-import android.preference.PreferenceManager
-import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
-import android.view.WindowManager
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import org.standardnotes.notes.frag.NoteListFragment
 
-class MainActivity : AppCompatActivity() {
-
-    companion object {
-        const val IS_SCREENSHOTTING_ENABLED = "toggle_screenshots"
-    }
-    lateinit var prefs: SharedPreferences
-    lateinit var editor: SharedPreferences.Editor
+class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        editor = prefs.edit()
-
-        if (!isScreenshottingEnabled()) {
-            window.setFlags(WindowManager.LayoutParams.FLAG_SECURE,
-                    WindowManager.LayoutParams.FLAG_SECURE)
-        }
 
         setContentView(R.layout.activity_main)
         val toolbar = findViewById(R.id.toolbar) as Toolbar
@@ -53,19 +35,10 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        if (!isScreenshottingEnabled()) {
-            menu?.findItem(R.id.toggleScreenshot)?.setTitle(R.string.action_enable_screenshots)
-        } else {
-            menu?.findItem(R.id.toggleScreenshot)?.setTitle(R.string.action_disable_screenshots)
-        }
-        return super.onPrepareOptionsMenu(menu)
-    }
-
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.logout -> logout()
-            R.id.toggleScreenshot -> if (isScreenshottingEnabled()) disableScreenshots() else enableScreenshots()
+            R.id.settings -> startActivity(Intent(this, SettingsActivity::class.java))
         }
         return true
     }
@@ -75,25 +48,5 @@ class MainActivity : AppCompatActivity() {
         SApplication.instance!!.noteStore.deleteAll()
         startActivity(Intent(this, StarterActivity::class.java))
         finish()
-    }
-
-    private fun disableScreenshots() {
-        editor.putBoolean(IS_SCREENSHOTTING_ENABLED, false)
-        editor.commit()
-        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE)
-        Toast.makeText(this, R.string.toast_screenshots_disabled, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun enableScreenshots() {
-        editor.putBoolean(IS_SCREENSHOTTING_ENABLED, true)
-        editor.commit()
-        finish()
-        startActivity(intent)
-        Toast.makeText(this, R.string.toast_screenshots_enabled, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun isScreenshottingEnabled(): Boolean {
-        return prefs.getBoolean(IS_SCREENSHOTTING_ENABLED, false)
     }
 }
