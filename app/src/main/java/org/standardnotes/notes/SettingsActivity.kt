@@ -6,6 +6,7 @@ import android.support.v4.app.NavUtils
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_settings.*
+import org.standardnotes.notes.comms.SyncManager
 
 class SettingsActivity : BaseActivity() {
 
@@ -34,6 +35,7 @@ class SettingsActivity : BaseActivity() {
     private fun logout() {
         SApplication.instance!!.valueStore.setTokenAndMasterKey(null, null)
         SApplication.instance!!.noteStore.deleteAll()
+        SyncManager.stopSyncTimer()
         startActivity(Intent(this, StarterActivity::class.java))
         finishAffinity()
     }

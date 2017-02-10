@@ -28,9 +28,14 @@
     <string name="toast_screenshots_disabled">Screenshots are disabled</string>
 
     <!-- Strings related to notes -->
+    <string name="title_activity_note">Compose</string>
     <string name="prompt_title">Title</string>
     <string name="prompt_text">Text</string>
     <string name="action_delete">Delete</string>
-    <string name="error_fail_sync">Failed to sync</string>
+    <string name="error_fail_sync">You are offline.</string>
+    <string name="sync_retry">Retry</string>
     <string name="error_passwords_mismatch">Passwords do not match</string>
+    <string name="sync_progress_saving">Saving…</string>
+    <string name="sync_progress_finished">All changes saved</string>
+    <string name="sync_progress_error">Offline</string>
 </resources>

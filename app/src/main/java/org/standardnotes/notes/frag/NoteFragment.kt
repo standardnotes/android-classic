@@ -3,6 +3,7 @@ package org.standardnotes.notes.frag
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.app.Fragment
+import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -14,18 +15,18 @@ import org.joda.time.DateTime
 import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
+import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.Tag
 import java.util.*
 
-class NoteFragment : Fragment() {
+class NoteFragment : Fragment(), SyncManager.SyncListener {
 
-    val SAVE_INTERVAL = 250L
-    var saveHandler: Handler = Handler()
-    var saveRunnable: Runnable = object : Runnable {
-        override fun run() {
-            saveNote(note)
-            saveHandler.postDelayed(this, SAVE_INTERVAL)
+    val SYNC_DELAY = 250L
+    val syncHandler: Handler = Handler()
+    val syncRunnable: Runnable = Runnable {
+        if (saveNote(note)) {
+            SyncManager.sync()
         }
     }
 
@@ -38,9 +39,9 @@ class NoteFragment : Fragment() {
         if (noteUuid != null) {
             note = SApplication.instance!!.noteStore.getNote(noteUuid)
             tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
+        } else {
+            note = newNote()
         }
-
-        startSaveTimer()
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -50,10 +51,12 @@ class NoteFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (savedInstanceState == null) {
-            titleEdit.setText(note?.title)
-            bodyEdit.setText(note?.text)
-        }
+
+        titleEdit.setText(note?.title)
+        bodyEdit.setText(note?.text)
+
+        SyncManager.subscribe(this)
+
         if (tags.count() > 0) {
             tagsRow.visibility = View.VISIBLE
             tags.forEach {
@@ -70,7 +73,8 @@ class NoteFragment : Fragment() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                startSaveTimer()
+                syncHandler.removeCallbacks(syncRunnable)
+                syncHandler.postDelayed(syncRunnable, SYNC_DELAY)
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -81,39 +85,52 @@ class NoteFragment : Fragment() {
         bodyEdit.addTextChangedListener(textWatcher)
 
         titleEdit.setSelection(titleEdit.text.length)
-    }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        saveHandler.removeCallbacks(saveRunnable)
+        setSubtitle(if (note!!.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
     }
 
     override fun onPause() {
         super.onPause()
-        if (activity.isFinishing) {
-            // If we are leaving then lets save it locally
-            if (note == null) {
-                note = newNote()
-            }
-            saveNote(note!!)
-        }
+        saveNote(note)
     }
 
-    fun startSaveTimer() {
-        saveHandler.removeCallbacks(saveRunnable)
-        saveHandler.postDelayed(saveRunnable, SAVE_INTERVAL)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        syncHandler.removeCallbacks(syncRunnable)
+        SyncManager.unsubscribe(this)
     }
 
-    fun saveNote(note: Note?) {
-        if (note != null && (note.title != titleEdit.text.toString() ||
-                note.text != bodyEdit.text.toString())) {
+    fun setSubtitle(subTitle: String) {
+        bodyEdit.postDelayed({
+            (activity as AppCompatActivity).supportActionBar!!.subtitle = subTitle
+        }, 100)
+    }
+
+    fun saveNote(note: Note?): Boolean {
+        if (note!!.title != titleEdit.text.toString() ||
+                note.text != bodyEdit.text.toString()) {
             note.title = titleEdit.text.toString()
             note.text = bodyEdit.text.toString()
             note.dirty = true
             note.updatedAt = DateTime.now()
             SApplication.instance!!.noteStore.putNote(note.uuid, note)
+            return true
         }
+        return false
     }
+
+    override fun onSyncStarted() {
+        setSubtitle(getString(R.string.sync_progress_saving))
+    }
+
+    override fun onSyncCompleted(notes: List<Note>) {
+        setSubtitle(getString(R.string.sync_progress_finished))
+    }
+
+    override fun onSyncFailed() {
+        setSubtitle(getString(R.string.sync_progress_error))
+    }
+
 }
 
 fun newNote(): Note {
