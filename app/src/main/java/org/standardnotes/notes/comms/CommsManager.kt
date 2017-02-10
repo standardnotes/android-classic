@@ -1,18 +1,18 @@
 package org.standardnotes.notes.comms
 
+import android.accounts.Account
 import com.google.gson.*
-import org.standardnotes.notes.SApplication
-
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.format.ISODateTimeFormat
+import org.standardnotes.notes.SApplication
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
 
-class CommsManager(serverBaseUrl: String) {
+class CommsManager(account: Account?, var server: String?) {
 
     private val retrofit: Retrofit
     private val okHttpClient: OkHttpClient
@@ -27,15 +27,17 @@ class CommsManager(serverBaseUrl: String) {
                     // Add auth to header if we have a token
                     val original = chain.request()
                     val requestBuilder = original.newBuilder()
-                    if (SApplication.instance!!.valueStore.token != null) {
-                        requestBuilder.header("Authorization", "Bearer " + SApplication.instance!!.valueStore.token)
+                    if (account != null && SApplication.instance!!.valueStore(account).token != null) {
+                        requestBuilder.header("Authorization", "Bearer " + SApplication.instance!!.valueStore(account).token)
                     }
                     val request = requestBuilder.build()
                     chain.proceed(request)
                 }
                 .build()
+        if (account != null)
+            server = SApplication.instance!!.valueStore(account).server
         retrofit = Retrofit.Builder()
-                .baseUrl(serverBaseUrl)
+                .baseUrl(server)
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(SApplication.instance!!.gson))
                 .build()

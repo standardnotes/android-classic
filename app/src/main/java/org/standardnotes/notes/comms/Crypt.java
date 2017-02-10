@@ -1,12 +1,11 @@
 package org.standardnotes.notes.comms;
 
+import android.accounts.Account;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Base64;
 import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.spongycastle.crypto.digests.SHA512Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
@@ -55,7 +54,13 @@ public class Crypt {
         return true;
     }
 
-    public static void doLogin(final String email, final String password, final AuthParamsResponse params, final Callback<SigninResponse> callback) {
+    public interface AuthCallback {
+        public void onSuccess(String masterKey, String token);
+
+        public void onError(Throwable t);
+    }
+
+    public static void doLogin(final CommsManager comm, final String email, final String password, final AuthParamsResponse params, final AuthCallback callback) {
         Thread loginThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -68,30 +73,31 @@ public class Crypt {
                     String fullHashedPassword = Crypt.bytesToHex(key);
                     String serverHashedPassword = fullHashedPassword.substring(0, fullHashedPassword.length() / 2);
                     final String mk = fullHashedPassword.substring(fullHashedPassword.length() / 2);
-                    SApplication.Companion.getInstance().getComms().getApi().signin(email, serverHashedPassword).enqueue(new Callback<SigninResponse>() {
+                    comm.getApi().signin(email, serverHashedPassword).enqueue(new Callback<SigninResponse>() {
                         @Override
                         public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
                             if (response.isSuccessful()) {
-                                SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk);
+                                callback.onSuccess(mk, response.body().getToken());
+                            } else {
+                                callback.onError(new Exception(response.message()));
                             }
-                            callback.onResponse(call, response);
                         }
 
                         @Override
                         public void onFailure(Call<SigninResponse> call, Throwable t) {
-                            callback.onFailure(call, t);
+                            callback.onError(t);
                         }
                     });
                 } catch (Exception e) {
                     e.printStackTrace();
-                    callback.onFailure(null, e);
+                    callback.onError(e);
                 }
             }
         });
         loginThread.start();
     }
 
-    public static void doRegister(final String email, final String password, final Callback<SigninResponse> callback) {
+    public static void doRegister(final CommsManager comm, final String email, final String password, final AuthCallback callback) {
         Thread loginThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -105,25 +111,26 @@ public class Crypt {
                     String fullHashedPassword = Crypt.bytesToHex(key);
                     String serverHashedPassword = fullHashedPassword.substring(0, fullHashedPassword.length() / 2);
                     final String mk = fullHashedPassword.substring(fullHashedPassword.length() / 2);
-                    SApplication.Companion.getInstance().getComms().getApi().register(email, serverHashedPassword,
+                    comm.getApi().register(email, serverHashedPassword,
                             params.getPwSalt(), params.getPwNonce(), params.getPwFunc(), params.getPwAlg(), params.getPwCost(), params.getPwKeySize()).enqueue(new Callback<SigninResponse>() {
-                        @Override
+
                         public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
                             if (response.isSuccessful()) {
-                                SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk);
+                                callback.onSuccess(mk, response.body().getToken());
+                            } else {
+                                callback.onError(new Exception(response.message()));
                             }
-                            callback.onResponse(call, response);
                         }
 
                         @Override
                         public void onFailure(Call<SigninResponse> call, Throwable t) {
-                            callback.onFailure(call, t);
+                            callback.onError(t);
                         }
                     });
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    callback.onFailure(null, e);
+                    callback.onError(e);
                 }
             }
         });
@@ -152,12 +159,12 @@ public class Crypt {
         return keyHex;
     }
 
-    public static String generateEncryptedKey(int size) throws Exception {
-        return encrypt(generateKey(size), SApplication.Companion.getInstance().getValueStore().getMasterKey());
+    public static String generateEncryptedKey(Account account, int size) throws Exception {
+        return encrypt(generateKey(size), SApplication.Companion.getInstance().getMasterKey(account));
     }
 
-    public static Keys getItemKeys(EncryptedItem item) throws Exception {
-        String itemKey = decrypt(item.getEncItemKey(), SApplication.Companion.getInstance().getValueStore().getMasterKey());
+    public static Keys getItemKeys(Account account, EncryptedItem item) throws Exception {
+        String itemKey = decrypt(item.getEncItemKey(), SApplication.Companion.getInstance().getMasterKey(account));
         Keys val = new Keys();
         val.ek = itemKey.substring(0, itemKey.length() / 2);
         val.ak = itemKey.substring(itemKey.length() / 2);
@@ -205,12 +212,12 @@ public class Crypt {
         return data;
     }
 
-    public static EncryptedItem encrypt(Note note) {
+    public static EncryptedItem encrypt(Account account, Note note) {
         try {
             EncryptedItem item = new EncryptedItem();
             copyInEncryptableItemFields(note, item);
             item.setContentType("Note");
-            Keys keys = Crypt.getItemKeys(item);
+            Keys keys = Crypt.getItemKeys(account, item);
             Note justUnencContent = new Note();
             justUnencContent.setTitle(note.getTitle());
             justUnencContent.setText(note.getText());
@@ -227,12 +234,12 @@ public class Crypt {
         return null;
     }
 
-    public static Note decryptNote(EncryptedItem item) {
-        return noteDecryptor.decrypt(item);
+    public static Note decryptNote(Account account, EncryptedItem item) {
+        return noteDecryptor.decrypt(account, item);
     }
 
-    public static Tag decryptTag(EncryptedItem item) {
-        return tagDecryptor.decrypt(item);
+    public static Tag decryptTag(Account account, EncryptedItem item) {
+        return tagDecryptor.decrypt(account, item);
     }
 
     private static String createHash(String text, String ak) throws NoSuchAlgorithmException, InvalidKeyException {
@@ -262,14 +269,15 @@ public class Crypt {
         target.setDeleted(source.getDeleted());
     }
 
-    static class ContentDecryptor<T extends EncryptableItem> {
+    private static class ContentDecryptor<T extends EncryptableItem> {
+
         private Class<T> type;
 
         public ContentDecryptor(Class<T> type) {
             this.type = type;
         }
 
-        public T decrypt(EncryptedItem item) {
+        public T decrypt(Account account, EncryptedItem item) {
             try {
 
                 if (item.getContent() != null) {
@@ -278,7 +286,7 @@ public class Crypt {
                     if (item.getContent().startsWith("000")) {
                         contentJson = new String(Base64.decode(contentWithoutType, Base64.NO_PADDING), Charsets.UTF_8);
                     } else {
-                        Keys keys = Crypt.getItemKeys(item);
+                        Keys keys = Crypt.getItemKeys(account, item);
 
                         // authenticate
                         String hash = createHash(item.getContent(), keys.ak);

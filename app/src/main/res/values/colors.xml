@@ -4,4 +4,5 @@
     <color name="colorPrimaryDark">#d30000</color>
     <color name="colorAccent">#fe0000</color>
     <color name="feint_gray">#cccccc</color>
+    <color name="drawer_top_bg">#ffebee</color>
 </resources>

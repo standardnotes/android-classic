@@ -1,5 +1,6 @@
 package org.standardnotes.notes.store
 
+import android.accounts.Account
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
@@ -13,7 +14,11 @@ import java.util.*
 val CURRENT_DB_VERSION: Int = 1
 
 // TODO move this to async access
-class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_DB_VERSION) {
+class NoteStore(var account: Account) : SQLiteOpenHelper(
+        SApplication.instance,
+        SApplication.instance!!.valueStore(account).uuid,
+        null,
+        CURRENT_DB_VERSION) {
 
 
 //    private val noteList = HashMap<String, Note>()
@@ -223,7 +228,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     }
 
     fun putItems(items: SyncItems) {
-        SApplication.instance!!.valueStore.syncToken = items.syncToken
+        SApplication.instance!!.valueStore(account).syncToken = items.syncToken
         items.retrievedItems.forEach { putItem(it, false) }
         items.savedItems.forEach { putItem(it, true) }
     }
@@ -237,7 +242,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             if (item.deleted) {
                 newNote = null
             } else {
-                newNote = Crypt.decryptNote(item)
+                newNote = Crypt.decryptNote(account, item)
             }
 
             if (mergeWithOld) {
@@ -250,7 +255,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             if (item.deleted) {
                 newTag = null
             } else {
-                newTag = Crypt.decryptTag(item)
+                newTag = Crypt.decryptTag(account, item)
             }
 
             if (mergeWithOld) {
@@ -314,14 +319,14 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     }
 
     @Synchronized fun deleteAll() {
-        SApplication.instance!!.valueStore.syncToken = null
+        SApplication.instance!!.valueStore(account).syncToken = null
         writableDatabase.use {
             writableDatabase.delete(TABLE_NOTE, null, null)
             writableDatabase.delete(TABLE_TAG, null, null)
             writableDatabase.delete(TABLE_ENCRYPTABLE, null, null)
         }
         close()
-        SApplication.instance!!.deleteDatabase("note")
+        SApplication.instance!!.deleteDatabase(SApplication.instance!!.valueStore(account).uuid)
     }
 }
 

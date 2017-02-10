@@ -1,28 +1,32 @@
 package org.standardnotes.notes.store
 
+import android.accounts.Account
+import android.accounts.AccountManager
 import android.content.Context
-import android.content.SharedPreferences
-import org.standardnotes.notes.BuildConfig
 
-class ValueStore(context: Context) {
+class ValueStore(context: Context, var account: Account) {
 
-    private val prefs: SharedPreferences = context.getSharedPreferences("values", Context.MODE_PRIVATE)
+    private var manager: AccountManager = AccountManager.get(context)
 
-    fun setTokenAndMasterKey(token: String?, mk: String?) {
-        prefs.edit().putString("masterKey", mk).putString("token", token).apply()
+    fun setTokenAndMasterKey(server: String, token: String?, mk: String?) {
+        manager.setUserData(account, "masterKey", mk)
+        manager.setUserData(account, "token", token)
+        manager.setUserData(account, "server", server)
     }
 
-    val masterKey: String?
-        get() = prefs.getString("masterKey", null)
-
     val token: String?
-        get() = prefs.getString("token", null)
+        get() = manager.getUserData(account, "token")
 
-    var server: String?
-        get() = prefs.getString("server", BuildConfig.SERVER_DEFAULT)
-        set(value) { prefs.edit().putString("server", value).apply() }
+    val server: String?
+        get() = manager.getUserData(account, "server")
+
+    val email: String?
+        get() = manager.getUserData(account, "email")
+
+    val uuid: String?
+        get() = manager.getUserData(account, "uuid")
 
     var syncToken: String?
-        get() = prefs.getString("syncToken", null)
-        set(token) { prefs.edit().putString("syncToken", token).apply() }
+        get() = manager.getUserData(account, "syncToken")
+        set(token) { manager.setUserData(account, "syncToken", token) }
 }

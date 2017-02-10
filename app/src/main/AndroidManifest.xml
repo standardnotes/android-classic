@@ -4,6 +4,7 @@
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
@@ -38,6 +39,15 @@
             android:name=".NoteActivity"
             android:windowSoftInputMode="stateHidden|adjustResize"
             />
+        <service
+                android:name=".account.AccountAuthenticatorService"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator"/>
+            </intent-filter>
+            <meta-data android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/account"/>
+        </service>
     </application>
 
 </manifest>

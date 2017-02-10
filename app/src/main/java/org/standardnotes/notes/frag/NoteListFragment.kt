@@ -1,5 +1,6 @@
 package org.standardnotes.notes.frag
 
+import android.accounts.Account
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -41,8 +42,11 @@ class NoteListFragment : Fragment() {
         const val NOTE_FRAGMENT_INTENT = "noteId"
     }
 
+    private var account: Account? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        account = SApplication.instance!!.account(null)!! // TODO: Fixme
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
@@ -56,7 +60,7 @@ class NoteListFragment : Fragment() {
         list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
         list.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
         swipeRefreshLayout.setOnRefreshListener { sync() }
-        notes = ArrayList(SApplication.instance!!.noteStore.notesList)
+        notes = ArrayList(SApplication.instance!!.noteStore(account!!).notesList)
         sync()
         list.adapter = adapter
     }
@@ -66,9 +70,9 @@ class NoteListFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
 //        if (resultCode == RESULT_OK) {
             if (requestCode == REQ_EDIT_NOTE) {
-                notes = ArrayList(SApplication.instance!!.noteStore.notesList)
+                notes = ArrayList(SApplication.instance!!.noteStore(account!!).notesList)
                 adapter.notifyDataSetChanged()
-                if (SApplication.instance!!.noteStore.notesToSaveCount() > 0) {
+                if (SApplication.instance!!.noteStore(account!!).notesToSaveCount() > 0) {
                     sync()
                 }
             }
@@ -79,16 +83,21 @@ class NoteListFragment : Fragment() {
     fun sync() {
         swipeRefreshLayout.isRefreshing = true
         val uploadSyncItems = UploadSyncItems()
-        uploadSyncItems.syncToken = SApplication.instance!!.valueStore.syncToken
-        val dirtyItems = SApplication.instance!!.noteStore.toSave
+        uploadSyncItems.syncToken = SApplication.instance!!.valueStore(account!!).syncToken
+        val dirtyItems = SApplication.instance!!.noteStore(account!!).toSave
         dirtyItems
-                .map { Crypt.encrypt(it) }
+                .map { Crypt.encrypt(account, it) }
                 .forEach { uploadSyncItems.items.add(it) }
-        SApplication.instance!!.comms.api.sync(uploadSyncItems).enqueue(object : Callback<SyncItems> {
+        SApplication.instance!!.commManager(account!!).api.sync(uploadSyncItems).enqueue(object : Callback<SyncItems> {
             override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {
+                if (!response.isSuccessful) {
+                    Toast.makeText(activity, activity.getString(R.string.error_fail_sync), Toast.LENGTH_SHORT).show()
+                    swipeRefreshLayout.isRefreshing = false
+                    return
+                }
                 notes.clear()
-                SApplication.instance!!.noteStore.putItems(response.body())
-                notes = ArrayList(SApplication.instance!!.noteStore.notesList)
+                SApplication.instance!!.noteStore(account!!).putItems(response.body())
+                notes = ArrayList(SApplication.instance!!.noteStore(account!!).notesList)
                 swipeRefreshLayout.isRefreshing = false
                 adapter.notifyDataSetChanged()
             }
@@ -133,8 +142,8 @@ class NoteListFragment : Fragment() {
                 val popup = PopupMenu(activity, itemView)
                 popup.menu.add(activity.getString(R.string.action_delete))
                 popup.setOnMenuItemClickListener {
-                    SApplication.instance!!.noteStore.deleteItem(note!!.uuid)
-                    notes = ArrayList(SApplication.instance!!.noteStore.notesList)
+                    SApplication.instance!!.noteStore(account!!).deleteItem(note!!.uuid)
+                    notes = ArrayList(SApplication.instance!!.noteStore(account!!).notesList)
                     adapter.notifyDataSetChanged()
                     sync()
                     true
