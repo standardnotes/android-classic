@@ -14,6 +14,7 @@ import org.standardnotes.notes.frag.NoteFragment
 class NoteActivity : BaseActivity() {
 
     val REVEAL_ANIM_DURATION = 400L
+    var backPressed = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,15 +50,18 @@ class NoteActivity : BaseActivity() {
     }
 
     override fun onBackPressed() {
-        overridePendingTransition(R.anim.transition_none, R.anim.transition_none)
-        if (intent.extras == null) {
-            circularHide()
-            findViewById(android.R.id.content).postDelayed({
+        if (!backPressed) {
+            overridePendingTransition(R.anim.transition_none, R.anim.transition_none)
+            if (intent.extras == null) {
+                circularHide()
+                findViewById(android.R.id.content).postDelayed({
+                    super.onBackPressed()
+                }, REVEAL_ANIM_DURATION)
+            } else {
                 super.onBackPressed()
-            }, REVEAL_ANIM_DURATION)
-        } else {
-            super.onBackPressed()
+            }
         }
+        backPressed = true
     }
 
     private fun circularReveal() {
@@ -68,18 +72,6 @@ class NoteActivity : BaseActivity() {
         val circularReveal = ViewAnimationUtils.createCircularReveal(rootView, cx, cy, 0f, Math.max(rootView.width, rootView.height).toFloat())
         circularReveal.duration = REVEAL_ANIM_DURATION
         rootView.visibility = View.VISIBLE
-
-//        val fromcolor = ContextCompat.getColor(this, R.color.colorPrimary)
-//        val tocolor = ContextCompat.getColor(this, android.R.color.white)
-//
-//        val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), fromcolor, tocolor)
-//        colorAnimation.duration = 1000
-//        colorAnimation.addUpdateListener { animator ->
-//            val i = animator.animatedValue as Int
-//            rootView.background.setColorFilter(i, PorterDuff.Mode.SRC_IN)
-//        }
-//        colorAnimation.start()
-
         circularReveal.start()
     }
 

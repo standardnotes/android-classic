@@ -69,7 +69,6 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
                 tagsLayout.addView(tagItem)
             }
         }
-        titleLayout.isHintAnimationEnabled = true
 
         val textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {

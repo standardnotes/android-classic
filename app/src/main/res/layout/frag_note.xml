@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@color/noteBackground">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -20,22 +20,18 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <android.support.design.widget.TextInputLayout
-                android:id="@+id/titleLayout"
+            <EditText
+                android:id="@+id/titleEdit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@android:color/transparent"
                 android:hint="@string/prompt_title"
-                app:hintAnimationEnabled="false">
-
-                <EditText
-                    android:id="@+id/titleEdit"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:imeOptions="actionNext"
-                    android:inputType="textCapWords"
-                    android:maxLines="1" />
-
-            </android.support.design.widget.TextInputLayout>
+                android:imeOptions="actionNext"
+                android:inputType="textCapWords|textNoSuggestions"
+                android:maxLines="1"
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:id="@+id/tagsRow"
@@ -72,7 +68,9 @@
                 android:layout_height="match_parent"
                 android:background="@android:color/transparent"
                 android:gravity="top"
-                android:hint="@string/prompt_text" />
+                android:hint="@string/prompt_text"
+                android:inputType="textNoSuggestions"
+                android:textSize="18sp" />
 
         </LinearLayout>
 
