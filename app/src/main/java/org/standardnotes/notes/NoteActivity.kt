@@ -13,7 +13,7 @@ import org.standardnotes.notes.frag.NoteFragment
 
 class NoteActivity : BaseActivity() {
 
-    val REVEAL_ANIM_DURATION = 400L
+    val REVEAL_ANIM_DURATION = 200L
     var backPressed = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
