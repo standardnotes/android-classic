@@ -23,7 +23,7 @@ class ValueStore(context: Context) {
         set(value) { prefs.edit().putString("server", value).apply() }
 
     var email: String?
-        get() = prefs.getString("email", "<Not set>") // Will never happen on production
+        get() = prefs.getString("email", "") // Set on login/registration
         set(value) { prefs.edit().putString("email", value).apply() }
 
     var syncToken: String?

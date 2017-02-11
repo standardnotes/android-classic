@@ -87,9 +87,10 @@ class MainActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         if (drawerToggle!!.onOptionsItemSelected(item))
             return true
-        when (item?.itemId) {
-            R.id.settings -> startActivity(Intent(this, SettingsActivity::class.java))
-        }
+        else
+            when (item?.itemId) {
+                R.id.settings -> startActivity(Intent(this, SettingsActivity::class.java))
+            }
         return true
     }
 
