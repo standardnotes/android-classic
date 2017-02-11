@@ -33,15 +33,8 @@ class NoteActivity : BaseActivity() {
                 if (viewTreeObserver.isAlive) {
                     viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
                         override fun onGlobalLayout() {
-
                             circularReveal()
-
-                            // TODO this will be required if we ever backport the app...
-                            // if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-                            //  rootView.viewTreeObserver.removeGlobalOnLayoutListener(this)
-                            // } else {
                             rootView.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                            // }
                         }
                     })
                 }
