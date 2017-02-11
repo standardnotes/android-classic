@@ -51,6 +51,10 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val context = activity as AppCompatActivity
+        context.setSupportActionBar(toolbar)
+        context.supportActionBar?.setDisplayShowHomeEnabled(true)
+        context.supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         titleEdit.setText(note?.title)
         bodyEdit.setText(note?.text)

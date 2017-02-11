@@ -38,4 +38,5 @@
     <string name="sync_progress_saving">Saving…</string>
     <string name="sync_progress_finished">All changes saved</string>
     <string name="sync_progress_error">Offline</string>
+    <string name="label_not_synced">Not synced</string>
 </resources>
