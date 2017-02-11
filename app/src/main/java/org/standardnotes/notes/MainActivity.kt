@@ -1,15 +1,20 @@
 package org.standardnotes.notes
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
+import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.frag.NoteListFragment
 
 class MainActivity : BaseActivity() {
+
+    private var drawerToggle: ActionBarDrawerToggle? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,10 +23,43 @@ class MainActivity : BaseActivity() {
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
+        drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
+        drawer_layout.addDrawerListener(drawerToggle!!)
+        drawerToggle!!.isDrawerIndicatorEnabled = true
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        supportActionBar!!.setHomeButtonEnabled(true)
+        val header = drawer.inflateHeaderView(R.layout.view_navigation_header)
+        val values = SApplication.instance!!.valueStore
+        header.main_account_server.text = values.server
+        header.main_account_email.text = values.email
+        updateTagsMenu()
+
         title = getString(R.string.app_name)
 
         fab.setOnClickListener { view ->
             (supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment).startNewNote()
+        }
+
+    }
+
+    fun updateTagsMenu() {
+        fun tagMenuItem(it: MenuItem, uuid: String?) {
+            // TODO: pass UUID to Fragment
+            it.setIcon(R.drawable.ic_tag)
+            it.setOnMenuItemClickListener {
+                drawer_layout.closeDrawers()
+                return@setOnMenuItemClickListener true
+            }
+        }
+        drawer.menu.clear()
+        drawer.inflateMenu(R.menu.drawer_tags)
+        val tags = SApplication.instance!!.noteStore.getAllTags()
+        val mitem = drawer.menu.findItem(R.id.menu_account_tags)
+        val item = mitem.subMenu.add(getString(R.string.drawer_all_notes))
+        tagMenuItem(item, null)
+        for (tag in tags) {
+            val item = mitem.subMenu.add(tag.title)
+            tagMenuItem(item, tag.uuid)
         }
 
     }
@@ -47,11 +85,22 @@ class MainActivity : BaseActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (drawerToggle!!.onOptionsItemSelected(item))
+            return true
         when (item?.itemId) {
             R.id.settings -> startActivity(Intent(this, SettingsActivity::class.java))
         }
         return true
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        drawerToggle?.syncState()
+    }
+
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        drawerToggle?.syncState()
+    }
 
 }
