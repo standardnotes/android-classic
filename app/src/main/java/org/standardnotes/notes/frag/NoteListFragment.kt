@@ -50,7 +50,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener  {
         list.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
         swipeRefreshLayout.setColorSchemeResources(
                         R.color.colorPrimary,
-                        R.color.colorPrimaryDark)
+                        R.color.colorAccent)
         swipeRefreshLayout.setOnRefreshListener { SyncManager.sync() }
         notes = ArrayList(SApplication.instance!!.noteStore.notesList)
         SyncManager.sync()
