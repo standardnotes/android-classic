@@ -28,9 +28,9 @@ class NoteActivity : BaseActivity() {
 
             if (frag.arguments == null) {
                 val rootView = findViewById(android.R.id.content)
-                rootView.visibility = View.INVISIBLE
                 val viewTreeObserver = rootView.viewTreeObserver
                 if (viewTreeObserver.isAlive) {
+                    rootView.visibility = View.INVISIBLE
                     viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
                         override fun onGlobalLayout() {
                             circularReveal()
