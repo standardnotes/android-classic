@@ -44,7 +44,7 @@
     <android.support.design.widget.NavigationView
         android:id="@+id/drawer"
         android:layout_gravity="start"
-        android:layout_width="260dp"
+        android:layout_width="@dimen/drawer_width"
         android:layout_height="match_parent">
 
     </android.support.design.widget.NavigationView>
