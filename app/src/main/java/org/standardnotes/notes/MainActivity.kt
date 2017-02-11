@@ -10,9 +10,21 @@ import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.comms.SyncManager
+import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.frag.NoteListFragment
 
-class MainActivity : BaseActivity() {
+class MainActivity : BaseActivity(), SyncManager.SyncListener {
+
+    override fun onSyncStarted() {
+    }
+
+    override fun onSyncFailed() {
+    }
+
+    override fun onSyncCompleted(notes: List<Note>) {
+        // Update tags list
+        updateTagsMenu()
+    }
 
     private var drawerToggle: ActionBarDrawerToggle? = null
 
@@ -32,7 +44,6 @@ class MainActivity : BaseActivity() {
         val values = SApplication.instance!!.valueStore
         header.main_account_server.text = values.server
         header.main_account_email.text = values.email
-        updateTagsMenu()
 
         title = getString(R.string.app_name)
 
@@ -67,11 +78,14 @@ class MainActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         SyncManager.startSyncTimer()
+        SyncManager.subscribe(this)
+        updateTagsMenu()
     }
 
     override fun onPause() {
         super.onPause()
         SyncManager.stopSyncTimer()
+        SyncManager.unsubscribe(this)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
