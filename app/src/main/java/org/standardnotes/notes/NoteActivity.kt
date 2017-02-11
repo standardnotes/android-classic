@@ -18,7 +18,7 @@ class NoteActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        overridePendingTransition(R.anim.transition_none, R.anim.transition_none)
+        overridePendingTransition(0, 0)
 
         if (savedInstanceState == null) {
             val frag: NoteFragment = NoteFragment()
@@ -51,7 +51,7 @@ class NoteActivity : BaseActivity() {
 
     override fun onBackPressed() {
         if (!backPressed) {
-            overridePendingTransition(R.anim.transition_none, R.anim.transition_none)
+            overridePendingTransition(0, 0)
             if (intent.extras == null) {
                 circularHide()
                 findViewById(android.R.id.content).postDelayed({
@@ -80,9 +80,9 @@ class NoteActivity : BaseActivity() {
         val halfFab = 56.dpToPixels() / 2
         val cx = rootView.width - resources.getDimension(R.dimen.activity_horizontal_margin).toInt() - halfFab
         val cy = rootView.height -  resources.getDimension(R.dimen.activity_vertical_margin).toInt() - halfFab
-        val circularReveal = ViewAnimationUtils.createCircularReveal(rootView, cx, cy, Math.max(rootView.width, rootView.height).toFloat(), 0f)
-        circularReveal.duration = REVEAL_ANIM_DURATION
-        circularReveal.addListener(object : Animator.AnimatorListener {
+        val circularHide = ViewAnimationUtils.createCircularReveal(rootView, cx, cy, Math.max(rootView.width, rootView.height).toFloat(), 0f)
+        circularHide.duration = REVEAL_ANIM_DURATION
+        circularHide.addListener(object : Animator.AnimatorListener {
             override fun onAnimationStart(animation: Animator) {
                 //
             }
@@ -99,7 +99,7 @@ class NoteActivity : BaseActivity() {
                 //
             }
         })
-        circularReveal.start()
+        circularHide.start()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
