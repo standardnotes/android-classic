@@ -1,12 +1,10 @@
 package org.standardnotes.notes.comms;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Base64;
 import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.spongycastle.crypto.digests.SHA512Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
@@ -73,6 +71,7 @@ public class Crypt {
                         public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
                             if (response.isSuccessful()) {
                                 SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk);
+                                SApplication.Companion.getInstance().getValueStore().setEmail(email);
                             }
                             callback.onResponse(call, response);
                         }
@@ -111,6 +110,7 @@ public class Crypt {
                         public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
                             if (response.isSuccessful()) {
                                 SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk);
+                                SApplication.Companion.getInstance().getValueStore().setEmail(email);
                             }
                             callback.onResponse(call, response);
                         }
