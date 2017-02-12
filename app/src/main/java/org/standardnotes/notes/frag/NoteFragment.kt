@@ -35,7 +35,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val noteUuid = arguments?.getString(NoteListFragment.NOTE_FRAGMENT_INTENT)
+        val noteUuid = arguments?.getString(NoteListFragment.EXTRA_NOTE_ID)
         if (noteUuid != null) {
             note = SApplication.instance!!.noteStore.getNote(noteUuid)
             tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)

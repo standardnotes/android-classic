@@ -30,7 +30,7 @@
                 android:background="@android:color/transparent"
                 android:hint="@string/prompt_title"
                 android:imeOptions="actionNext"
-                android:inputType="textCapWords|textNoSuggestions"
+                android:inputType="textCapWords"
                 android:maxLines="1"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -71,7 +71,7 @@
                 android:background="@android:color/transparent"
                 android:gravity="top"
                 android:hint="@string/prompt_text"
-                android:inputType="textMultiLine|textNoSuggestions"
+                android:inputType="textMultiLine"
                 android:textSize="18sp" />
 
         </LinearLayout>

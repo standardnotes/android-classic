@@ -9,6 +9,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -23,7 +24,7 @@ import org.standardnotes.notes.comms.data.Note
 import java.util.*
 
 
-class NoteListFragment : Fragment(), SyncManager.SyncListener  {
+class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     private val REQ_EDIT_NOTE: Int = 1
 
@@ -33,8 +34,13 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener  {
 
     var currentSnackbar: Snackbar? = null
 
+    var lastTouchedX: Int? = null
+    var lastTouchedY: Int? = null
+
     companion object {
-        const val NOTE_FRAGMENT_INTENT = "noteId"
+        const val EXTRA_NOTE_ID = "noteId"
+        const val EXTRA_X_COOR = "xCoor"
+        const val EXTRA_Y_COOR = "yCoor"
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
@@ -49,8 +55,8 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener  {
         list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
         list.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
         swipeRefreshLayout.setColorSchemeResources(
-                        R.color.colorPrimary,
-                        R.color.colorAccent)
+                R.color.colorPrimary,
+                R.color.colorAccent)
         swipeRefreshLayout.setOnRefreshListener { SyncManager.sync() }
         notes = ArrayList(SApplication.instance!!.noteStore.notesList)
         SyncManager.sync()
@@ -65,13 +71,13 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener  {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 //        if (resultCode == RESULT_OK) {
-            if (requestCode == REQ_EDIT_NOTE) {
-                notes = ArrayList(SApplication.instance!!.noteStore.notesList)
-                adapter.notifyDataSetChanged()
-                if (SApplication.instance!!.noteStore.notesToSaveCount() > 0) {
-                    SyncManager.sync()
-                }
+        if (requestCode == REQ_EDIT_NOTE) {
+            notes = ArrayList(SApplication.instance!!.noteStore.notesList)
+            adapter.notifyDataSetChanged()
+            if (SApplication.instance!!.noteStore.notesToSaveCount() > 0) {
+                SyncManager.sync()
             }
+        }
 //        }
     }
 
@@ -96,8 +102,11 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener  {
         currentSnackbar!!.show()
     }
 
-    fun startNewNote() {
-        startActivityForResult(Intent(activity, NoteActivity::class.java), REQ_EDIT_NOTE)
+    fun startNewNote(x: Int, y: Int) {
+        val intent: Intent = Intent(activity, NoteActivity::class.java)
+        intent.putExtra(EXTRA_X_COOR, x)
+        intent.putExtra(EXTRA_Y_COOR, y)
+        startActivityForResult(intent, REQ_EDIT_NOTE)
     }
 
     inner class NoteHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -120,9 +129,18 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener  {
         private val synced: View = itemView.findViewById(R.id.synced)
 
         init {
+            itemView.setOnTouchListener({ v, event ->
+                if (event.action == MotionEvent.ACTION_UP) {
+                    lastTouchedX = event.rawX.toInt()
+                    lastTouchedY = event.rawY.toInt()
+                }
+                false
+            })
             itemView.setOnClickListener {
                 val intent: Intent = Intent(activity, NoteActivity::class.java)
-                intent.putExtra(NOTE_FRAGMENT_INTENT, note?.uuid)
+                intent.putExtra(EXTRA_NOTE_ID, note?.uuid)
+                intent.putExtra(EXTRA_X_COOR, lastTouchedX)
+                intent.putExtra(EXTRA_Y_COOR, lastTouchedY)
                 startActivityForResult(intent, REQ_EDIT_NOTE)
             }
             itemView.setOnLongClickListener {
