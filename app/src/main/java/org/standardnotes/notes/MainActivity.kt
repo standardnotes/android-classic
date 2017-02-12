@@ -7,6 +7,7 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.comms.SyncManager
@@ -47,8 +48,17 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
 
         title = getString(R.string.app_name)
 
+        var lastX: Int? = null
+        var lastY: Int? = null
+        fab.setOnTouchListener({ v, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                lastX = event.rawX.toInt()
+                lastY = event.rawY.toInt()
+            }
+            false
+        })
         fab.setOnClickListener { view ->
-            (supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment).startNewNote()
+            (supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment).startNewNote(lastX!!, lastY!!)
         }
 
     }

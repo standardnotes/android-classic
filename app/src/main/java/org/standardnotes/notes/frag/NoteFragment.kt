@@ -35,7 +35,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val noteUuid = arguments?.getString(NoteListFragment.NOTE_FRAGMENT_INTENT)
+        val noteUuid = arguments?.getString(NoteListFragment.EXTRA_NOTE_ID)
         if (noteUuid != null) {
             note = SApplication.instance!!.noteStore.getNote(noteUuid)
             tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
@@ -51,6 +51,10 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val context = activity as AppCompatActivity
+        context.setSupportActionBar(toolbar)
+        context.supportActionBar?.setDisplayShowHomeEnabled(true)
+        context.supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         titleEdit.setText(note?.title)
         bodyEdit.setText(note?.text)
@@ -65,7 +69,6 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
                 tagsLayout.addView(tagItem)
             }
         }
-        titleLayout.isHintAnimationEnabled = true
 
         val textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
