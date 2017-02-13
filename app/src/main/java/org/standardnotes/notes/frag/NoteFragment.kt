@@ -59,8 +59,6 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         titleEdit.setText(note?.title)
         bodyEdit.setText(note?.text)
 
-        SyncManager.subscribe(this)
-
         if (tags.count() > 0) {
             tagsRow.visibility = View.VISIBLE
             tags.forEach {
@@ -92,16 +90,18 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         setSubtitle(if (note!!.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
     }
 
+    override fun onResume() {
+        super.onResume()
+        SyncManager.subscribe(this)
+    }
+
     override fun onPause() {
         super.onPause()
+        syncHandler.removeCallbacks(syncRunnable)
+        SyncManager.unsubscribe(this)
         saveNote(note)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        syncHandler.removeCallbacks(syncRunnable)
-        SyncManager.unsubscribe(this)
-    }
 
     fun setSubtitle(subTitle: String) {
         bodyEdit.postDelayed({
