@@ -16,23 +16,22 @@ import org.standardnotes.notes.frag.NoteListFragment.Companion.EXTRA_Y_COOR
 class NoteActivity : BaseActivity() {
 
     val REVEAL_ANIM_DURATION = 200L
-    var revealX: Int? = null
-    var revealY: Int? = null
+    var revealX: Int = 0
+    var revealY: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         overridePendingTransition(0, 0)
 
+        revealX = intent.getIntExtra(EXTRA_X_COOR, 0)
+        revealY = intent.getIntExtra(EXTRA_Y_COOR, 0)
         if (savedInstanceState == null) {
             val frag: NoteFragment = NoteFragment()
             frag.arguments = intent.extras
 
             supportFragmentManager.beginTransaction().replace(android.R.id.content, frag).commit()
 
-            if (frag.arguments != null && frag.arguments.containsKey(EXTRA_X_COOR)) {
-
-                revealX = frag.arguments.getInt(EXTRA_X_COOR)
-                revealY = frag.arguments.getInt(EXTRA_Y_COOR)
+            if (revealX != 0) {
 
                 val rootView = findViewById(android.R.id.content)
                 val viewTreeObserver = rootView.viewTreeObserver
@@ -51,7 +50,7 @@ class NoteActivity : BaseActivity() {
 
     override fun onBackPressed() {
         overridePendingTransition(0, 0)
-        if (intent.extras != null && intent.extras.containsKey(EXTRA_X_COOR)) {
+        if (revealX != 0) {
             circularHide()
         } else {
             super.onBackPressed()
@@ -61,7 +60,7 @@ class NoteActivity : BaseActivity() {
     private fun circularReveal() {
         Log.d("zzz", "x: " + revealX + ", y:" + revealY)
         val rootView = findViewById(android.R.id.content)
-        val circularReveal = ViewAnimationUtils.createCircularReveal(rootView, revealX!!, revealY!!, 0f, Math.max(rootView.width, rootView.height).toFloat())
+        val circularReveal = ViewAnimationUtils.createCircularReveal(rootView, revealX, revealY, 0f, Math.max(rootView.width, rootView.height).toFloat())
         circularReveal.duration = REVEAL_ANIM_DURATION
         rootView.visibility = View.VISIBLE
         circularReveal.start()
@@ -69,7 +68,7 @@ class NoteActivity : BaseActivity() {
 
     private fun circularHide() {
         val rootView = findViewById(android.R.id.content)
-        val circularHide = ViewAnimationUtils.createCircularReveal(rootView, revealX!!, revealY!!, Math.max(rootView.width, rootView.height).toFloat(), 0f)
+        val circularHide = ViewAnimationUtils.createCircularReveal(rootView, revealX, revealY, Math.max(rootView.width, rootView.height).toFloat(), 0f)
         circularHide.duration = REVEAL_ANIM_DURATION
         circularHide.addListener(object : Animator.AnimatorListener {
             override fun onAnimationStart(animation: Animator) {
