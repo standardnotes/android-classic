@@ -32,6 +32,11 @@
     <string name="prompt_title">Title</string>
     <string name="prompt_text">Text</string>
     <string name="action_delete">Delete</string>
+    <string name="delete_confirm_title">Are you sure?</string>
+    <plurals name="delete_confirm_text">
+        <item quantity="one">Are you sure you would like to delete this item?</item>
+        <item quantity="other">Are you sure you would like to delete these %s items?</item>
+    </plurals>
     <string name="error_fail_sync">You are offline.</string>
     <string name="sync_retry">Retry</string>
     <string name="error_passwords_mismatch">Passwords do not match</string>

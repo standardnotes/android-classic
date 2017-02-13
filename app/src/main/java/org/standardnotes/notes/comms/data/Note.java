@@ -24,6 +24,8 @@ public class Note
     @Expose
     private String text = "";
 
+    private transient boolean selected;
+
     /**
      * 
      * @return
@@ -58,6 +60,14 @@ public class Note
      */
     public void setText(String text) {
         this.text = text;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 
 }
