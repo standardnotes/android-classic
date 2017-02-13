@@ -69,7 +69,6 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-//        if (resultCode == RESULT_OK) {
         if (requestCode == REQ_EDIT_NOTE) {
             notes = ArrayList(SApplication.instance!!.noteStore.notesList)
             adapter.notifyDataSetChanged()
@@ -77,7 +76,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 SyncManager.sync()
             }
         }
-//        }
+        actionMode?.finish()
     }
 
     override fun onSyncStarted() {
