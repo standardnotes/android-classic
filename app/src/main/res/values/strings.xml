@@ -24,12 +24,15 @@
     <string name="action_logout">Log out</string>
     <string name="action_settings">Settings</string>
     <string name="action_toggle_screenshots">Enable Screenshots</string>
+    <string name="action_toggle_monospace">Use Monospace font for notes</string>
     <string name="toast_screenshots_enabled">Screenshots are enabled</string>
     <string name="toast_screenshots_disabled">Screenshots are disabled</string>
     <string name="action_feedback">Send feedback</string>
     <string name="feedback_email">android@standardnotes.org</string>
     <string name="feedback_subject">Standard Notes Feedback</string>
     <string name="toast_no_email">You don\'t have email client installed</string>
+    <string name="settings_category_privacy">Privacy</string>
+    <string name="settings_category_ui">User interface</string>
 
     <!-- Strings related to notes -->
     <string name="title_activity_note">Compose</string>

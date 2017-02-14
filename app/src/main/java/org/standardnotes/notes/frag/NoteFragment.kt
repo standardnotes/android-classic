@@ -1,7 +1,9 @@
 package org.standardnotes.notes.frag
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
+import android.preference.PreferenceManager
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
@@ -56,6 +58,9 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         context.supportActionBar?.setDisplayShowHomeEnabled(true)
         context.supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+        if (prefs.getBoolean("notes_monospace", false))
+            bodyEdit.typeface = Typeface.MONOSPACE
         titleEdit.setText(note?.title)
         bodyEdit.setText(note?.text)
 
