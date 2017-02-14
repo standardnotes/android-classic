@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <CheckBoxPreference
-        android:key="enable_screenshots"
-        android:defaultValue="false"
-        android:title="@string/action_toggle_screenshots" />
+    <PreferenceCategory android:title="@string/settings_category_privacy">
+        <CheckBoxPreference
+            android:key="enable_screenshots"
+            android:defaultValue="false"
+            android:title="@string/action_toggle_screenshots" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/settings_category_ui">
+        <CheckBoxPreference
+            android:key="notes_monospace"
+            android:defaultValue="false"
+            android:title="@string/action_toggle_monospace" />
+    </PreferenceCategory>
 
 
 </PreferenceScreen>
