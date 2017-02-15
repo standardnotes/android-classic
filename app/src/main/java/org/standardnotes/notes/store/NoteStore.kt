@@ -175,7 +175,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         }
     }
 
-    fun getAllTags(uuid: String?): List<Tag> {
+    fun getAllTags(uuid: String?, includeRefs: Boolean): List<Tag> {
         val db = readableDatabase
         db.use {
             val cur = if (uuid == null)
@@ -193,6 +193,10 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
                 tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
                 tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
+                if (includeRefs) {
+                    val listType = object : TypeToken<List<Reference>>() {}.type
+                    tag.references = SApplication.instance!!.gson.fromJson(cur.getString(cur.getColumnIndex(KEY_REFERENCES)), listType)
+                }
                 items.add(tag)
             }
             return items
@@ -200,11 +204,15 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     }
 
     fun getTag(uuid: String): Tag? {
-        return getAllTags(uuid).getOrNull(0)
+        return getAllTags(uuid, false).getOrNull(0)
     }
 
     fun getAllTags(): List<Tag> {
-        return getAllTags(null)
+        return getAllTags(null, false)
+    }
+
+    fun getAllTags(includeRefs: Boolean): List<Tag> {
+        return getAllTags(null, includeRefs)
     }
 
     fun deleteItem(uuid: String) {

@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.support.v4.app.ShareCompat
 import android.support.v4.content.FileProvider
-import android.util.Log
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.AuthParamsResponse
@@ -30,7 +29,7 @@ object ExportUtil {
 
         val exportItems = ExportItems()
         val notes = SApplication.instance!!.noteStore.notesList
-        val tags = SApplication.instance!!.noteStore.getAllTags()
+        val tags = SApplication.instance!!.noteStore.getAllTags(true)
         notes.map { Crypt.encrypt(it) }.forEach { exportItems.items.add(it) }
         tags.map { Crypt.encrypt(it) }.forEach { exportItems.items.add(it) }
 
@@ -39,7 +38,7 @@ object ExportUtil {
 
                 val params = response.body()
 
-                if (!Crypt.isParamsSupported(activity, params)) {
+                if (!Crypt.isParamsSupported(params)) {
                     listener?.onExportFailed()
                     return
                 }
@@ -47,7 +46,6 @@ object ExportUtil {
                 exportItems.authParams = params
 
                 val jsonString = SApplication.instance!!.gson.toJson(exportItems)
-                Log.d("zzz", jsonString)
 
                 val path = writeToFile(activity, jsonString)
                 if (path != null) {
@@ -66,12 +64,11 @@ object ExportUtil {
     fun exportDecrypted(activity: Activity, listener: ExportListener?) {
         val exportItems = ExportItems()
         val notes = SApplication.instance!!.noteStore.notesList
-        val tags = SApplication.instance!!.noteStore.getAllTags()
+        val tags = SApplication.instance!!.noteStore.getAllTags(true)
         notes.map { getPlaintextNote(it) }.forEach { exportItems.items.add(it) }
         tags.map { getPlaintextTag(it) }.forEach { exportItems.items.add(it) }
 
         val jsonString = SApplication.instance!!.gson.toJson(exportItems)
-        Log.d("zzz", jsonString)
 
         val path = writeToFile(activity, jsonString)
         if (path != null) {
