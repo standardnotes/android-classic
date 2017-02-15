@@ -6,8 +6,8 @@ import android.support.v4.app.ShareCompat
 import android.support.v4.content.FileProvider
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
+import org.standardnotes.notes.comms.data.AuthParamsResponse
 import org.standardnotes.notes.comms.data.Note
-import org.standardnotes.notes.comms.data.PlaintextItem
 import org.standardnotes.notes.comms.data.Tag
 import retrofit2.Call
 import retrofit2.Callback
