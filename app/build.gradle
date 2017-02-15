@@ -30,6 +30,26 @@ android {
     }
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+        test.java.srcDirs += 'src/test/kotlin'
+    }
+
+    testOptions {
+
+        unitTests.all {
+            testLogging {
+                events "passed", "skipped", "failed", "standardOut", "standardError"
+                outputs.upToDateWhen {false}
+                showStandardStreams = true
+            }
+        }
+    }
+}
+
+afterEvaluate {
+    android.sourceSets.all { sourceSet ->
+        if (!sourceSet.name.startsWith("test")) {
+            sourceSet.kotlin.setSrcDirs([])
+        }
     }
 }
 
@@ -58,6 +78,7 @@ dependencies {
     compile 'com.madgag.spongycastle:pg:1.54.0.0'
     compile 'net.danlew:android.joda:2.9.4.1'
     compile 'ch.acra:acra:4.9.2'
+
     testCompile 'junit:junit:4.12'
 }
 repositories {
