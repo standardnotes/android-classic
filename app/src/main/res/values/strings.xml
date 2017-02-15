@@ -49,4 +49,7 @@
 
     <!-- Strings related to tags -->
     <string name="drawer_all_notes">All Notes</string>
+    <string name="tags">Tags</string>
+    <string name="action_tags">@string/tags</string>
+    <string name="prompt_new_tag">Enter new tag</string>
 </resources>
