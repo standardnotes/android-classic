@@ -23,34 +23,24 @@ object ExportUtil {
     }
 
     fun exportEncrypted(activity: Activity, listener: ExportListener?) {
-
         val exportItems = ExportItems()
-        val notes = SApplication.instance!!.noteStore.notesList
-        val tags = SApplication.instance!!.noteStore.getAllTags(true)
-        notes.map { Crypt.encrypt(it) }.forEach { exportItems.items.add(it) }
-        tags.map { Crypt.encrypt(it) }.forEach { exportItems.items.add(it) }
-
+        SApplication.instance!!.noteStore.notesList.map { Crypt.encrypt(it) }.forEach { exportItems.items.add(it) }
+        SApplication.instance!!.noteStore.getAllTags(true).map { Crypt.encrypt(it) }.forEach { exportItems.items.add(it) }
         exportItems.authParams = ValueStore(activity).authParams
 
-        val jsonString = SApplication.instance!!.gson.toJson(exportItems)
-
-        val path = writeToFile(activity, jsonString)
-        if (path != null) {
-            shareFile(activity, path)
-        } else {
-            listener?.onExportFailed()
-        }
+        export(activity, exportItems, listener)
     }
 
     fun exportDecrypted(activity: Activity, listener: ExportListener?) {
         val exportItems = ExportItems()
-        val notes = SApplication.instance!!.noteStore.notesList
-        val tags = SApplication.instance!!.noteStore.getAllTags(true)
-        notes.map { getPlaintextNote(it) }.forEach { exportItems.items.add(it) }
-        tags.map { getPlaintextTag(it) }.forEach { exportItems.items.add(it) }
+        SApplication.instance!!.noteStore.notesList.map { getPlaintextNote(it) }.forEach { exportItems.items.add(it) }
+        SApplication.instance!!.noteStore.getAllTags(true).map { getPlaintextTag(it) }.forEach { exportItems.items.add(it) }
 
+        export(activity, exportItems, listener)
+    }
+
+    private fun export(activity: Activity, exportItems: ExportItems, listener: ExportListener?) {
         val jsonString = SApplication.instance!!.gson.toJson(exportItems)
-
         val path = writeToFile(activity, jsonString)
         if (path != null) {
             shareFile(activity, path)
@@ -64,8 +54,6 @@ object ExportUtil {
         justContent.title = note.title
         justContent.text = note.text
         justContent.references = note.references
-        justContent.dirty = null
-        justContent.deleted = null
         return populateItemFields(note, justContent, "Note")
     }
 
@@ -73,12 +61,12 @@ object ExportUtil {
         val justContent = Tag()
         justContent.title = tag.title
         justContent.references = tag.references
-        justContent.dirty = null
-        justContent.deleted = null
         return populateItemFields(tag, justContent, "Tag")
     }
 
     private fun populateItemFields(source: EncryptableItem, content: EncryptableItem, contentType: String): PlaintextItem {
+        content.dirty = null
+        content.deleted = null
         val plaintextItem = PlaintextItem()
         plaintextItem.content = content
         plaintextItem.contentType = contentType
