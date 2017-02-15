@@ -5,7 +5,6 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -35,7 +34,6 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
-        val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
         drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
