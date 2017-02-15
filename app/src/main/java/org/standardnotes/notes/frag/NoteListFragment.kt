@@ -4,14 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.frag_note_list.*
@@ -36,6 +33,8 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     var lastTouchedX: Int? = null
     var lastTouchedY: Int? = null
+
+    var actionMode: ActionMode? = null
 
     companion object {
         const val EXTRA_NOTE_ID = "noteId"
@@ -70,7 +69,6 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-//        if (resultCode == RESULT_OK) {
         if (requestCode == REQ_EDIT_NOTE) {
             notes = ArrayList(SApplication.instance!!.noteStore.notesList)
             adapter.notifyDataSetChanged()
@@ -78,7 +76,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 SyncManager.sync()
             }
         }
-//        }
+        actionMode?.finish()
     }
 
     override fun onSyncStarted() {
@@ -122,6 +120,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 noteText.replace('\n', ' ')
                 text.text = noteText
                 synced.visibility = if (note?.dirty == true) View.VISIBLE else View.INVISIBLE
+                itemView?.isSelected = note!!.isSelected
             }
         private val title: TextView = itemView.findViewById(R.id.title) as TextView
         private val date: TextView = itemView.findViewById(R.id.date) as TextView
@@ -137,23 +136,79 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 false
             })
             itemView.setOnClickListener {
-                val intent: Intent = Intent(activity, NoteActivity::class.java)
-                intent.putExtra(EXTRA_NOTE_ID, note?.uuid)
-                intent.putExtra(EXTRA_X_COOR, lastTouchedX)
-                intent.putExtra(EXTRA_Y_COOR, lastTouchedY)
-                startActivityForResult(intent, REQ_EDIT_NOTE)
+                if (actionMode != null) {
+                    note?.isSelected = !note!!.isSelected
+                    val selectedCount = Integer.parseInt(actionMode?.title.toString()) + (if (note!!.isSelected) 1 else -1)
+                    if (selectedCount == 0) {
+                        actionMode?.finish()
+                    } else {
+                        actionMode?.title = selectedCount.toString()
+                        adapter.notifyItemChanged(adapterPosition)
+                    }
+                } else {
+                    val intent: Intent = Intent(activity, NoteActivity::class.java)
+                    intent.putExtra(EXTRA_NOTE_ID, note?.uuid)
+                    intent.putExtra(EXTRA_X_COOR, lastTouchedX)
+                    intent.putExtra(EXTRA_Y_COOR, lastTouchedY)
+                    startActivityForResult(intent, REQ_EDIT_NOTE)
+                }
             }
             itemView.setOnLongClickListener {
-                val popup = PopupMenu(activity, itemView)
-                popup.menu.add(activity.getString(R.string.action_delete))
-                popup.setOnMenuItemClickListener {
-                    SApplication.instance!!.noteStore.deleteItem(note!!.uuid)
-                    notes = ArrayList(SApplication.instance!!.noteStore.notesList)
-                    adapter.notifyDataSetChanged()
-                    SyncManager.sync()
-                    true
+                if (actionMode == null) {
+                    activity.startActionMode(object : ActionMode.Callback {
+                        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+                            SyncManager.stopSyncTimer()
+                            actionMode = mode
+                            mode.menuInflater.inflate(R.menu.action_mode_main, menu)
+                            mode.title = "1"
+                            note?.isSelected = true
+                            adapter.notifyItemChanged(adapterPosition)
+                            return true
+                        }
+
+                        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
+                            return false
+                        }
+
+                        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+                            when (item.itemId) {
+                                R.id.action_delete -> {
+                                    val quantity = actionMode?.title.toString()
+                                    AlertDialog.Builder(activity)
+                                            .setTitle(R.string.delete_confirm_title)
+                                            .setMessage(resources.getQuantityString(R.plurals.delete_confirm_text, Integer.parseInt(quantity), quantity))
+                                            .setCancelable(true)
+                                            .setPositiveButton(android.R.string.ok, { dialog, which ->
+                                                for (note: Note in notes) {
+                                                    if (note.isSelected) {
+                                                        // TODO method to bulk delete from DB
+                                                        SApplication.instance!!.noteStore.deleteItem(note!!.uuid)
+                                                    }
+                                                }
+                                                notes = ArrayList(SApplication.instance!!.noteStore.notesList)
+                                                adapter.notifyDataSetChanged()
+                                                SyncManager.sync()
+                                                actionMode?.finish()
+                                                actionMode = null
+                                            })
+                                            .setNegativeButton(android.R.string.cancel, null)
+                                            .show()
+                                    return true
+                                }
+                            }
+                            return true
+                        }
+
+                        override fun onDestroyActionMode(mode: ActionMode) {
+                            for (note: Note in notes) {
+                                note.isSelected = false
+                            }
+                            adapter.notifyDataSetChanged()
+                            actionMode = null
+                            SyncManager.startSyncTimer()
+                        }
+                    })
                 }
-                popup.show()
                 true
             }
         }
