@@ -2,11 +2,13 @@ package org.standardnotes.notes
 
 import android.content.Intent
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v4.app.NavUtils
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_settings.*
 import org.standardnotes.notes.comms.SyncManager
+import org.standardnotes.notes.comms.data.export.ExportUtil
 
 class SettingsActivity : BaseActivity() {
 
@@ -18,6 +20,7 @@ class SettingsActivity : BaseActivity() {
 
         supportFragmentManager.beginTransaction().replace(R.id.list,
                 SettingsFragment()).commit()
+        export.setOnClickListener { exportData() }
         logout.setOnClickListener { logout() }
     }
 
@@ -30,6 +33,19 @@ class SettingsActivity : BaseActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun exportData() {
+        val listener: ExportUtil.ExportListener = object : ExportUtil.ExportListener {
+            override fun onExportFailed() {
+                Snackbar.make(root, R.string.error_fail_export, Snackbar.LENGTH_SHORT).show()
+            }
+        }
+        if (radio_dec.isChecked) {
+            ExportUtil.exportDecrypted(this, listener)
+        } else {
+            ExportUtil.exportEncrypted(this, listener)
+        }
     }
 
     private fun logout() {

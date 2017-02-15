@@ -4,7 +4,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import org.standardnotes.notes.comms.data.AuthParamsResponse;
-import org.standardnotes.notes.comms.data.EncryptedItem;
+import org.standardnotes.notes.comms.data.EncryptableItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ import javax.annotation.Generated;
  * <p>
  */
 @Generated("org.jsonschema2pojo")
-public class ExportItemsEncrypted {
+public class ExportItems {
 
     @SerializedName("auth_params")
     @Expose
@@ -23,7 +23,7 @@ public class ExportItemsEncrypted {
 
     @SerializedName("items")
     @Expose
-    private List<EncryptedItem> items = new ArrayList<EncryptedItem>();
+    private List<EncryptableItem> items = new ArrayList<EncryptableItem>();
 
     public AuthParamsResponse getAuthParams() {
         return authParams;
@@ -33,11 +33,11 @@ public class ExportItemsEncrypted {
         this.authParams = authParams;
     }
 
-    public List<EncryptedItem> getItems() {
+    public List<EncryptableItem> getItems() {
         return items;
     }
 
-    public void setItems(List<EncryptedItem> items) {
+    public void setItems(List<EncryptableItem> items) {
         this.items = items;
     }
 

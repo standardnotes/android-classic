@@ -4,7 +4,6 @@ import android.animation.Animator
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.NavUtils
-import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewAnimationUtils
@@ -58,7 +57,6 @@ class NoteActivity : BaseActivity() {
     }
 
     private fun circularReveal() {
-        Log.d("zzz", "x: " + revealX + ", y:" + revealY)
         val rootView = findViewById(android.R.id.content)
         val circularReveal = ViewAnimationUtils.createCircularReveal(rootView, revealX, revealY, 0f, Math.max(rootView.width, rootView.height).toFloat())
         circularReveal.duration = REVEAL_ANIM_DURATION

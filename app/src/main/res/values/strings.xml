@@ -49,4 +49,11 @@
 
     <!-- Strings related to tags -->
     <string name="drawer_all_notes">All Notes</string>
+
+    <!-- Data export -->
+    <string name="label_encrypted">Encrypted</string>
+    <string name="label_decrypted">Decrypted</string>
+    <string name="label_export">Export Data</string>
+    <string name="error_fail_export">Data export failed.</string>
+
 </resources>

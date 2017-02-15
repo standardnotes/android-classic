@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.support.v4.app.ShareCompat
 import android.support.v4.content.FileProvider
+import android.util.Log
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.AuthParamsResponse
@@ -22,14 +23,12 @@ import java.util.*
 object ExportUtil {
 
     interface ExportListener {
-        fun onExportSucceeded()
-
         fun onExportFailed()
     }
 
     fun exportEncrypted(activity: Activity, listener: ExportListener?) {
 
-        val exportItems = ExportItemsEncrypted()
+        val exportItems = ExportItems()
         val notes = SApplication.instance!!.noteStore.notesList
         val tags = SApplication.instance!!.noteStore.getAllTags()
         notes.map { Crypt.encrypt(it) }.forEach { exportItems.items.add(it) }
@@ -48,11 +47,11 @@ object ExportUtil {
                 exportItems.authParams = params
 
                 val jsonString = SApplication.instance!!.gson.toJson(exportItems)
+                Log.d("zzz", jsonString)
 
                 val path = writeToFile(activity, jsonString)
                 if (path != null) {
                     shareFile(activity, path)
-                    listener?.onExportSucceeded()
                 } else {
                     listener?.onExportFailed()
                 }
@@ -64,19 +63,19 @@ object ExportUtil {
         })
     }
 
-    fun exportPlaintext(activity: Activity, listener: ExportListener?) {
-        val exportItems = ExportItemsPlaintext()
+    fun exportDecrypted(activity: Activity, listener: ExportListener?) {
+        val exportItems = ExportItems()
         val notes = SApplication.instance!!.noteStore.notesList
         val tags = SApplication.instance!!.noteStore.getAllTags()
         notes.map { getPlaintextNote(it) }.forEach { exportItems.items.add(it) }
         tags.map { getPlaintextTag(it) }.forEach { exportItems.items.add(it) }
 
         val jsonString = SApplication.instance!!.gson.toJson(exportItems)
+        Log.d("zzz", jsonString)
 
         val path = writeToFile(activity, jsonString)
         if (path != null) {
             shareFile(activity, path)
-            listener?.onExportSucceeded()
         } else {
             listener?.onExportFailed()
         }
@@ -89,8 +88,7 @@ object ExportUtil {
         justContent.references = note.references
         justContent.dirty = null
         justContent.deleted = null
-
-        return getPlaintextItem(note, justContent, "Note")
+        return populateItemFields(note, justContent, "Note")
     }
 
     private fun getPlaintextTag(tag: Tag): PlaintextItem {
@@ -99,11 +97,10 @@ object ExportUtil {
         justContent.references = tag.references
         justContent.dirty = null
         justContent.deleted = null
-
-        return getPlaintextItem(tag, justContent, "Tag")
+        return populateItemFields(tag, justContent, "Tag")
     }
 
-    private fun getPlaintextItem(source: EncryptableItem, content: EncryptableItem, contentType: String): PlaintextItem {
+    private fun populateItemFields(source: EncryptableItem, content: EncryptableItem, contentType: String): PlaintextItem {
         val plaintextItem = PlaintextItem()
         plaintextItem.content = content
         plaintextItem.contentType = contentType

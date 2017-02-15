@@ -38,7 +38,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
-        drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
+        drawerToggle = ActionBarDrawerToggle(this, drawer_layout, R.string.app_name, R.string.app_name)
         drawer_layout.addDrawerListener(drawerToggle!!)
         drawerToggle!!.isDrawerIndicatorEnabled = true
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
@@ -61,8 +61,6 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         })
         fab.setOnClickListener { view ->
             (supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment).startNewNote(lastX!!, lastY!!)
-//            ExportUtil.exportEncrypted(this, null)
-//            ExportUtil.exportPlaintext(this, null)
         }
 
     }
