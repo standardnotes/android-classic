@@ -5,7 +5,6 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import net.danlew.android.joda.JodaTimeAndroid
-import org.acra.ACRA
 import org.acra.ReportingInteractionMode
 import org.acra.annotation.ReportsCrashes
 import org.acra.sender.HttpSender
