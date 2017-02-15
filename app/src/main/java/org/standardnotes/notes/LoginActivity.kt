@@ -59,6 +59,7 @@ class LoginActivity : AppCompatActivity() {
                                 hideProgress()
                                 return
                             }
+                            ValueStore(this@LoginActivity).authParams = params
                             Crypt.doLogin(email.text.toString(), password.text.toString(), params, signInCallback)
                         } catch (e: Exception) {
                             Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()

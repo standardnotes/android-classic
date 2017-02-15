@@ -6,13 +6,10 @@ import android.support.v4.app.ShareCompat
 import android.support.v4.content.FileProvider
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
-import org.standardnotes.notes.comms.data.AuthParamsResponse
 import org.standardnotes.notes.comms.data.EncryptableItem
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.Tag
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import org.standardnotes.notes.store.ValueStore
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -33,32 +30,16 @@ object ExportUtil {
         notes.map { Crypt.encrypt(it) }.forEach { exportItems.items.add(it) }
         tags.map { Crypt.encrypt(it) }.forEach { exportItems.items.add(it) }
 
-        SApplication.instance!!.comms.api.getAuthParamsForEmail(SApplication.instance!!.valueStore.email).enqueue(object : Callback<AuthParamsResponse> {
-            override fun onResponse(call: Call<AuthParamsResponse>, response: Response<AuthParamsResponse>) {
+        exportItems.authParams = ValueStore(activity).authParams
 
-                val params = response.body()
+        val jsonString = SApplication.instance!!.gson.toJson(exportItems)
 
-                if (!Crypt.isParamsSupported(params)) {
-                    listener?.onExportFailed()
-                    return
-                }
-
-                exportItems.authParams = params
-
-                val jsonString = SApplication.instance!!.gson.toJson(exportItems)
-
-                val path = writeToFile(activity, jsonString)
-                if (path != null) {
-                    shareFile(activity, path)
-                } else {
-                    listener?.onExportFailed()
-                }
-            }
-
-            override fun onFailure(call: Call<AuthParamsResponse>, t: Throwable) {
-                listener?.onExportFailed()
-            }
-        })
+        val path = writeToFile(activity, jsonString)
+        if (path != null) {
+            shareFile(activity, path)
+        } else {
+            listener?.onExportFailed()
+        }
     }
 
     fun exportDecrypted(activity: Activity, listener: ExportListener?) {
