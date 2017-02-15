@@ -54,7 +54,8 @@ class LoginActivity : AppCompatActivity() {
                     override fun onResponse(call: Call<AuthParamsResponse>, response: Response<AuthParamsResponse>) {
                         try {
                             val params = response.body()
-                            if (!Crypt.isParamsSupported(this@LoginActivity, params)) {
+                            if (!Crypt.isParamsSupported(params)) {
+                                Toast.makeText(this@LoginActivity, getString(R.string.error_unsupported_algorithm, params.getPwAlg()), Toast.LENGTH_LONG).show();
                                 hideProgress()
                                 return
                             }
