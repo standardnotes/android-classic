@@ -61,6 +61,8 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         })
         fab.setOnClickListener { view ->
             (supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment).startNewNote(lastX!!, lastY!!)
+//            ExportUtil.exportEncrypted(this, null)
+//            ExportUtil.exportPlaintext(this, null)
         }
 
     }

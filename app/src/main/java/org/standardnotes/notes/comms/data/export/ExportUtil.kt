@@ -90,7 +90,7 @@ object ExportUtil {
         justContent.dirty = null
         justContent.deleted = null
 
-        return getPlaintextItem(justContent, "Note")
+        return getPlaintextItem(note, justContent, "Note")
     }
 
     private fun getPlaintextTag(tag: Tag): PlaintextItem {
@@ -100,23 +100,23 @@ object ExportUtil {
         justContent.dirty = null
         justContent.deleted = null
 
-        return getPlaintextItem(justContent, "Tag")
+        return getPlaintextItem(tag, justContent, "Tag")
     }
 
-    private fun getPlaintextItem(content: EncryptableItem, contentType: String): PlaintextItem {
+    private fun getPlaintextItem(source: EncryptableItem, content: EncryptableItem, contentType: String): PlaintextItem {
         val plaintextItem = PlaintextItem()
         plaintextItem.content = content
         plaintextItem.contentType = contentType
-        plaintextItem.uuid = content.uuid
-        plaintextItem.createdAt = content.createdAt
-        plaintextItem.updatedAt = content.updatedAt
+        plaintextItem.uuid = source.uuid
+        plaintextItem.createdAt = source.createdAt
+        plaintextItem.updatedAt = source.updatedAt
         return plaintextItem
     }
 
     private fun writeToFile(activity: Activity, data: String): String? {
         val path: String
         try {
-            val filename = "SN Archive - " + SimpleDateFormat("EEE MMM d yyyy HH-mm-ss Z (z)", Locale.getDefault()).format(System.currentTimeMillis()) + ".json"
+            val filename = "SN Archive - " + SimpleDateFormat("EEE MMM d yyyy HH-mm-ss Z (z)", Locale.getDefault()).format(System.currentTimeMillis()) + ".txt"
             path = activity.filesDir.toString() + "/export/" + filename
             val file = File(path)
             file.parentFile.mkdirs()
