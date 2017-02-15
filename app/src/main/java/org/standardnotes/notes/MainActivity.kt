@@ -36,7 +36,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        drawerToggle = ActionBarDrawerToggle(this, drawer_layout, R.string.app_name, R.string.app_name)
+        drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
         drawer_layout.addDrawerListener(drawerToggle!!)
         drawerToggle!!.isDrawerIndicatorEnabled = true
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)

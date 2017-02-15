@@ -50,6 +50,7 @@ class SettingsActivity : BaseActivity() {
 
     private fun logout() {
         SApplication.instance!!.valueStore.setTokenAndMasterKey(null, null)
+        SApplication.instance!!.valueStore.authParams = null
         SApplication.instance!!.noteStore.deleteAll()
         SyncManager.stopSyncTimer()
         startActivity(Intent(this, StarterActivity::class.java))
