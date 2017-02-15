@@ -7,6 +7,7 @@ import android.support.v4.content.FileProvider
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.AuthParamsResponse
+import org.standardnotes.notes.comms.data.EncryptableItem
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.Tag
 import retrofit2.Call
@@ -40,7 +41,7 @@ object ExportUtil {
                 val params = response.body()
 
                 if (!Crypt.isParamsSupported(activity, params)) {
-                    // TODO error callback
+                    listener?.onExportFailed()
                     return
                 }
 
@@ -89,14 +90,7 @@ object ExportUtil {
         justContent.dirty = null
         justContent.deleted = null
 
-        val plaintextItem = PlaintextItem()
-        plaintextItem.content = justContent
-        plaintextItem.contentType = "Note"
-        plaintextItem.uuid = note.uuid
-        plaintextItem.createdAt = note.createdAt
-        plaintextItem.updatedAt = note.updatedAt
-
-        return plaintextItem
+        return getPlaintextItem(justContent, "Note")
     }
 
     private fun getPlaintextTag(tag: Tag): PlaintextItem {
@@ -106,13 +100,16 @@ object ExportUtil {
         justContent.dirty = null
         justContent.deleted = null
 
-        val plaintextItem = PlaintextItem()
-        plaintextItem.content = justContent
-        plaintextItem.contentType = "Note"
-        plaintextItem.uuid = tag.uuid
-        plaintextItem.createdAt = tag.createdAt
-        plaintextItem.updatedAt = tag.updatedAt
+        return getPlaintextItem(justContent, "Tag")
+    }
 
+    private fun getPlaintextItem(content: EncryptableItem, contentType: String): PlaintextItem {
+        val plaintextItem = PlaintextItem()
+        plaintextItem.content = content
+        plaintextItem.contentType = contentType
+        plaintextItem.uuid = content.uuid
+        plaintextItem.createdAt = content.createdAt
+        plaintextItem.updatedAt = content.updatedAt
         return plaintextItem
     }
 
