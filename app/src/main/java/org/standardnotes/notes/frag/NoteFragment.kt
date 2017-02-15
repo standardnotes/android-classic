@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import kotlinx.android.synthetic.main.frag_note.*
+import kotlinx.android.synthetic.main.item_tag.view.*
 import org.joda.time.DateTime
 import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
@@ -68,7 +69,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
             tagsRow.visibility = View.VISIBLE
             tags.forEach {
                 val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag, tagsLayout, false)
-                (tagItem.findViewById(R.id.tagText) as TextView).text = it.title
+                tagItem.tagText.text = it.title
                 tagsLayout.addView(tagItem)
             }
         }
