@@ -227,6 +227,27 @@ public class Crypt {
         return null;
     }
 
+    public static EncryptedItem encrypt(Tag tag) {
+        try {
+            EncryptedItem item = new EncryptedItem();
+            copyInEncryptableItemFields(tag, item);
+            item.setContentType("Tag");
+            Keys keys = Crypt.getItemKeys(item);
+            Tag justUnencContent = new Tag();
+            justUnencContent.setTitle(tag.getTitle());
+            justUnencContent.setReferences(tag.getReferences());
+            String contentJson = SApplication.Companion.getInstance().getGson().toJson(justUnencContent);
+            String contentEnc = "001" + encrypt(contentJson, keys.ek);
+            String hash = createHash(contentEnc, keys.ak);
+            item.setAuthHash(hash);
+            item.setContent(contentEnc);
+            return item;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static Note decryptNote(EncryptedItem item) {
         return noteDecryptor.decrypt(item);
     }
