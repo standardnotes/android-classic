@@ -33,7 +33,7 @@ class ExampleInstrumentedTest {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
 
-        assertEquals("Run tests with the dummy product flavor, otherwise you will write over your app data",
+        assertEquals("Run tests with the emulatortest product flavor, otherwise you will write over your app data",
                 "org.standardnotes.notes.buildfortest", appContext.packageName)
     }
 
@@ -48,6 +48,7 @@ class ExampleInstrumentedTest {
         val time = DateTime.now()
         n.createdAt = time
         n.updatedAt = time
+        n.references = ArrayList()
         ns.putNote(n.uuid, n)
         val n1 = ns.getNote(n.uuid)
         assertEquals(n.uuid, n1!!.uuid)
@@ -111,6 +112,7 @@ class ExampleInstrumentedTest {
         val ref = Reference()
         ref.uuid = t.uuid
         ref.contentType = ContentType.Tag.toString()
+        n.references = ArrayList()
         n.references.add(ref)
 
         ns.putNote(n.uuid, n)

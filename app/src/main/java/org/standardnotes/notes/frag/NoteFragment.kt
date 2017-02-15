@@ -1,47 +1,56 @@
 package org.standardnotes.notes.frag
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.TextView
+import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.frag_note.*
 import org.joda.time.DateTime
-import org.standardnotes.notes.R
-import org.standardnotes.notes.SApplication
+import org.standardnotes.notes.*
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.SyncManager
+import org.standardnotes.notes.comms.data.ContentType
 import org.standardnotes.notes.comms.data.Note
+import org.standardnotes.notes.comms.data.Reference
 import org.standardnotes.notes.comms.data.Tag
 import java.util.*
+
+const val REQ_TAGS = 1
 
 class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     val SYNC_DELAY = 250L
     val syncHandler: Handler = Handler()
     val syncRunnable: Runnable = Runnable {
-        if (saveNote(note)) {
+        if (saveNote()) {
             SyncManager.sync()
         }
     }
 
-    var note: Note? = null
-    var tags: List<Tag> = Collections.emptyList()
+    lateinit var note: Note
+    lateinit var tags: List<Tag>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val noteUuid = arguments?.getString(NoteListFragment.EXTRA_NOTE_ID)
-        if (noteUuid != null) {
-            note = SApplication.instance!!.noteStore.getNote(noteUuid)
-            tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
+        if (savedInstanceState == null) {
+            if (noteUuid != null) {
+                note = SApplication.instance!!.noteStore.getNote(noteUuid)!!
+                tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
+            } else {
+                note = newNote()
+                tags = Collections.emptyList()
+            }
         } else {
-            note = newNote()
+            //TODo
         }
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -56,17 +65,10 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         context.supportActionBar?.setDisplayShowHomeEnabled(true)
         context.supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        titleEdit.setText(note?.title)
-        bodyEdit.setText(note?.text)
+        titleEdit.setText(note.title)
+        bodyEdit.setText(note.text)
 
-        if (tags.count() > 0) {
-            tagsRow.visibility = View.VISIBLE
-            tags.forEach {
-                val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag, tagsLayout, false)
-                (tagItem.findViewById(R.id.tagText) as TextView).text = it.title
-                tagsLayout.addView(tagItem)
-            }
-        }
+        updateTags()
 
         val textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -87,7 +89,21 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
         titleEdit.setSelection(titleEdit.text.length)
 
-        setSubtitle(if (note!!.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
+        setSubtitle(if (note.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
+    }
+
+    private fun updateTags() {
+        if (tags.count() > 0) {
+            tagsRow.visibility = View.VISIBLE
+            tagsLayout.removeAllViews()
+            tags.forEach {
+                val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag_lozenge, tagsLayout, false)
+                (tagItem.findViewById(R.id.tagText) as TextView).text = it.title
+                tagsLayout.addView(tagItem)
+            }
+        } else {
+            tagsRow.visibility = View.GONE
+        }
     }
 
     override fun onResume() {
@@ -99,9 +115,35 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         super.onPause()
         syncHandler.removeCallbacks(syncRunnable)
         SyncManager.unsubscribe(this)
-        saveNote(note)
+        saveNote()
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_TAGS && data != null) {
+            val listType = object : TypeToken<List<Tag>>() {}.type
+            tags = SApplication.Companion.instance!!.gson.fromJson(data.getStringExtra(EXTRA_TAGS), listType)
+            updateTags()
+            saveNote()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.note, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.tags -> {
+                val intent = Intent(activity, TagListActivity::class.java)
+                intent.putExtra(EXTRA_TAGS, SApplication.Companion.instance!!.gson.toJson(tags))
+                startActivityForResult(intent, REQ_TAGS)
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
 
     fun setSubtitle(subTitle: String) {
         bodyEdit.postDelayed({
@@ -109,17 +151,36 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         }, 100)
     }
 
-    fun saveNote(note: Note?): Boolean {
-        if (note!!.title != titleEdit.text.toString() ||
-                note.text != bodyEdit.text.toString()) {
+    fun saveNote(): Boolean {
+        if (note.title != titleEdit.text.toString() ||
+                note.text != bodyEdit.text.toString() ||
+                tagsChanged()) {
             note.title = titleEdit.text.toString()
             note.text = bodyEdit.text.toString()
             note.dirty = true
             note.updatedAt = DateTime.now()
+//            SApplication.instance!!.noteStore.setTagsOnNote(note.uuid, tags.map { it.uuid }.toSet())
+            note.references = tags.map { toReference(it) }
             SApplication.instance!!.noteStore.putNote(note.uuid, note)
             return true
         }
         return false
+    }
+
+    fun toReference(tag: Tag): Reference {
+        val ref = Reference()
+        ref.contentType = ContentType.Tag.toString()
+        ref.uuid = tag.uuid
+        return ref
+    }
+
+    private fun tagsChanged(): Boolean {
+        val oldTagIds = SApplication.instance!!.noteStore.getTagsForNote(note.uuid).map { it.uuid }
+        val newTags = tags
+        val newTagIds = newTags.map { it.uuid }
+        Collections.sort(oldTagIds)
+        Collections.sort(newTagIds)
+        return oldTagIds != newTagIds
     }
 
     override fun onSyncStarted() {

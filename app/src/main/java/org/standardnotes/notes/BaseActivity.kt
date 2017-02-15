@@ -12,6 +12,8 @@ open class BaseActivity : AppCompatActivity(), SharedPreferences.OnSharedPrefere
     private val KEY_ENABLE_SCREENSHOT = "enable_screenshots"
     lateinit var prefs: SharedPreferences
 
+    protected val app: SApplication = SApplication.instance!!
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

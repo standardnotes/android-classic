@@ -36,6 +36,9 @@
             android:windowSoftInputMode="stateHidden|adjustResize"
             android:theme="@style/AppTheme.NoActionBar.Transparent"/>
         <activity
+            android:name=".TagListActivity"
+            android:label="@string/tags" />
+        <activity
             android:name=".SettingsActivity"
             android:label="@string/action_settings"
             android:parentActivityName=".MainActivity" />

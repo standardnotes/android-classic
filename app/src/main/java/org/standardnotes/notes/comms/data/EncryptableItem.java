@@ -1,7 +1,6 @@
 
 package org.standardnotes.notes.comms.data;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Generated;
 import com.google.gson.annotations.Expose;
@@ -41,7 +40,7 @@ public class EncryptableItem {
     private Boolean dirty = false;
     @SerializedName("references")
     @Expose
-    private List<Reference> references = new ArrayList<Reference>();
+    private List<Reference> references = null;
 
     /**
      * 
