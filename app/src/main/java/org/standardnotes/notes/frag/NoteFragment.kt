@@ -19,7 +19,10 @@ import kotlinx.android.synthetic.main.frag_note.*
 import kotlinx.android.synthetic.main.item_tag.view.*
 import kotlinx.android.synthetic.main.item_tag_lozenge.view.*
 import org.joda.time.DateTime
-import org.standardnotes.notes.*
+import org.standardnotes.notes.EXTRA_TAGS
+import org.standardnotes.notes.R
+import org.standardnotes.notes.SApplication
+import org.standardnotes.notes.TagListActivity
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.ContentType
@@ -52,7 +55,16 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
                 tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
             } else {
                 note = newNote()
-                tags = Collections.emptyList()
+                val tagUUID = arguments?.getString(NoteListFragment.EXTRA_TAG_ID)
+                val tag = if (tagUUID != null)
+                    SApplication.instance!!.noteStore.getTag(tagUUID)
+                else
+                    null
+                if (tag != null) {
+                    tags = arrayListOf(tag)
+                } else {
+                    tags = Collections.emptyList()
+                }
             }
         } else {
             //TODo

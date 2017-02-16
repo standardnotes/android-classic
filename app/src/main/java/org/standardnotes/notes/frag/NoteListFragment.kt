@@ -8,6 +8,7 @@ import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.RecyclerView
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -31,6 +32,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
     val adapter: Adapter by lazy { Adapter() }
 
     var notes = ArrayList<Note>()
+    var tagUUID = ""
 
     var currentSnackbar: Snackbar? = null
 
@@ -39,6 +41,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     companion object {
         const val EXTRA_NOTE_ID = "noteId"
+        const val EXTRA_TAG_ID = "tagId"
         const val EXTRA_X_COOR = "xCoor"
         const val EXTRA_Y_COOR = "yCoor"
     }
@@ -58,7 +61,6 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 R.color.colorPrimary,
                 R.color.colorAccent)
         swipeRefreshLayout.setOnRefreshListener { SyncManager.sync() }
-        notes = ArrayList(SApplication.instance!!.noteStore.notesList)
         SyncManager.sync()
         list.adapter = adapter
     }
@@ -87,10 +89,22 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
     }
 
     override fun onSyncCompleted(syncedNotes: List<Note>) {
-        notes = ArrayList(syncedNotes)
         swipeRefreshLayout.isRefreshing = false
-        adapter.notifyDataSetChanged()
         currentSnackbar?.dismiss()
+    }
+
+    fun refreshNotesForTag(uuid: String? = null) {
+        if (uuid == null) { // In-place refresh after delete
+            refreshNotesForTag(tagUUID)
+            return
+        }
+        val noteList = if (TextUtils.isEmpty(uuid))
+            SApplication.instance!!.noteStore.getAllNotes()
+        else
+            SApplication.instance!!.noteStore.getNotesForTag(uuid)
+        notes = ArrayList(noteList)
+        adapter.notifyDataSetChanged()
+        tagUUID = uuid // Save for future use
     }
 
     override fun onSyncFailed() {
@@ -102,10 +116,11 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         currentSnackbar!!.show()
     }
 
-    fun startNewNote(x: Int, y: Int) {
+    fun startNewNote(x: Int, y: Int, uuid: String) {
         val intent: Intent = Intent(activity, NoteActivity::class.java)
         intent.putExtra(EXTRA_X_COOR, x)
         intent.putExtra(EXTRA_Y_COOR, y)
+        intent.putExtra(EXTRA_TAG_ID, uuid)
         startActivityForResult(intent, REQ_EDIT_NOTE)
     }
 
@@ -144,8 +159,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 popup.menu.add(activity.getString(R.string.action_delete))
                 popup.setOnMenuItemClickListener {
                     SApplication.instance!!.noteStore.deleteItem(note!!.uuid)
-                    notes = ArrayList(SApplication.instance!!.noteStore.notesList)
-                    adapter.notifyDataSetChanged()
+                    refreshNotesForTag()
                     SyncManager.sync()
                     true
                 }
