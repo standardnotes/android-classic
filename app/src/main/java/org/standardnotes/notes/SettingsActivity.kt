@@ -41,11 +41,10 @@ class SettingsActivity : BaseActivity() {
                 Snackbar.make(root, R.string.error_fail_export, Snackbar.LENGTH_SHORT).show()
             }
         }
-        if (radio_dec.isChecked) {
+        if (radio_dec.isChecked)
             ExportUtil.exportDecrypted(this, listener)
-        } else {
+        else
             ExportUtil.exportEncrypted(this, listener)
-        }
     }
 
     private fun logout() {

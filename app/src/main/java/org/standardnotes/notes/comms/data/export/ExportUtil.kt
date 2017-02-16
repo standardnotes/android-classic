@@ -4,8 +4,10 @@ import android.app.Activity
 import android.content.Intent
 import android.support.v4.app.ShareCompat
 import android.support.v4.content.FileProvider
+import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
+import org.standardnotes.notes.comms.data.ContentType
 import org.standardnotes.notes.comms.data.EncryptableItem
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.Tag
@@ -33,8 +35,8 @@ object ExportUtil {
 
     fun exportDecrypted(activity: Activity, listener: ExportListener?) {
         val exportItems = ExportItems()
-        SApplication.instance!!.noteStore.notesList.map { getPlaintextNote(it) }.forEach { exportItems.items.add(it) }
-        SApplication.instance!!.noteStore.getAllTags(true).map { getPlaintextTag(it) }.forEach { exportItems.items.add(it) }
+        SApplication.instance!!.noteStore.notesList.map { getPlaintextItem(it, ContentType.Note) }.forEach { exportItems.items.add(it) }
+        SApplication.instance!!.noteStore.getAllTags(true).map { getPlaintextItem(it, ContentType.Tag) }.forEach { exportItems.items.add(it) }
 
         export(activity, exportItems, listener)
     }
@@ -49,30 +51,27 @@ object ExportUtil {
         }
     }
 
-    private fun getPlaintextNote(note: Note): PlaintextItem {
-        val justContent = Note()
-        justContent.title = note.title
-        justContent.text = note.text
-        justContent.references = note.references
-        return populateItemFields(note, justContent, "Note")
-    }
-
-    private fun getPlaintextTag(tag: Tag): PlaintextItem {
-        val justContent = Tag()
-        justContent.title = tag.title
-        justContent.references = tag.references
-        return populateItemFields(tag, justContent, "Tag")
-    }
-
-    private fun populateItemFields(source: EncryptableItem, content: EncryptableItem, contentType: String): PlaintextItem {
+    private fun getPlaintextItem(source: EncryptableItem, contentType: ContentType): PlaintextItem {
+        val content: EncryptableItem
+        if (contentType == ContentType.Note) {
+            content = Note()
+            content.title = (source as Note).title
+            content.text = source.text
+        } else {
+            content = Tag()
+            content.title = (source as Tag).title
+        }
+        content.references = source.references
         content.dirty = null
         content.deleted = null
+
         val plaintextItem = PlaintextItem()
         plaintextItem.content = content
-        plaintextItem.contentType = contentType
+        plaintextItem.contentType = contentType.name
         plaintextItem.uuid = source.uuid
         plaintextItem.createdAt = source.createdAt
         plaintextItem.updatedAt = source.updatedAt
+
         return plaintextItem
     }
 
@@ -101,7 +100,7 @@ object ExportUtil {
         shareIntent.data = fileUri
         shareIntent.type = "message/rfc822"
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        activity.startActivity(Intent.createChooser(shareIntent, "Share File"), null)
+        activity.startActivity(Intent.createChooser(shareIntent, activity.getString(R.string.title_share_file)))
     }
 
     // unused TODO should we delete the file somewhere, like onActivityResult?

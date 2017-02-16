@@ -55,5 +55,6 @@
     <string name="label_decrypted">Decrypted</string>
     <string name="label_export">Export Data</string>
     <string name="error_fail_export">Data export failed.</string>
+    <string name="title_share_file">Share File</string>
 
 </resources>
