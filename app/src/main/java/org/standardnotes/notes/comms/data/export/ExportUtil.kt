@@ -1,6 +1,7 @@
 package org.standardnotes.notes.comms.data.export
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.support.v4.app.ShareCompat
 import android.support.v4.content.FileProvider
@@ -17,6 +18,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 object ExportUtil {
 
@@ -39,6 +41,16 @@ object ExportUtil {
         SApplication.instance!!.noteStore.getAllTags(true).map { getPlaintextItem(it, ContentType.Tag) }.forEach { exportItems.items.add(it) }
 
         export(activity, exportItems, listener)
+    }
+
+    fun clearExports(context: Context) {
+        val directory = File(context.filesDir.toString() + "/export")
+        if (directory.isDirectory) {
+            val children = directory.list()
+            children.indices
+                    .map { File(directory, children[it]) }
+                    .forEach { it.delete() }
+        }
     }
 
     private fun export(activity: Activity, exportItems: ExportItems, listener: ExportListener?) {
@@ -103,11 +115,4 @@ object ExportUtil {
         activity.startActivity(Intent.createChooser(shareIntent, activity.getString(R.string.title_share_file)))
     }
 
-    // unused TODO should we delete the file somewhere, like onActivityResult?
-    private fun deleteFile(path: String) {
-        val file = File(path)
-        if (file.exists()) {
-            file.delete()
-        }
-    }
 }

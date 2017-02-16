@@ -35,6 +35,12 @@ class SettingsActivity : BaseActivity() {
         return super.onOptionsItemSelected(item)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        // TODO does this make sense here?
+        ExportUtil.clearExports(this)
+    }
+
     private fun exportData() {
         val listener: ExportUtil.ExportListener = object : ExportUtil.ExportListener {
             override fun onExportFailed() {
