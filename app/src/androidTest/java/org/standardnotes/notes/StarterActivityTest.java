@@ -1,6 +1,9 @@
 package org.standardnotes.notes;
 
 
+import android.content.Intent;
+import android.support.test.espresso.Espresso;
+import android.support.test.espresso.IdlingResource;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -43,13 +46,17 @@ import static org.hamcrest.Matchers.allOf;
 public class StarterActivityTest {
 
     @Rule
-    public ActivityTestRule<StarterActivity> mActivityTestRule = new ActivityTestRule<>(StarterActivity.class);
+    public ActivityTestRule<LoginActivity> mActivityTestRule = new ActivityTestRule<>(LoginActivity.class);
 
     static String email = UUID.randomUUID().toString();
-    static boolean signedup = false;
+    static boolean signedup = true;
 
     @Before
     public void signupin() {
+        mActivityTestRule.launchActivity(new Intent());
+        IdlingResource idlingResource = new ProgressIdlingResource(mActivityTestRule.getActivity());
+        Espresso.registerIdlingResources(idlingResource);
+
         if (!SApplication.Companion.getInstance().getValueStore().getServer().contains("staging")) {
             throw new RuntimeException("These tests add lots of test users - don't run against a live server.");
         }
@@ -75,7 +82,7 @@ public class StarterActivityTest {
 
             ViewInteraction appCompatEditText2 = onView(
                     allOf(withId(R.id.password), isDisplayed()));
-            appCompatEditText2.perform(replaceText("aaa"), closeSoftKeyboard());
+            appCompatEditText2.perform(replaceText("test"), closeSoftKeyboard());
 
             ViewInteraction appCompatButton2 = onView(
                     allOf(withId(android.R.id.button1), withText("OK")));
@@ -85,6 +92,8 @@ public class StarterActivityTest {
             onView(
                     allOf(withText("Sign in"))).perform(click());
         }
+
+        Espresso.unregisterIdlingResources(idlingResource);
     }
 
 

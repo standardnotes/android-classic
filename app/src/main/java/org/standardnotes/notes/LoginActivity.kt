@@ -24,6 +24,21 @@ import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
 
+    lateinit var progressListener: ProgressListener
+
+    interface ProgressListener {
+        fun onProgressShown()
+        fun onProgressDismissed()
+    }
+
+    private fun notifyListener(progressListener: ProgressListener) {
+        if (isInProgress()) progressListener.onProgressShown() else progressListener.onProgressDismissed()
+    }
+
+    fun isInProgress(): Boolean {
+        return login_progress.visibility == View.VISIBLE
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -174,6 +189,7 @@ class LoginActivity : AppCompatActivity() {
         email_sign_in_button.isEnabled = false
         sign_up.isEnabled = false
         login_progress.visibility = View.VISIBLE
+        notifyListener(progressListener)
     }
 
     private fun hideProgress() {
@@ -183,6 +199,7 @@ class LoginActivity : AppCompatActivity() {
         password.isEnabled = true
         checkValidInput()
         login_progress.visibility = View.GONE
+        notifyListener(progressListener)
     }
 
 }

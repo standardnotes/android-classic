@@ -92,7 +92,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         if (tags.count() > 0) {
             tagsRow.visibility = View.VISIBLE
             tags.forEach {
-                val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag, tagsLayout, false)
+                val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag_lozenge, tagsLayout, false)
                 tagItem.tagText.text = it.title
                 tagsLayout.addView(tagItem)
             }
