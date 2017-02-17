@@ -1,11 +1,13 @@
 package org.standardnotes.notes
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.NavUtils
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.MenuItem
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_settings.*
 import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.export.ExportUtil
@@ -21,6 +23,7 @@ class SettingsActivity : BaseActivity() {
         supportFragmentManager.beginTransaction().replace(R.id.list,
                 SettingsFragment()).commit()
         export.setOnClickListener { exportData() }
+        feedback.setOnClickListener { startFeedbackIntent() }
         logout.setOnClickListener { logout() }
     }
 
@@ -51,6 +54,20 @@ class SettingsActivity : BaseActivity() {
             ExportUtil.exportDecrypted(this, listener)
         else
             ExportUtil.exportEncrypted(this, listener)
+    }
+
+    fun startFeedbackIntent() {
+        val intent = Intent(Intent.ACTION_SENDTO)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        intent.data = Uri.parse("mailto:") // only email apps should handle this
+        intent.putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.feedback_email)))
+        intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.feedback_subject))
+        if (intent.resolveActivity(packageManager) != null) {
+            startActivity(intent)
+        } else {
+            Toast.makeText(this, R.string.toast_no_email, Toast.LENGTH_LONG).show()
+        }
+
     }
 
     private fun logout() {
