@@ -26,7 +26,7 @@ android {
         }
         emulatortest {
             applicationId "org.standardnotes.notes.buildfortest"
-            buildConfigField "String", "SERVER_DEFAULT", "\"http://10.0.2.2:3000/\""
+            buildConfigField "String", "SERVER_DEFAULT", "\"https://stagingapi.standardnotes.org/\""
         }
     }
     sourceSets {

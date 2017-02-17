@@ -50,7 +50,7 @@ public class StarterActivityTest {
 
     @Before
     public void signupin() {
-        if (!SApplication.Companion.getInstance().getValueStore().getServer().contains("10.0.2.2")) {
+        if (!SApplication.Companion.getInstance().getValueStore().getServer().contains("staging")) {
             throw new RuntimeException("These tests add lots of test users - don't run against a live server.");
         }
 
