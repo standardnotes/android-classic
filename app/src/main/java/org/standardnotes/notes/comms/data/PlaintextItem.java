@@ -1,9 +1,7 @@
-package org.standardnotes.notes.comms.data.export;
+package org.standardnotes.notes.comms.data;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-
-import org.standardnotes.notes.comms.data.EncryptableItem;
 
 public class PlaintextItem extends EncryptableItem {
 

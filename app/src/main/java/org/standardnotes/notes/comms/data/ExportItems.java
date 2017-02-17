@@ -1,4 +1,4 @@
-package org.standardnotes.notes.comms.data.export;
+package org.standardnotes.notes.comms.data;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

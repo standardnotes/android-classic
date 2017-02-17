@@ -201,37 +201,20 @@ public class Crypt {
         return data;
     }
 
-    public static EncryptedItem encrypt(Note note) {
+    public static EncryptedItem encrypt(EncryptableItem encryptableItem) {
         try {
             EncryptedItem item = new EncryptedItem();
-            copyInEncryptableItemFields(note, item);
+            copyInEncryptableItemFields(encryptableItem, item);
             item.setContentType("Note");
             Keys keys = Crypt.getItemKeys(item);
             Note justUnencContent = new Note();
-            justUnencContent.setTitle(note.getTitle());
-            justUnencContent.setText(note.getText());
-            justUnencContent.setReferences(note.getReferences());
-            String contentJson = SApplication.Companion.getInstance().getGson().toJson(justUnencContent);
-            String contentEnc = "001" + encrypt(contentJson, keys.ek);
-            String hash = createHash(contentEnc, keys.ak);
-            item.setAuthHash(hash);
-            item.setContent(contentEnc);
-            return item;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static EncryptedItem encrypt(Tag tag) {
-        try {
-            EncryptedItem item = new EncryptedItem();
-            copyInEncryptableItemFields(tag, item);
-            item.setContentType("Tag");
-            Keys keys = Crypt.getItemKeys(item);
-            Tag justUnencContent = new Tag();
-            justUnencContent.setTitle(tag.getTitle());
-            justUnencContent.setReferences(tag.getReferences());
+            if (encryptableItem instanceof Note) {
+                justUnencContent.setTitle(((Note) encryptableItem).getTitle());
+                justUnencContent.setText(((Note) encryptableItem).getText());
+            } else if (encryptableItem instanceof Tag) {
+                justUnencContent.setTitle(((Tag) encryptableItem).getTitle());
+            }
+            justUnencContent.setReferences(encryptableItem.getReferences());
             String contentJson = SApplication.Companion.getInstance().getGson().toJson(justUnencContent);
             String contentEnc = "001" + encrypt(contentJson, keys.ek);
             String hash = createHash(contentEnc, keys.ak);

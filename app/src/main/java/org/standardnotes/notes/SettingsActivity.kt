@@ -10,7 +10,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_settings.*
 import org.standardnotes.notes.comms.SyncManager
-import org.standardnotes.notes.comms.data.export.ExportUtil
+import org.standardnotes.notes.comms.ExportUtil
 
 class SettingsActivity : BaseActivity() {
 

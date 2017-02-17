@@ -1,4 +1,4 @@
-package org.standardnotes.notes.comms.data.export
+package org.standardnotes.notes.comms
 
 import android.app.Activity
 import android.content.Context
@@ -12,6 +12,8 @@ import org.standardnotes.notes.comms.data.ContentType
 import org.standardnotes.notes.comms.data.EncryptableItem
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.Tag
+import org.standardnotes.notes.comms.data.ExportItems
+import org.standardnotes.notes.comms.data.PlaintextItem
 import org.standardnotes.notes.store.ValueStore
 import java.io.File
 import java.io.FileOutputStream
