@@ -9,12 +9,6 @@ import org.standardnotes.notes.comms.data.EncryptableItem;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Generated;
-
-/**
- * <p>
- */
-@Generated("org.jsonschema2pojo")
 public class ExportItems {
 
     @SerializedName("auth_params")
