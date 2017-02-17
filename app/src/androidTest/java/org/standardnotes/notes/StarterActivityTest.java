@@ -49,7 +49,7 @@ public class StarterActivityTest {
     public ActivityTestRule<LoginActivity> mActivityTestRule = new ActivityTestRule<>(LoginActivity.class);
 
     static String email = UUID.randomUUID().toString();
-    static boolean signedup = true;
+    static boolean signedup = false;
 
     @Before
     public void signupin() {
@@ -81,8 +81,8 @@ public class StarterActivityTest {
             appCompatButton.perform(scrollTo(), click());
 
             ViewInteraction appCompatEditText2 = onView(
-                    allOf(withId(R.id.password), isDisplayed()));
-            appCompatEditText2.perform(replaceText("test"), closeSoftKeyboard());
+                    allOf(withId(R.id.confirm_password), isDisplayed()));
+            appCompatEditText2.perform(replaceText("aaa"), closeSoftKeyboard());
 
             ViewInteraction appCompatButton2 = onView(
                     allOf(withId(android.R.id.button1), withText("OK")));
