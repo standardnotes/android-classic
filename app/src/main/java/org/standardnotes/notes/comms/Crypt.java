@@ -1,12 +1,14 @@
 package org.standardnotes.notes.comms;
 
 import android.util.Base64;
+import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
 import org.spongycastle.crypto.digests.SHA512Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.util.encoders.Hex;
+import org.standardnotes.notes.R;
 import org.standardnotes.notes.SApplication;
 import org.standardnotes.notes.comms.data.AuthParamsResponse;
 import org.standardnotes.notes.comms.data.EncryptableItem;
@@ -108,6 +110,7 @@ public class Crypt {
                                 SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk);
                                 SApplication.Companion.getInstance().getValueStore().setEmail(email);
                             }
+                            Toast.makeText(SApplication.Companion.getInstance(), SApplication.Companion.getInstance().getResources().getString(R.string.action_registration_successful), Toast.LENGTH_LONG).show();
                             callback.onResponse(call, response);
                         }
 
