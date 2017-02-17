@@ -9,6 +9,7 @@ import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.util.encoders.Hex;
 import org.standardnotes.notes.SApplication;
 import org.standardnotes.notes.comms.data.AuthParamsResponse;
+import org.standardnotes.notes.comms.data.ContentType;
 import org.standardnotes.notes.comms.data.EncryptableItem;
 import org.standardnotes.notes.comms.data.EncryptedItem;
 import org.standardnotes.notes.comms.data.Note;
@@ -205,14 +206,15 @@ public class Crypt {
         try {
             EncryptedItem item = new EncryptedItem();
             copyInEncryptableItemFields(encryptableItem, item);
-            item.setContentType("Note");
             Keys keys = Crypt.getItemKeys(item);
             Note justUnencContent = new Note();
             if (encryptableItem instanceof Note) {
                 justUnencContent.setTitle(((Note) encryptableItem).getTitle());
                 justUnencContent.setText(((Note) encryptableItem).getText());
+                item.setContentType(ContentType.Note.name());
             } else if (encryptableItem instanceof Tag) {
                 justUnencContent.setTitle(((Tag) encryptableItem).getTitle());
+                item.setContentType(ContentType.Tag.name());
             }
             justUnencContent.setReferences(encryptableItem.getReferences());
             String contentJson = SApplication.Companion.getInstance().getGson().toJson(justUnencContent);
