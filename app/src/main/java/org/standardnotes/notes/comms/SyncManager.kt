@@ -3,7 +3,6 @@ package org.standardnotes.notes.comms
 import android.os.Handler
 import android.util.Log
 import org.standardnotes.notes.SApplication
-import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.SyncItems
 import org.standardnotes.notes.comms.data.UploadSyncItems
 import retrofit2.Call
@@ -16,7 +15,7 @@ object SyncManager {
     interface SyncListener {
         fun onSyncStarted()
 
-        fun onSyncCompleted(notes: List<Note>)
+        fun onSyncCompleted(syncItems: SyncItems)
 
         fun onSyncFailed()
     }
@@ -75,7 +74,6 @@ object SyncManager {
             override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {
 
                 SApplication.instance!!.noteStore.putItems(response.body())
-                val notes = SApplication.instance!!.noteStore.notesList
 
                 iter = syncListeners.iterator()
                 while (iter.hasNext()) {
@@ -84,7 +82,7 @@ object SyncManager {
                         iter.remove()
                         Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
                     } else {
-                        listening.get().onSyncCompleted(notes)
+                        listening.get().onSyncCompleted(response.body())
                     }
                 }
 

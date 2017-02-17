@@ -6,6 +6,7 @@ import android.preference.PreferenceManager
 import android.support.v7.app.AppCompatActivity
 import android.view.WindowManager
 import android.widget.Toast
+import org.standardnotes.notes.comms.SyncManager
 
 open class BaseActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -33,11 +34,13 @@ open class BaseActivity : AppCompatActivity(), SharedPreferences.OnSharedPrefere
 
     override fun onResume() {
         super.onResume()
+        SyncManager.startSyncTimer()
         prefs.registerOnSharedPreferenceChangeListener(this)
     }
 
     override fun onPause() {
         super.onPause()
+        SyncManager.stopSyncTimer()
         prefs.unregisterOnSharedPreferenceChangeListener(this)
     }
 
