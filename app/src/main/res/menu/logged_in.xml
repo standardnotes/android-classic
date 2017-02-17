@@ -7,9 +7,5 @@
         android:icon="@drawable/ic_settings_24dp"
         android:title="@string/action_settings"
         app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/action_feedback"
-        android:title="@string/action_feedback"
-        app:showAsAction="never"/>
 
 </menu>
