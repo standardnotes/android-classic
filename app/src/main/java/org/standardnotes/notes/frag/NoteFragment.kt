@@ -1,7 +1,7 @@
 package org.standardnotes.notes.frag
 
-import android.graphics.Typeface
 import android.content.Intent
+import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.preference.PreferenceManager
@@ -16,7 +16,6 @@ import android.view.*
 import android.widget.TextView
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.frag_note.*
-import kotlinx.android.synthetic.main.item_tag.view.*
 import kotlinx.android.synthetic.main.item_tag_lozenge.view.*
 import org.joda.time.DateTime
 import org.standardnotes.notes.EXTRA_TAGS
