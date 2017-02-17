@@ -60,6 +60,7 @@ class LoginActivity : AppCompatActivity() {
                                 return
                             }
                             Crypt.doLogin(email.text.toString(), password.text.toString(), params, signInCallback)
+                            ValueStore(this@LoginActivity).authParams = params
                         } catch (e: Exception) {
                             Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                             e.printStackTrace()
