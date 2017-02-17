@@ -123,6 +123,7 @@ class LoginActivity : AppCompatActivity() {
 
         val dialog = AlertDialog.Builder(this)
                 .setView(view)
+                .setMessage(R.string.registration_confirmation)
                 .setTitle(R.string.prompt_confirm_password)
                 .setNegativeButton(R.string.action_cancel, null)
                 .setPositiveButton(R.string.action_ok, { dialogInterface, i ->
