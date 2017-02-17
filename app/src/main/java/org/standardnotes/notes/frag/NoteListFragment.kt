@@ -13,9 +13,9 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.frag_note_list.*
+import kotlinx.android.synthetic.main.item_note.view.*
 import org.joda.time.format.DateTimeFormat
 import org.standardnotes.notes.NoteActivity
 import org.standardnotes.notes.R
@@ -130,18 +130,14 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
             get
             set(value) {
                 field = value
-                title.text = note?.title
-                date.text = DateTimeFormat.shortDateTime().print(note?.updatedAt)
+                itemView.title.text = note?.title
+                itemView.date.text = DateTimeFormat.shortDateTime().print(note?.updatedAt)
                 var noteText = note?.text ?: ""
                 noteText = noteText.substring(0, Math.min(256, noteText.length))
                 noteText.replace('\n', ' ')
-                text.text = noteText
-                synced.visibility = if (note?.dirty == true) View.VISIBLE else View.INVISIBLE
+                itemView.text.text = noteText
+                itemView.synced.visibility = if (note?.dirty == true) View.VISIBLE else View.INVISIBLE
             }
-        private val title: TextView = itemView.findViewById(R.id.title) as TextView
-        private val date: TextView = itemView.findViewById(R.id.date) as TextView
-        private val text: TextView = itemView.findViewById(R.id.text) as TextView
-        private val synced: View = itemView.findViewById(R.id.synced)
 
         init {
             itemView.setOnTouchListener({ v, event ->

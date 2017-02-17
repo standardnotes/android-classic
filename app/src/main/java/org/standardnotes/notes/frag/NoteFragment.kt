@@ -1,16 +1,22 @@
 package org.standardnotes.notes.frag
 
 import android.content.Intent
+import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
+import android.preference.PreferenceManager
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.view.*
 import android.widget.TextView
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.frag_note.*
+import kotlinx.android.synthetic.main.item_tag_lozenge.view.*
 import org.joda.time.DateTime
 import org.standardnotes.notes.EXTRA_TAGS
 import org.standardnotes.notes.R
@@ -77,8 +83,20 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         context.supportActionBar?.setDisplayShowHomeEnabled(true)
         context.supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        titleEdit.setText(note.title)
-        bodyEdit.setText(note.text)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+        if (prefs.getBoolean("notes_monospace", false))
+            bodyEdit.typeface = Typeface.MONOSPACE
+        titleEdit.setText(note?.title)
+        bodyEdit.setText(note?.text)
+
+        if (tags.count() > 0) {
+            tagsRow.visibility = View.VISIBLE
+            tags.forEach {
+                val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag_lozenge, tagsLayout, false)
+                tagItem.tagText.text = it.title
+                tagsLayout.addView(tagItem)
+            }
+        }
 
         updateTags()
 

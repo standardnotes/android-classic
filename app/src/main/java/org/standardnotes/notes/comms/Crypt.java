@@ -1,15 +1,12 @@
 package org.standardnotes.notes.comms;
 
-import android.content.Context;
 import android.util.Base64;
-import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
 import org.spongycastle.crypto.digests.SHA512Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.util.encoders.Hex;
-import org.standardnotes.notes.R;
 import org.standardnotes.notes.SApplication;
 import org.standardnotes.notes.comms.data.AuthParamsResponse;
 import org.standardnotes.notes.comms.data.ContentType;
@@ -52,9 +49,8 @@ public class Crypt {
     private static ContentDecryptor<Tag> tagDecryptor = new ContentDecryptor<>(Tag.class);
 
     @NotNull
-    public static boolean isParamsSupported(Context context, AuthParamsResponse params) {
+    public static boolean isParamsSupported(AuthParamsResponse params) {
         if (!"sha512".equals(params.getPwAlg())) {
-            Toast.makeText(context, context.getString(R.string.error_unsupported_algorithm, params.getPwAlg()), Toast.LENGTH_LONG).show();
             return false;
         }
         return true;

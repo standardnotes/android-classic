@@ -7,14 +7,13 @@ import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
 import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_login.*
+import kotlinx.android.synthetic.main.view_password_confirm.view.*
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.AuthParamsResponse
 import org.standardnotes.notes.comms.data.SigninResponse
@@ -23,16 +22,26 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-
-/**
- * A login screen that offers login via email/password.
- */
 class LoginActivity : AppCompatActivity() {
+
+    lateinit var progressListener: ProgressListener
+
+    interface ProgressListener {
+        fun onProgressShown()
+        fun onProgressDismissed()
+    }
+
+    private fun notifyListener(progressListener: ProgressListener) {
+        if (isInProgress()) progressListener.onProgressShown() else progressListener.onProgressDismissed()
+    }
+
+    fun isInProgress(): Boolean {
+        return login_progress.visibility == View.VISIBLE
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-        // Set up the login form.
 
         val signInCallback: Callback<SigninResponse> = object : Callback<SigninResponse> {
             override fun onResponse(call: Call<SigninResponse>, response: Response<SigninResponse>) {
@@ -60,7 +69,8 @@ class LoginActivity : AppCompatActivity() {
                     override fun onResponse(call: Call<AuthParamsResponse>, response: Response<AuthParamsResponse>) {
                         try {
                             val params = response.body()
-                            if (!Crypt.isParamsSupported(this@LoginActivity, params)) {
+                            if (!Crypt.isParamsSupported(params)) {
+                                Toast.makeText(this@LoginActivity, getString(R.string.error_unsupported_algorithm, params.getPwAlg()), Toast.LENGTH_LONG).show();
                                 hideProgress()
                                 return
                             }
@@ -85,46 +95,7 @@ class LoginActivity : AppCompatActivity() {
         }
         sign_up.setOnClickListener {
             try {
-                SApplication.instance!!.valueStore.server = server.text.toString()
-                SApplication.instance!!.resetComms()
-
-                val layout = LayoutInflater.from(this).inflate(R.layout.view_password_confirm, null, false)
-                val input = layout.findViewById(R.id.password) as EditText
-                val dialog = AlertDialog.Builder(this).setTitle(R.string.prompt_confirm_password)
-                        .setNegativeButton(R.string.action_cancel, null)
-                        .setPositiveButton(R.string.action_ok, { dialogInterface, i ->
-                            if (input.text.toString() == password.text.toString()) {
-                                showProgress()
-                                Crypt.doRegister(email.text.toString(), password.text.toString(), signInCallback)
-                            } else {
-                                Toast.makeText(this@LoginActivity, R.string.error_passwords_mismatch, Toast.LENGTH_LONG).show()
-                            }
-                        })
-                        .setView(layout)
-                        .show()
-                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
-                val okbutton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                input.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                        //
-                    }
-
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                        okbutton.isEnabled = !input.text.isBlank()
-                    }
-
-                    override fun afterTextChanged(s: Editable?) {
-                        //
-                    }
-                })
-                input.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
-                    if (actionId == EditorInfo.IME_ACTION_DONE && okbutton.isEnabled) {
-                        okbutton.performClick()
-                        return@OnEditorActionListener true
-                    }
-                    false
-                })
-                okbutton.isEnabled = false
+                showSignUpDialog(View.inflate(this, R.layout.view_password_confirm, null), signInCallback)
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
@@ -161,6 +132,48 @@ class LoginActivity : AppCompatActivity() {
         email.requestFocus()
     }
 
+    private fun showSignUpDialog(view : View, signInCallback : Callback<SigninResponse>) {
+        SApplication.instance!!.valueStore.server = server.text.toString()
+        SApplication.instance!!.resetComms()
+
+        val dialog = AlertDialog.Builder(this)
+                .setView(view)
+                .setTitle(R.string.prompt_confirm_password)
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_ok, { dialogInterface, i ->
+                    if (view.confirm_password.text.toString() == password.text.toString()) {
+                        showProgress()
+                        Crypt.doRegister(email.text.toString(), password.text.toString(), signInCallback)
+                    } else {
+                        Toast.makeText(this@LoginActivity, R.string.error_passwords_mismatch, Toast.LENGTH_LONG).show()
+                    }
+                })
+                .show()
+        dialog.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        val okbutton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+        view.confirm_password.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                //
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                okbutton.isEnabled = !view.confirm_password.text.isBlank()
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                //
+            }
+        })
+        view.confirm_password.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE && okbutton.isEnabled) {
+                okbutton.performClick()
+                return@OnEditorActionListener true
+            }
+            false
+        })
+        okbutton.isEnabled = false
+    }
+
     private fun checkValidInput() {
         val valid: Boolean = !server.text.isBlank() && !email.text.isBlank() && !password.text.isBlank()
         email_sign_in_button.isEnabled = valid
@@ -173,9 +186,10 @@ class LoginActivity : AppCompatActivity() {
         server.isEnabled = false
         email.isEnabled = false
         password.isEnabled = false
-        email_sign_in_button.isEnabled = false;
+        email_sign_in_button.isEnabled = false
         sign_up.isEnabled = false
         login_progress.visibility = View.VISIBLE
+        notifyListener(progressListener)
     }
 
     private fun hideProgress() {
@@ -185,6 +199,7 @@ class LoginActivity : AppCompatActivity() {
         password.isEnabled = true
         checkValidInput()
         login_progress.visibility = View.GONE
+        notifyListener(progressListener)
     }
 
 }

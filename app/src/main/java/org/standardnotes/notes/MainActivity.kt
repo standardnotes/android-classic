@@ -2,12 +2,13 @@ package org.standardnotes.notes
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.comms.SyncManager
@@ -42,7 +43,6 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         }
 
         setContentView(R.layout.activity_main)
-        val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
         drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
@@ -138,8 +138,23 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         else
             when (item?.itemId) {
                 R.id.settings -> startActivity(Intent(this, SettingsActivity::class.java))
+                R.id.action_feedback -> startFeedbackIntent()
             }
         return true
+    }
+
+    fun startFeedbackIntent() {
+        val intent = Intent(Intent.ACTION_SENDTO)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        intent.data = Uri.parse("mailto:") // only email apps should handle this
+        intent.putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.feedback_email)))
+        intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.feedback_subject))
+        if (intent.resolveActivity(packageManager) != null) {
+            startActivity(intent)
+        } else {
+            Toast.makeText(this, R.string.toast_no_email, Toast.LENGTH_LONG).show()
+        }
+
     }
 
     override fun onConfigurationChanged(newConfig: Configuration?) {

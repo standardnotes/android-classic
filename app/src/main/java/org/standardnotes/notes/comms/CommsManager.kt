@@ -1,13 +1,12 @@
 package org.standardnotes.notes.comms
 
 import com.google.gson.*
-import org.standardnotes.notes.SApplication
-
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.format.ISODateTimeFormat
+import org.standardnotes.notes.SApplication
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
