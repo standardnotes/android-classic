@@ -63,9 +63,10 @@ class LoginActivity : AppCompatActivity() {
         email_sign_in_button.setOnClickListener {
             try {
                 showProgress()
-                SApplication.instance!!.valueStore.server = server.text.toString()
-                SApplication.instance!!.resetComms()
-                SApplication.instance!!.comms.api.getAuthParamsForEmail(email.text.toString()).enqueue(object : Callback<AuthParamsResponse> {
+                SApplication.instance.valueStore.server = server.text.toString()
+                SApplication.instance.clearData() // should be clear but ensure
+                SApplication.instance.resetComms()
+                SApplication.instance.comms.api.getAuthParamsForEmail(email.text.toString()).enqueue(object : Callback<AuthParamsResponse> {
                     override fun onResponse(call: Call<AuthParamsResponse>, response: Response<AuthParamsResponse>) {
                         try {
                             val params = response.body()
@@ -133,8 +134,9 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun showSignUpDialog(view : View, signInCallback : Callback<SigninResponse>) {
-        SApplication.instance!!.valueStore.server = server.text.toString()
-        SApplication.instance!!.resetComms()
+        SApplication.instance.valueStore.server = server.text.toString()
+        SApplication.instance.clearData() // should be clear but ensure
+        SApplication.instance.resetComms()
 
         val dialog = AlertDialog.Builder(this)
                 .setView(view)

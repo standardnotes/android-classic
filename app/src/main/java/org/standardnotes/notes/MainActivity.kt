@@ -51,7 +51,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
         val header = drawer.inflateHeaderView(R.layout.view_navigation_header)
-        val values = SApplication.instance!!.valueStore
+        val values = SApplication.instance.valueStore
         header.main_account_server.text = values.server
         header.main_account_email.text = values.email
 
@@ -89,7 +89,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         }
         drawer.menu.clear()
         drawer.inflateMenu(R.menu.drawer_tags)
-        val tags = SApplication.instance!!.noteStore.getAllTags()
+        val tags = SApplication.instance.noteStore.getAllTags()
         val menu = drawer.menu.findItem(R.id.menu_account_tags).subMenu
         var allNotes = menu.add(getString(R.string.drawer_all_notes))
         var selectedUUID = ""

@@ -33,12 +33,12 @@ class SettingsActivity : BaseActivity() {
     }
 
     private fun logout() {
-        SApplication.instance!!.valueStore.setTokenAndMasterKey(null, null)
-        SApplication.instance!!.noteStore.deleteAll()
+        SApplication.instance.clearData()
         SyncManager.stopSyncTimer()
         startActivity(Intent(this, StarterActivity::class.java))
         finishAffinity()
     }
+
 
     class SettingsFragment : PreferenceFragmentCompat() {
 

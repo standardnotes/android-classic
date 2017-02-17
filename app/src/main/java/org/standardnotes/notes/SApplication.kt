@@ -49,6 +49,11 @@ class SApplication : Application() {
         JodaTimeAndroid.init(this)
     }
 
+    fun clearData() {
+        valueStore.setTokenAndMasterKey(null, null)
+        noteStore.deleteAll()
+    }
+
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
 //        ACRA.init(this)
@@ -56,7 +61,7 @@ class SApplication : Application() {
 
     companion object {
 
-        var instance: SApplication? = null
+        lateinit var instance: SApplication
             private set
     }
 }

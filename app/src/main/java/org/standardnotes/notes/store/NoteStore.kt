@@ -285,7 +285,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     }
 
     @Synchronized fun putItems(items: SyncItems) {
-        SApplication.instance!!.valueStore.syncToken = items.syncToken.trim()
+        SApplication.instance.valueStore.syncToken = items.syncToken.trim()
         items.retrievedItems.forEach { putItem(it, false) }
         items.savedItems.forEach { putItem(it, true) }
     }
@@ -382,14 +382,14 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     }
 
     @Synchronized fun deleteAll() {
-        SApplication.instance!!.valueStore.syncToken = null
+        SApplication.instance.valueStore.syncToken = null
         writableDatabase.use {
             writableDatabase.delete(TABLE_NOTE, null, null)
             writableDatabase.delete(TABLE_TAG, null, null)
             writableDatabase.delete(TABLE_ENCRYPTABLE, null, null)
         }
         close()
-        SApplication.instance!!.deleteDatabase("note")
+        SApplication.instance.deleteDatabase("note")
     }
 }
 

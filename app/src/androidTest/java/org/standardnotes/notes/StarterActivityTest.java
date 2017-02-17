@@ -31,6 +31,7 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.action.ViewActions.scrollTo;
+import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItem;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
@@ -206,12 +207,17 @@ public class StarterActivityTest {
                 allOf(withId(R.id.bodyEdit)));
         appCompatEditText14.perform(scrollTo(), replaceText("body2"), closeSoftKeyboard());
 
-        ViewInteraction actionMenuItemView = onView(
+        ViewInteraction tagsAction = onView(
                 allOf(withId(R.id.tags), withContentDescription("Tags"), isDisplayed()));
-        actionMenuItemView.perform(click());
+        tagsAction.perform(click());
         onView(withId(R.id.fab)).perform(click());
         onView(
                 allOf(withId(R.id.tag), isDisplayed())).perform(replaceText("tag1"), closeSoftKeyboard());
+        onView(
+                allOf(withId(android.R.id.button1), withText("OK"))).perform(scrollTo(), click());
+        onView(withId(R.id.fab)).perform(click());
+        onView(
+                allOf(withId(R.id.tag), isDisplayed())).perform(replaceText("tag2"), closeSoftKeyboard());
         onView(
                 allOf(withId(android.R.id.button1), withText("OK"))).perform(scrollTo(), click());
         onView(
@@ -235,6 +241,24 @@ public class StarterActivityTest {
                         isDisplayed()));
         recyclerView.perform(actionOnItemAtPosition(0, click()));
         onView(withText("tag1")).check(matches(isDisplayed()));
+
+        tagsAction.perform(click());
+        onView(
+                withText("tag1")).perform(click()); // deselect
+        onView(
+                withText("tag2")).perform(click()); // select
+        pressBack();
+        onView(withText("tag2")).check(matches(isDisplayed()));
+        onView(withText("tag1")).check(doesNotExist());
+        pressBack();
+
+        logout();
+        signupin();
+
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        onView(withText("tag2")).check(matches(isDisplayed()));
+        onView(withText("tag1")).check(doesNotExist());
+
 
         pressBack();
     }

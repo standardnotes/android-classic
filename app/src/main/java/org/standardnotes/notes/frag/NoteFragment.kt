@@ -50,13 +50,13 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         val noteUuid = arguments?.getString(NoteListFragment.EXTRA_NOTE_ID)
         if (savedInstanceState == null) {
             if (noteUuid != null) {
-                note = SApplication.instance!!.noteStore.getNote(noteUuid)!!
-                tags = SApplication.instance!!.noteStore.getTagsForNote(noteUuid)
+                note = SApplication.instance.noteStore.getNote(noteUuid)!!
+                tags = SApplication.instance.noteStore.getTagsForNote(noteUuid)
             } else {
                 note = newNote()
                 val tagUUID = arguments?.getString(NoteListFragment.EXTRA_TAG_ID)
                 val tag = if (tagUUID != null)
-                    SApplication.instance!!.noteStore.getTag(tagUUID)
+                    SApplication.instance.noteStore.getTag(tagUUID)
                 else
                     null
                 if (tag != null) {
@@ -189,9 +189,9 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
             note.text = bodyEdit.text.toString()
             note.dirty = true
             note.updatedAt = DateTime.now()
-//            SApplication.instance!!.noteStore.setTagsOnNote(note.uuid, tags.map { it.uuid }.toSet())
+//            SApplication.instance.noteStore.setTagsOnNote(note.uuid, tags.map { it.uuid }.toSet())
             note.references = tags.map { toReference(it) }
-            SApplication.instance!!.noteStore.putNote(note.uuid, note)
+            SApplication.instance.noteStore.putNote(note.uuid, note)
             return true
         }
         return false
@@ -205,7 +205,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
     }
 
     private fun tagsChanged(): Boolean {
-        val oldTagIds = SApplication.instance!!.noteStore.getTagsForNote(note.uuid).map { it.uuid }
+        val oldTagIds = SApplication.instance.noteStore.getTagsForNote(note.uuid).map { it.uuid }
         val newTags = tags
         val newTagIds = newTags.map { it.uuid }
         Collections.sort(oldTagIds)

@@ -39,7 +39,7 @@ class ExampleInstrumentedTest {
 
     @Test
     fun noteStore() {
-        val ns = SApplication.instance!!.noteStore
+        val ns = SApplication.instance.noteStore
         val n = Note()
         n.text = "text"
         n.title = "title"
@@ -74,7 +74,7 @@ class ExampleInstrumentedTest {
 
     @Test
     fun tagStore() {
-        val ns = SApplication.instance!!.noteStore
+        val ns = SApplication.instance.noteStore
         val t = Tag()
         t.title = "title"
         t.uuid = "uuid2"
@@ -91,7 +91,7 @@ class ExampleInstrumentedTest {
 
     @Test
     fun noteStoreWithTag() {
-        val ns = SApplication.instance!!.noteStore
+        val ns = SApplication.instance.noteStore
         val n = Note()
         n.text = UUID.randomUUID().toString()
         n.title = UUID.randomUUID().toString()
@@ -133,7 +133,7 @@ class ExampleInstrumentedTest {
     @Test
     fun encrypt() {
         val mk = "96fbfbace17d0d268cc5a57900fe785e50a40cf7ae2d23a3dcdd2f28d5fd09d8"
-        SApplication.instance!!.valueStore.setTokenAndMasterKey("", mk)
+        SApplication.instance.valueStore.setTokenAndMasterKey("", mk)
 
         val n = newNote()
         n.text = UUID.randomUUID().toString()

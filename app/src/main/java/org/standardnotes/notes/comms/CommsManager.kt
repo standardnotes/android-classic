@@ -26,8 +26,8 @@ class CommsManager(serverBaseUrl: String) {
                     // Add auth to header if we have a token
                     val original = chain.request()
                     val requestBuilder = original.newBuilder()
-                    if (SApplication.instance!!.valueStore.token != null) {
-                        requestBuilder.header("Authorization", "Bearer " + SApplication.instance!!.valueStore.token)
+                    if (SApplication.instance.valueStore.token != null) {
+                        requestBuilder.header("Authorization", "Bearer " + SApplication.instance.valueStore.token)
                     }
                     val request = requestBuilder.build()
                     chain.proceed(request)
@@ -36,7 +36,7 @@ class CommsManager(serverBaseUrl: String) {
         retrofit = Retrofit.Builder()
                 .baseUrl(serverBaseUrl)
                 .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create(SApplication.instance!!.gson))
+                .addConverterFactory(GsonConverterFactory.create(SApplication.instance.gson))
                 .build()
         api = retrofit.create(ServerApi::class.java)
     }
