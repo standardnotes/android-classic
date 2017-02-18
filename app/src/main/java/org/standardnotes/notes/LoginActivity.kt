@@ -76,6 +76,7 @@ class LoginActivity : AppCompatActivity() {
                                 return
                             }
                             Crypt.doLogin(email.text.toString(), password.text.toString(), params, signInCallback)
+                            ValueStore(this@LoginActivity).authParams = params
                         } catch (e: Exception) {
                             Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                             e.printStackTrace()
@@ -140,6 +141,7 @@ class LoginActivity : AppCompatActivity() {
 
         val dialog = AlertDialog.Builder(this)
                 .setView(view)
+                .setMessage(R.string.registration_confirmation)
                 .setTitle(R.string.prompt_confirm_password)
                 .setNegativeButton(R.string.action_cancel, null)
                 .setPositiveButton(R.string.action_ok, { dialogInterface, i ->

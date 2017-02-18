@@ -11,7 +11,7 @@
 
     <application
         android:name=".SApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -37,10 +37,20 @@
             android:theme="@style/AppTheme.NoActionBar.Transparent"/>
         <activity
             android:name=".TagListActivity"
-            android:label="@string/tags" />
+            android:label="@string/title_tags" />
         <activity
             android:name=".SettingsActivity"
             android:label="@string/action_settings"
             android:parentActivityName=".MainActivity" />
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="org.standardnotes.notes.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
     </application>
 </manifest>

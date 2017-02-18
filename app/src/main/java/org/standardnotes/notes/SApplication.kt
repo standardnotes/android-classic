@@ -36,7 +36,7 @@ class SApplication : Application() {
             return commsActual!! // Should not be called before there's a valueStore.server
         }
     val valueStore: ValueStore by lazy { ValueStore(this) }
-    val gson: Gson by lazy { GsonBuilder().registerTypeAdapter(DateTime::class.java, CommsManager.DateTimeDeserializer()).create() }
+    val gson: Gson by lazy { GsonBuilder().registerTypeAdapter(DateTime::class.java, CommsManager.DateTimeDeserializer()).setPrettyPrinting().create() }
     val noteStore: NoteStore by lazy { NoteStore() }
 
     fun resetComms() {
@@ -51,6 +51,7 @@ class SApplication : Application() {
 
     fun clearData() {
         valueStore.setTokenAndMasterKey(null, null)
+        valueStore.authParams = null
         noteStore.deleteAll()
     }
 

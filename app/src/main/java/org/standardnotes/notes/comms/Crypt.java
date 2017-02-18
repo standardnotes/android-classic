@@ -208,6 +208,7 @@ public class Crypt {
         return data;
     }
 
+
     public static EncryptedItem encrypt(EncryptableItem thing) {
         try {
             EncryptedItem item = new EncryptedItem();

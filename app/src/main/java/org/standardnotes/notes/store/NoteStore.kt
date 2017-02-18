@@ -213,6 +213,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
 
     }
 
+
     fun getNotesForTag(tagUuid: String): List<Note> {
         val db = readableDatabase
         val cur = db.rawQuery("SELECT n.*, e.* FROM $TABLE_NOTE n" +
@@ -235,7 +236,6 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         }
 
         return items
-
     }
 
     fun getAllTags(forNoteUuid: String?): List<Tag> {

@@ -11,6 +11,7 @@
     <string name="action_sign_in_short">Sign in</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_ok">OK</string>
+    <string name="registration_confirmation">Note that because your notes are encrypted on your device using your password, Standard Notes does not have a password reset option. You cannot forget your password.</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
@@ -49,7 +50,15 @@
 
     <!-- Strings related to tags -->
     <string name="drawer_all_notes">All Notes</string>
-    <string name="tags">Tags</string>
-    <string name="action_tags">@string/tags</string>
+    <string name="title_tags">Tags</string>
+    <string name="action_tags">@string/title_tags</string>
     <string name="prompt_new_tag">Enter new tag</string>
+
+    <!-- Data export -->
+    <string name="label_encrypted">Encrypted</string>
+    <string name="label_decrypted">Decrypted</string>
+    <string name="label_export">Export Data</string>
+    <string name="error_fail_export">Data export failed.</string>
+    <string name="title_share_file">Share File</string>
+
 </resources>
