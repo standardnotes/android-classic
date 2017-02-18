@@ -25,8 +25,8 @@ import java.util.*
 
  * @see [Testing documentation](http://d.android.com/tools/testing)
  */
-@RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest {
+class NoteStoreTest {
+
     @Before
     @Throws(Exception::class)
     fun useAppContext() {
@@ -123,11 +123,35 @@ class ExampleInstrumentedTest {
         Assert.assertEquals(n.text, n1.text)
         Assert.assertEquals(n.createdAt, n1.createdAt)
 
-        val t1 = ns.getTagsForNote(n.uuid)
-        Assert.assertEquals(1, t1.count())
-        Assert.assertEquals(ref.uuid, t1[0].uuid)
-        Assert.assertEquals(n.references[0].uuid, t1[0].uuid)
+        val nTags = ns.getTagsForNote(n.uuid)
+        Assert.assertEquals(1, nTags.count())
+        Assert.assertEquals(ref.uuid, nTags[0].uuid)
+        Assert.assertEquals(n.references[0].uuid, nTags[0].uuid)
 
+        Assert.assertEquals(1, ns.getNotesForTag(t.uuid).count())
+        Assert.assertEquals(n1.uuid, ns.getNotesForTag(t.uuid)[0].uuid)
+
+        val t2 = Tag()
+        t2.title = UUID.randomUUID().toString()
+        t2.uuid = UUID.randomUUID().toString()
+        t2.encItemKey = "123"
+        t2.createdAt = time
+        t2.updatedAt = time
+        ns.putTag(t2.uuid, t2)
+
+        val ref2 = Reference()
+        ref2.uuid = t2.uuid
+        ref2.contentType = ContentType.Tag.toString()
+        n.references.add(ref2)
+        ns.putNote(n.uuid, n)
+        Assert.assertEquals(1, ns.getNotesForTag(t2.uuid).count())
+        Assert.assertEquals(2, ns.getTagsForNote(n.uuid).count())
+
+        n.references.clear()
+        ns.putNote(n.uuid, n)
+
+        Assert.assertEquals(0, ns.getNotesForTag(t.uuid).count())
+        Assert.assertEquals(0, ns.getTagsForNote(n.uuid).count())
     }
 
     @Test
