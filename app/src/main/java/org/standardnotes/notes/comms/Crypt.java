@@ -1,12 +1,14 @@
 package org.standardnotes.notes.comms;
 
 import android.util.Base64;
+import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
 import org.spongycastle.crypto.digests.SHA512Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.util.encoders.Hex;
+import org.standardnotes.notes.BuildConfig;
 import org.standardnotes.notes.SApplication;
 import org.standardnotes.notes.comms.data.AuthParamsResponse;
 import org.standardnotes.notes.comms.data.ContentType;
@@ -246,6 +248,9 @@ public class Crypt {
                 }
                 justUnencContent.setReferences(refs);
                 contentJson = SApplication.Companion.getInstance().getGson().toJson(justUnencContent);
+            }
+            if (BuildConfig.DEBUG) {
+                Log.d("Crypt", "Encrypting " + item.getContentType() + " " + item.getUuid() + ": " + contentJson);
             }
             String contentEnc = "001" + encrypt(contentJson, keys.ek);
             String hash = createHash(contentEnc, keys.ak);
