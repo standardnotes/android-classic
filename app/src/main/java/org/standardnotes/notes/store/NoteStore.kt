@@ -64,12 +64,11 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
     }
 
+
     @Synchronized fun putNote(uuid: String, item: Note?) {
         val db = writableDatabase
 
-        // TODO gotcha for when adding pre-lollipop support http://stackoverflow.com/questions/39430179/kotlin-closable-and-sqlitedatabase-on-android
-        db.use {
-            db.beginTransaction()
+        db.transact {
             db.delete(TABLE_NOTE, "$KEY_UUID=?", arrayOf(uuid))
             db.delete(TABLE_ENCRYPTABLE, "$KEY_UUID=?", arrayOf(uuid))
             if (item != null && !item.deleted) {
@@ -82,14 +81,12 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 putNoteTagRelationships(db, uuid, item.references.filter { it.contentType == ContentType.Tag.toString() }.map { it.uuid }.toSet())
             }
             db.setTransactionSuccessful()
-            db.endTransaction()
         }
     }
 
     @Synchronized fun putTag(uuid: String, item: Tag?) {
         val db = writableDatabase
-        db.use {
-            db.beginTransaction()
+        db.transact {
             db.delete(TABLE_TAG, "$KEY_UUID=?", arrayOf(uuid))
             db.delete(TABLE_ENCRYPTABLE, "$KEY_UUID=?", arrayOf(uuid))
             if (item != null && !item.deleted) {
@@ -101,7 +98,6 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 //putNoteTagRelationships(db, uuid, item.references.filter { it.contentType == ContentType.Note.toString() }.map { it.uuid })
             }
             db.setTransactionSuccessful()
-            db.endTransaction()
         }
     }
 
@@ -269,10 +265,9 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         return getAllTags(null)
     }
 
-    fun deleteItem(uuid: String) {
+    @Synchronized fun deleteItem(uuid: String) {
         val db = writableDatabase
-        db.use {
-            db.beginTransaction()
+        db.transact {
             db.update(TABLE_ENCRYPTABLE,
                     ContentValues().apply {
                         put(KEY_DELETED, true)
@@ -280,7 +275,6 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                     },
                     "$KEY_UUID=?", arrayOf(uuid))
             db.setTransactionSuccessful()
-            db.endTransaction()
         }
     }
 
@@ -323,7 +317,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         }
     }
 
-    fun mergeNote(uuid: String, newNote: Note?) {
+    @Synchronized fun mergeNote(uuid: String, newNote: Note?) {
         // TODO if content_type changes, we have a problem
         val old = getNote(uuid)
         if (old != null && newNote != null) {
@@ -353,7 +347,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         oldNote.dirty = false // We're saving so we can clear the dirty flag
     }
 
-    fun mergeTag(uuid: String, newTag: Tag?) {
+    @Synchronized fun mergeTag(uuid: String, newTag: Tag?) {
         // TODO if content_type changes, we have a problem
         val old = getTag(uuid)
         putTag(uuid, newTag)
@@ -383,11 +377,9 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
 
     @Synchronized fun deleteAll() {
         SApplication.instance.valueStore.syncToken = null
-        writableDatabase.use {
-            writableDatabase.delete(TABLE_NOTE, null, null)
-            writableDatabase.delete(TABLE_TAG, null, null)
-            writableDatabase.delete(TABLE_ENCRYPTABLE, null, null)
-        }
+        writableDatabase.delete(TABLE_NOTE, null, null)
+        writableDatabase.delete(TABLE_TAG, null, null)
+        writableDatabase.delete(TABLE_ENCRYPTABLE, null, null)
         close()
         SApplication.instance.deleteDatabase("note")
     }
@@ -397,5 +389,14 @@ private fun EncryptedItem.isValid(): Boolean {
     return (contentTypeFromString(contentType) != null && // Not a type this client understands
             (content != null || deleted) &&
             uuid != null)
+}
+
+inline fun <T : SQLiteDatabase, R> T.transact(block: (T) -> R): R {
+    try {
+        this?.beginTransaction()
+        return block(this)
+    } finally {
+        this?.endTransaction()
+    }
 }
 

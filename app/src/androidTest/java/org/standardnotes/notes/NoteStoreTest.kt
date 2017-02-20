@@ -173,4 +173,47 @@ class NoteStoreTest {
 
     }
 
+    fun createString(length: Int): String {
+        val chars = "abcdefghijklmnopqrstuvwxyz".toCharArray()
+        val sb = StringBuilder(length)
+        val random = Random()
+        for (i in 0..length) {
+            val c = chars[random.nextInt(chars.size)]
+            sb.append(c)
+        }
+        return sb.toString()
+    }
+
+    @Test
+    fun bigStoreThreadedRead() {
+        val ns = SApplication.instance.noteStore
+        val n1 = createLargeNote()
+        for (i in 1..10) {
+            createLargeNote()
+            createLargeNote()
+            createLargeNote()
+            Thread(Runnable { ns.getAllNotes() }).start()
+        }
+        val n2 = createLargeNote()
+        val n3 = createLargeNote()
+        val n4 = createLargeNote()
+        val n1r = ns.getNote(n1.uuid)
+        Assert.assertEquals(n1r?.uuid, n1.uuid)
+    }
+
+    fun createLargeNote(): Note {
+        val ns = SApplication.instance.noteStore
+        val n = Note()
+        n.text = createString(50000)
+        n.encItemKey = "123"
+        n.uuid = UUID.randomUUID().toString()
+        n.title = n.uuid
+        val time = DateTime.now()
+        n.createdAt = time
+        n.updatedAt = time
+        n.references = ArrayList()
+        ns.putNote(n.uuid, n)
+        return n
+    }
+
 }
