@@ -7,7 +7,7 @@ android {
     buildToolsVersion '25.0.2'
     defaultConfig {
         applicationId "org.standardnotes.notes"
-        minSdkVersion 21
+        minSdkVersion 16
         targetSdkVersion 25
         versionCode 1
         versionName "0.0.1"

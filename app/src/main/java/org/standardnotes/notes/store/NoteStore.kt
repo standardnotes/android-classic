@@ -68,6 +68,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         val db = writableDatabase
 
         // TODO gotcha for when adding pre-lollipop support http://stackoverflow.com/questions/39430179/kotlin-closable-and-sqlitedatabase-on-android
+        // Necessary changes were introduced in API 16 -> Safe to downgrade minSdkVersion to 16
         db.use {
             db.beginTransaction()
             db.delete(TABLE_NOTE, "$KEY_UUID=?", arrayOf(uuid))
