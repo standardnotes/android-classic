@@ -5,6 +5,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import net.danlew.android.joda.JodaTimeAndroid
+import org.acra.ACRA
 import org.acra.ReportingInteractionMode
 import org.acra.annotation.ReportsCrashes
 import org.acra.sender.HttpSender
@@ -17,9 +18,9 @@ import org.standardnotes.notes.store.ValueStore
 @ReportsCrashes(
         httpMethod = HttpSender.Method.POST,
         reportType = HttpSender.Type.JSON,
-        formUri = "http://android-acra.standardnotes.org:5984/acra-myapp/_design/acra-storage/_update/report",
-        formUriBasicAuthLogin = "reporter2",
-        formUriBasicAuthPassword = "reportit",
+        formUri = "https://deftelf.cloudant.com/acra-notes/_design/acra-storage/_update/report",
+        formUriBasicAuthLogin = "mrsuesendittlavessightio",
+        formUriBasicAuthPassword = "9ff4e02277b4ae4be2102c475d6299f852260277",
         sendReportsInDevMode = true,
         mode = ReportingInteractionMode.SILENT
         )
@@ -57,7 +58,7 @@ class SApplication : Application() {
 
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
-//        ACRA.init(this)
+        ACRA.init(this)
     }
 
     companion object {
