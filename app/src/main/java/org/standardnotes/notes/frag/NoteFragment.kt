@@ -9,11 +9,7 @@ import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.view.*
-import android.widget.TextView
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.frag_note.*
 import kotlinx.android.synthetic.main.item_tag_lozenge.view.*
@@ -24,10 +20,7 @@ import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.TagListActivity
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.SyncManager
-import org.standardnotes.notes.comms.data.ContentType
-import org.standardnotes.notes.comms.data.Note
-import org.standardnotes.notes.comms.data.Reference
-import org.standardnotes.notes.comms.data.Tag
+import org.standardnotes.notes.comms.data.*
 import java.util.*
 
 const val REQ_TAGS = 1
@@ -71,6 +64,11 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         setHasOptionsMenu(true)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(NoteListFragment.EXTRA_NOTE_ID, note?.uuid)
+    }
+
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater!!.inflate(R.layout.frag_note, container, false)
         return view
@@ -86,19 +84,8 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
         if (prefs.getBoolean("notes_monospace", false))
             bodyEdit.typeface = Typeface.MONOSPACE
-        titleEdit.setText(note?.title)
-        bodyEdit.setText(note?.text)
 
-        if (tags.count() > 0) {
-            tagsRow.visibility = View.VISIBLE
-            tags.forEach {
-                val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag_lozenge, tagsLayout, false)
-                tagItem.tagText.text = it.title
-                tagsLayout.addView(tagItem)
-            }
-        }
-
-        updateTags()
+        populateUI()
 
         val textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -120,20 +107,6 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         titleEdit.setSelection(titleEdit.text.length)
 
         setSubtitle(if (note.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
-    }
-
-    private fun updateTags() {
-        if (tags.count() > 0) {
-            tagsRow.visibility = View.VISIBLE
-            tagsLayout.removeAllViews()
-            tags.forEach {
-                val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag_lozenge, tagsLayout, false)
-                (tagItem.findViewById(R.id.tagText) as TextView).text = it.title
-                tagsLayout.addView(tagItem)
-            }
-        } else {
-            tagsRow.visibility = View.GONE
-        }
     }
 
     override fun onResume() {
@@ -181,8 +154,32 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         }, 100)
     }
 
+    fun updateTags() {
+        if (tags.count() > 0) {
+            tagsLayout.removeAllViews()
+            tagsRow.visibility = View.VISIBLE
+            tags.forEach {
+                val tagItem = LayoutInflater.from(activity).inflate(R.layout.item_tag, tagsLayout, false)
+                tagItem.tagText.text = it.title
+                tagsLayout.addView(tagItem)
+            }
+        } else {
+            tagsRow.visibility = View.GONE
+        }
+    }
+
+    fun populateUI() {
+        titleEdit.setText(note?.title)
+        bodyEdit.setText(note?.text)
+        updateTags()
+        if (activity.currentFocus == titleEdit)
+            titleEdit.setSelection(titleEdit.text.length)
+        else if (activity.currentFocus == bodyEdit)
+            bodyEdit.setSelection(bodyEdit.text.length)
+    }
+
     fun saveNote(): Boolean {
-        if (note.title != titleEdit.text.toString() ||
+        if (note!!.title != titleEdit.text.toString() ||
                 note.text != bodyEdit.text.toString() ||
                 tagsChanged()) {
             note.title = titleEdit.text.toString()
@@ -217,8 +214,18 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         setSubtitle(getString(R.string.sync_progress_saving))
     }
 
-    override fun onSyncCompleted(notes: List<Note>) {
+    override fun onSyncCompleted(syncItems: SyncItems) {
         setSubtitle(getString(R.string.sync_progress_finished))
+        for (retrievedItem in syncItems.retrievedItems) {
+            if (retrievedItem.uuid == note?.uuid) {
+                if (retrievedItem.updatedAt > note?.updatedAt) {
+                    note = SApplication.instance!!.noteStore.getNote(retrievedItem.uuid)!!
+                    tags = SApplication.instance!!.noteStore.getTagsForNote(retrievedItem.uuid)
+                    populateUI()
+                }
+                break
+            }
+        }
     }
 
     override fun onSyncFailed() {

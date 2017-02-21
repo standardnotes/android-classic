@@ -22,6 +22,7 @@ import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.Note
+import org.standardnotes.notes.comms.data.SyncItems
 import java.util.*
 
 
@@ -88,8 +89,10 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         currentSnackbar?.dismiss()
     }
 
-    override fun onSyncCompleted(syncedNotes: List<Note>) {
+    override fun onSyncCompleted(syncItems: SyncItems) {
+        notes = ArrayList(SApplication.instance!!.noteStore.notesList)
         swipeRefreshLayout.isRefreshing = false
+        adapter.notifyDataSetChanged()
         currentSnackbar?.dismiss()
     }
 

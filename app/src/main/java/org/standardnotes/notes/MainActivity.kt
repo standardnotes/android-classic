@@ -2,17 +2,15 @@ package org.standardnotes.notes
 
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.ActionBarDrawerToggle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.comms.SyncManager
-import org.standardnotes.notes.comms.data.Note
+import org.standardnotes.notes.comms.data.SyncItems
 import org.standardnotes.notes.frag.NoteListFragment
 
 class MainActivity : BaseActivity(), SyncManager.SyncListener {
@@ -23,9 +21,9 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
     override fun onSyncFailed() {
     }
 
-    override fun onSyncCompleted(notes: List<Note>) {
-        updateTagsMenu() // Update tags list
-        noteListFragment().refreshNotesForTag(selectedTag) // Update notes in fragment
+    override fun onSyncCompleted(syncItems: SyncItems) {
+        // Update tags list
+        updateTagsMenu()
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -110,7 +108,6 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
 
     override fun onResume() {
         super.onResume()
-        SyncManager.startSyncTimer()
         SyncManager.subscribe(this)
         updateTagsMenu()
         noteListFragment().refreshNotesForTag(selectedTag)
@@ -118,7 +115,6 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
 
     override fun onPause() {
         super.onPause()
-        SyncManager.stopSyncTimer()
         SyncManager.unsubscribe(this)
     }
 
