@@ -1,20 +1,25 @@
 package org.standardnotes.notes.comms;
 
 import android.util.Base64;
+import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
 import org.spongycastle.crypto.digests.SHA512Digest;
 import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.util.encoders.Hex;
+import org.standardnotes.notes.BuildConfig;
 import org.standardnotes.notes.SApplication;
 import org.standardnotes.notes.comms.data.AuthParamsResponse;
 import org.standardnotes.notes.comms.data.ContentType;
 import org.standardnotes.notes.comms.data.EncryptableItem;
 import org.standardnotes.notes.comms.data.EncryptedItem;
 import org.standardnotes.notes.comms.data.Note;
+import org.standardnotes.notes.comms.data.NoteContent;
+import org.standardnotes.notes.comms.data.Reference;
 import org.standardnotes.notes.comms.data.SigninResponse;
 import org.standardnotes.notes.comms.data.Tag;
+import org.standardnotes.notes.comms.data.TagContent;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -22,6 +27,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
@@ -202,22 +210,48 @@ public class Crypt {
         return data;
     }
 
-    public static EncryptedItem encrypt(EncryptableItem encryptableItem) {
+
+    public static EncryptedItem encrypt(EncryptableItem thing) {
         try {
             EncryptedItem item = new EncryptedItem();
-            copyInEncryptableItemFields(encryptableItem, item);
+            copyInEncryptableItemFields(thing, item);
+            String contentJson = null;
             Keys keys = Crypt.getItemKeys(item);
-            Note justUnencContent = new Note();
-            if (encryptableItem instanceof Note) {
-                justUnencContent.setTitle(((Note) encryptableItem).getTitle());
-                justUnencContent.setText(((Note) encryptableItem).getText());
-                item.setContentType(ContentType.Note.name());
-            } else if (encryptableItem instanceof Tag) {
-                justUnencContent.setTitle(((Tag) encryptableItem).getTitle());
-                item.setContentType(ContentType.Tag.name());
+            if (thing instanceof Note) {
+                item.setContentType(ContentType.Note.toString());
+                NoteContent justUnencContent = new NoteContent();
+                Note note = (Note) thing;
+                justUnencContent.setTitle(note.getTitle());
+                justUnencContent.setText(note.getText());
+                List<Tag> tags = SApplication.Companion.getInstance().getNoteStore().getTagsForNote(thing.getUuid());
+                List<Reference> refs = new ArrayList<>(tags.size());
+                for (EncryptableItem tag : tags) {
+                    Reference ref = new Reference();
+                    ref.setContentType(ContentType.Tag.toString());
+                    ref.setUuid(tag.getUuid());
+                    refs.add(ref);
+                }
+                justUnencContent.setReferences(refs);
+                contentJson = SApplication.Companion.getInstance().getGson().toJson(justUnencContent);
+            } else if (thing instanceof Tag) {
+                item.setContentType(ContentType.Tag.toString());
+                Tag tag = (Tag) thing;
+                TagContent justUnencContent = new TagContent();
+                justUnencContent.setTitle(tag.getTitle());
+                List<Note> notes = SApplication.Companion.getInstance().getNoteStore().getNotesForTag(thing.getUuid());
+                List<Reference> refs = new ArrayList<>(notes.size());
+                for (EncryptableItem note : notes) {
+                    Reference ref = new Reference();
+                    ref.setContentType(ContentType.Note.toString());
+                    ref.setUuid(note.getUuid());
+                    refs.add(ref);
+                }
+                justUnencContent.setReferences(refs);
+                contentJson = SApplication.Companion.getInstance().getGson().toJson(justUnencContent);
             }
-            justUnencContent.setReferences(encryptableItem.getReferences());
-            String contentJson = SApplication.Companion.getInstance().getGson().toJson(justUnencContent);
+            if (BuildConfig.DEBUG) {
+                Log.d("Crypt", "Encrypting " + item.getContentType() + " " + item.getUuid() + ": " + contentJson);
+            }
             String contentEnc = "001" + encrypt(contentJson, keys.ek);
             String hash = createHash(contentEnc, keys.ak);
             item.setAuthHash(hash);
@@ -227,6 +261,17 @@ public class Crypt {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private static List<Reference> generateReferences(Collection<EncryptableItem> items, ContentType type) {
+        List<Reference> refs = new ArrayList<>(items.size());
+        for (EncryptableItem item : items) {
+            Reference ref = new Reference();
+            ref.setContentType(type.toString());
+            ref.setUuid(item.getUuid());
+            refs.add(ref);
+        }
+        return refs;
     }
 
     public static Note decryptNote(EncryptedItem item) {

@@ -1,0 +1,22 @@
+{
+	"title": "",
+	"type": "object",
+	"javaType": "org.standardnotes.notes.comms.data.NoteContent",
+	"properties": {
+        "title": {
+			"type": "string",
+			"default": ""
+		},
+		"text": {
+		    "type": "string",
+		    "default": ""
+		},
+		"references": {
+            "type": "array",
+            "items": {
+                "javaType": "com.standardnote.notes.comms.data.Reference",
+                "$ref": "Reference.jschema"
+            }
+        }
+	}
+}

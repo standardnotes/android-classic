@@ -26,10 +26,19 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         updateTagsMenu()
     }
 
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState!!.putString("tag", selectedTag)
+    }
+
     private var drawerToggle: ActionBarDrawerToggle? = null
+    private var selectedTag = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState != null && savedInstanceState?.containsKey("tag")) {
+            selectedTag = savedInstanceState.getString("tag")
+        }
 
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
@@ -40,7 +49,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
         val header = drawer.inflateHeaderView(R.layout.view_navigation_header)
-        val values = SApplication.instance!!.valueStore
+        val values = SApplication.instance.valueStore
         header.main_account_server.text = values.server
         header.main_account_email.text = values.email
 
@@ -56,37 +65,52 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
             false
         })
         fab.setOnClickListener { view ->
-            (supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment).startNewNote(lastX!!, lastY!!)
+            noteListFragment().startNewNote(lastX!!, lastY!!, selectedTag)
         }
 
     }
 
+    fun noteListFragment(): NoteListFragment {
+        return supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment
+    }
+
     fun updateTagsMenu() {
-        fun tagMenuItem(it: MenuItem, uuid: String?) {
-            // TODO: pass UUID to Fragment
+        fun tagMenuItem(it: MenuItem, uuid: String) {
             it.setIcon(R.drawable.ic_tag)
             it.setOnMenuItemClickListener {
                 drawer_layout.closeDrawers()
+                selectedTag = uuid
+                updateTagsMenu()
+                noteListFragment().refreshNotesForTag(selectedTag)
                 return@setOnMenuItemClickListener true
             }
         }
         drawer.menu.clear()
         drawer.inflateMenu(R.menu.drawer_tags)
-        val tags = SApplication.instance!!.noteStore.getAllTags()
-        val mitem = drawer.menu.findItem(R.id.menu_account_tags)
-        val item = mitem.subMenu.add(getString(R.string.drawer_all_notes))
-        tagMenuItem(item, null)
+        val tags = SApplication.instance.noteStore.getAllTags()
+        val menu = drawer.menu.findItem(R.id.menu_account_tags).subMenu
+        var allNotes = menu.add(getString(R.string.drawer_all_notes))
+        var selectedUUID = ""
+        tagMenuItem(allNotes, "")
+        var selected: MenuItem = allNotes
         for (tag in tags) {
-            val item = mitem.subMenu.add(tag.title)
+            val item = menu.add(tag.title)
+            if (selectedTag.equals(tag.uuid)) {
+                selected = item
+                selectedUUID = tag.uuid
+            }
             tagMenuItem(item, tag.uuid)
         }
-
+        selected.isChecked = true
+        toolbar.subtitle = selected.title
+        selectedTag = selectedUUID // In case selected tag wasn't found in list
     }
 
     override fun onResume() {
         super.onResume()
         SyncManager.subscribe(this)
         updateTagsMenu()
+        noteListFragment().refreshNotesForTag(selectedTag)
     }
 
     override fun onPause() {

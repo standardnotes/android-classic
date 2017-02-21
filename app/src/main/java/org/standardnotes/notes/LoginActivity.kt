@@ -24,6 +24,21 @@ import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
 
+    var progressListener: ProgressListener? = null
+
+    interface ProgressListener {
+        fun onProgressShown()
+        fun onProgressDismissed()
+    }
+
+    private fun notifyListener() {
+        if (isInProgress()) progressListener?.onProgressShown() else progressListener?.onProgressDismissed()
+    }
+
+    fun isInProgress(): Boolean {
+        return login_progress.visibility == View.VISIBLE
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -48,9 +63,10 @@ class LoginActivity : AppCompatActivity() {
         email_sign_in_button.setOnClickListener {
             try {
                 showProgress()
-                SApplication.instance!!.valueStore.server = server.text.toString()
-                SApplication.instance!!.resetComms()
-                SApplication.instance!!.comms.api.getAuthParamsForEmail(email.text.toString()).enqueue(object : Callback<AuthParamsResponse> {
+                SApplication.instance.valueStore.server = server.text.toString()
+                SApplication.instance.clearData() // should be clear but ensure
+                SApplication.instance.resetComms()
+                SApplication.instance.comms.api.getAuthParamsForEmail(email.text.toString()).enqueue(object : Callback<AuthParamsResponse> {
                     override fun onResponse(call: Call<AuthParamsResponse>, response: Response<AuthParamsResponse>) {
                         try {
                             val params = response.body()
@@ -119,8 +135,9 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun showSignUpDialog(view : View, signInCallback : Callback<SigninResponse>) {
-        SApplication.instance!!.valueStore.server = server.text.toString()
-        SApplication.instance!!.resetComms()
+        SApplication.instance.valueStore.server = server.text.toString()
+        SApplication.instance.clearData() // should be clear but ensure
+        SApplication.instance.resetComms()
 
         val dialog = AlertDialog.Builder(this)
                 .setView(view)
@@ -176,6 +193,7 @@ class LoginActivity : AppCompatActivity() {
         email_sign_in_button.isEnabled = false
         sign_up.isEnabled = false
         login_progress.visibility = View.VISIBLE
+        notifyListener()
     }
 
     private fun hideProgress() {
@@ -185,6 +203,7 @@ class LoginActivity : AppCompatActivity() {
         password.isEnabled = true
         checkValidInput()
         login_progress.visibility = View.GONE
+        notifyListener()
     }
 
 }

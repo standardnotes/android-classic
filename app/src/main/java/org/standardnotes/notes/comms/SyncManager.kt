@@ -67,10 +67,10 @@ object SyncManager {
         }
 
         val uploadSyncItems = UploadSyncItems()
-        uploadSyncItems.syncToken = SApplication.instance!!.valueStore.syncToken
-        val dirtyItems = SApplication.instance!!.noteStore.toSave
+        uploadSyncItems.syncToken = SApplication.instance.valueStore.syncToken
+        val dirtyItems = SApplication.instance.noteStore.toSave
         dirtyItems.map { Crypt.encrypt(it) }.forEach { uploadSyncItems.items.add(it) }
-        SApplication.instance!!.comms.api.sync(uploadSyncItems).enqueue(object : Callback<SyncItems> {
+        SApplication.instance.comms.api.sync(uploadSyncItems).enqueue(object : Callback<SyncItems> {
             override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {
 
                 SApplication.instance!!.noteStore.putItems(response.body())
