@@ -9,11 +9,7 @@ import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.view.*
-import android.widget.TextView
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.frag_note.*
 import kotlinx.android.synthetic.main.item_tag_lozenge.view.*
@@ -24,11 +20,7 @@ import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.TagListActivity
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.SyncManager
-import org.standardnotes.notes.comms.data.ContentType
-import org.standardnotes.notes.comms.data.Note
-import org.standardnotes.notes.comms.data.SyncItems
-import org.standardnotes.notes.comms.data.Reference
-import org.standardnotes.notes.comms.data.Tag
+import org.standardnotes.notes.comms.data.*
 import java.util.*
 
 const val REQ_TAGS = 1
@@ -162,9 +154,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         }, 100)
     }
 
-    fun populateUI() {
-        titleEdit.setText(note?.title)
-        bodyEdit.setText(note?.text)
+    fun updateTags() {
         if (tags.count() > 0) {
             tagsLayout.removeAllViews()
             tagsRow.visibility = View.VISIBLE
@@ -176,13 +166,19 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         } else {
             tagsRow.visibility = View.GONE
         }
+    }
+
+    fun populateUI() {
+        titleEdit.setText(note?.title)
+        bodyEdit.setText(note?.text)
+        updateTags()
         if (activity.currentFocus == titleEdit)
             titleEdit.setSelection(titleEdit.text.length)
         else if (activity.currentFocus == bodyEdit)
             bodyEdit.setSelection(bodyEdit.text.length)
     }
 
-    fun saveNote(note: Note?): Boolean {
+    fun saveNote(): Boolean {
         if (note!!.title != titleEdit.text.toString() ||
                 note.text != bodyEdit.text.toString() ||
                 tagsChanged()) {
@@ -223,7 +219,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         for (retrievedItem in syncItems.retrievedItems) {
             if (retrievedItem.uuid == note?.uuid) {
                 if (retrievedItem.updatedAt > note?.updatedAt) {
-                    note = SApplication.instance!!.noteStore.getNote(retrievedItem.uuid)
+                    note = SApplication.instance!!.noteStore.getNote(retrievedItem.uuid)!!
                     tags = SApplication.instance!!.noteStore.getTagsForNote(retrievedItem.uuid)
                     populateUI()
                 }
