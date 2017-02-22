@@ -71,18 +71,22 @@ class DebugActivity : BaseActivity() {
                 throw Exception("only run this when connected to a staging server")
             }
 
-            val ns = SApplication.instance.noteStore
+//            val ns = SApplication.instance.noteStore
             val tagIds = ArrayList<String>()
-            for (i in 1..10) {
+            for (i in 1..20) {
                 tagIds.add(createTag().uuid)
             }
 
             val rand = Random()
-            for (i in 1..50) {
+            for (i in 1..200) {
                 createLargeNote(tagIds[rand.nextInt(tagIds.size)])
             }
 
 
+        }
+
+        clear.setOnClickListener {
+            SApplication.instance.noteStore.deleteAll()
         }
     }
 
