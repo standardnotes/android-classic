@@ -48,26 +48,24 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val noteUuid = arguments?.getString(NoteListFragment.EXTRA_NOTE_ID)
-        if (savedInstanceState == null) {
-            if (noteUuid != null) {
-                note = SApplication.instance.noteStore.getNote(noteUuid)!!
-                tags = SApplication.instance.noteStore.getTagsForNote(noteUuid)
-            } else {
-                note = newNote()
-                val tagUUID = arguments?.getString(NoteListFragment.EXTRA_TAG_ID)
-                val tag = if (tagUUID != null)
-                    SApplication.instance.noteStore.getTag(tagUUID)
-                else
-                    null
-                if (tag != null) {
-                    tags = arrayListOf(tag)
-                } else {
-                    tags = Collections.emptyList()
-                }
-            }
+        val noteUuid =
+                savedInstanceState?.getString(NoteListFragment.EXTRA_NOTE_ID) ?:
+                        arguments?.getString(NoteListFragment.EXTRA_NOTE_ID)
+        if (noteUuid != null) {
+            note = SApplication.instance.noteStore.getNote(noteUuid)!!
+            tags = SApplication.instance.noteStore.getTagsForNote(noteUuid)
         } else {
-            //TODo
+            note = newNote()
+            val tagUUID = arguments?.getString(NoteListFragment.EXTRA_TAG_ID)
+            val tag = if (tagUUID != null)
+                SApplication.instance.noteStore.getTag(tagUUID)
+            else
+                null
+            if (tag != null) {
+                tags = arrayListOf(tag)
+            } else {
+                tags = Collections.emptyList()
+            }
         }
         setHasOptionsMenu(true)
     }
@@ -122,6 +120,11 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         titleEdit.setSelection(titleEdit.text.length)
 
         setSubtitle(if (note.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(NoteListFragment.EXTRA_NOTE_ID, note.uuid)
     }
 
     private fun updateTags() {
