@@ -1,5 +1,6 @@
 package org.standardnotes.notes.frag
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
@@ -106,6 +107,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                activity.setResult(Activity.RESULT_OK)
                 syncHandler.removeCallbacks(syncRunnable)
                 syncHandler.postDelayed(syncRunnable, SYNC_DELAY)
             }
@@ -189,7 +191,6 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
             note.text = bodyEdit.text.toString()
             note.dirty = true
             note.updatedAt = DateTime.now()
-//            SApplication.instance.noteStore.setTagsOnNote(note.uuid, tags.map { it.uuid }.toSet())
             note.references = tags.map { toReference(it) }
             SApplication.instance.noteStore.putNote(note.uuid, note)
             return true

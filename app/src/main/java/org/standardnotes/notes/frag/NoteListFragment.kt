@@ -1,5 +1,6 @@
 package org.standardnotes.notes.frag
 
+import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -32,7 +33,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
     val adapter: Adapter by lazy { Adapter() }
 
     var notes = ArrayList<Note>()
-    var tagUUID = ""
+    var tagId = ""
 
     var currentSnackbar: Snackbar? = null
 
@@ -72,15 +73,14 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-//        if (resultCode == RESULT_OK) {
         if (requestCode == REQ_EDIT_NOTE) {
-            notes = ArrayList(SApplication.instance.noteStore.notesList)
-            adapter.notifyDataSetChanged()
-            if (SApplication.instance.noteStore.notesToSaveCount() > 0) {
+            if (SApplication.instance.noteStore.notesToSaveCount() > 0 ||
+                    resultCode == RESULT_OK) {
+                refreshNotesForTag()
+                adapter.notifyDataSetChanged()
                 SyncManager.sync()
             }
         }
-//        }
     }
 
     override fun onSyncStarted() {
@@ -95,7 +95,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     fun refreshNotesForTag(uuid: String? = null) {
         if (uuid == null) { // In-place refresh after delete
-            refreshNotesForTag(tagUUID)
+            refreshNotesForTag(tagId)
             return
         }
         val noteList = if (TextUtils.isEmpty(uuid))
@@ -104,7 +104,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
             SApplication.instance.noteStore.getNotesForTag(uuid)
         notes = ArrayList(noteList)
         adapter.notifyDataSetChanged()
-        tagUUID = uuid // Save for future use
+        tagId = uuid // Save for future use
     }
 
     override fun onSyncFailed() {

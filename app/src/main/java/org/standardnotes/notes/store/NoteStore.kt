@@ -23,8 +23,9 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     val notesList: List<Note>
         get() = getAllNotes()
 
-    val toSave: Collection<EncryptableItem> // TODO inefficient, convert to query
-        get() = getAllTags().filter { it.dirty == true } + getAllNotes().filter { it.dirty == true }
+    val toSave: Collection<EncryptableItem>
+        get() = getAllTags(null, true, true) + getAllNotes(null, true)
+
 
     private val TABLE_NOTE = "NOTE"
     private val KEY_UUID = "ID"
@@ -78,7 +79,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                     put(KEY_TEXT, item.text)
                 })
                 insertEncryptable(db, item)
-                putNoteTagRelationships(db, uuid, item.references.filter { it.contentType == ContentType.Tag.toString() }.map { it.uuid }.toSet())
+                putNoteTagRelationships(db, uuid, item.references.filter { it.contentType == ContentType.Tag.toString() }.map { it.uuid }.toSet(), item.dirty)
             }
             db.setTransactionSuccessful()
         }
@@ -101,7 +102,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         }
     }
 
-    @Synchronized fun putNoteTagRelationships(db: SQLiteDatabase, noteUuid: String, tagUuid: Set<String>) {
+    @Synchronized fun putNoteTagRelationships(db: SQLiteDatabase, noteUuid: String, tagUuid: Set<String>, isChange: Boolean) {
 
         fun makeTagsDirty(db: SQLiteDatabase) {
             db.execSQL("UPDATE $TABLE_ENCRYPTABLE " +
@@ -110,7 +111,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                     "(SELECT $KEY_TAG_UUID FROM $TABLE_NOTE_TAG" +
                     " WHERE $KEY_NOTE_UUID=?)", arrayOf(noteUuid))
         }
-        makeTagsDirty(db)
+        if (isChange) makeTagsDirty(db)
         db.delete(TABLE_NOTE_TAG, "$KEY_NOTE_UUID=?", arrayOf(noteUuid))
         tagUuid.forEach {
             db.insert(TABLE_NOTE_TAG, null, ContentValues().apply {
@@ -118,7 +119,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 put(KEY_NOTE_UUID, noteUuid)
             })
         }
-        makeTagsDirty(db)
+        if (isChange) makeTagsDirty(db)
 
     }
 
@@ -135,10 +136,14 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     }
 
     // TODO: should we display notes that are deleted but that deletion is not synced with the server?
-    fun getAllNotes(uuid: String?): List<Note> {
+    fun getAllNotes(uuid: String?, justDirty: Boolean): List<Note> {
         val db = readableDatabase
-        val cur = if (uuid == null)
-            db.rawQuery("SELECT * FROM $TABLE_NOTE n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID", null)
+        val cur = if (uuid == null) {
+            if (justDirty)
+                db.rawQuery("SELECT * FROM $TABLE_NOTE n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID WHERE e.$KEY_DIRTY=1", null)
+                else
+                db.rawQuery("SELECT * FROM $TABLE_NOTE n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID", null)
+        }
         else
             db.rawQuery("SELECT * FROM $TABLE_NOTE n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID WHERE n.$KEY_UUID=?", arrayOf(uuid))
         val items = ArrayList<Note>(cur.count)
@@ -160,6 +165,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         return items
     }
 
+
     fun getReferences(uuid: String, type: ContentType): List<Reference> {
         val db = readableDatabase
         val cur = if (type == ContentType.Tag)
@@ -178,11 +184,11 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
 
 
     fun getAllNotes(): List<Note> {
-        return getAllNotes(null)
+        return getAllNotes(null, false)
     }
 
     fun getNote(uuid: String): Note? {
-        return getAllNotes(uuid).getOrNull(0)
+        return getAllNotes(uuid, false).getOrNull(0)
     }
 
     fun getTagsForNote(noteUuid: String): List<Tag> {
@@ -234,10 +240,14 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         return items
     }
 
-    fun getAllTags(forNoteUuid: String?): List<Tag> {
+    fun getAllTags(forNoteUuid: String?, fetchReferences: Boolean, justDirty: Boolean): List<Tag> {
         val db = readableDatabase
-        val cur = if (forNoteUuid == null)
-            db.rawQuery("SELECT * FROM $TABLE_TAG n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID", null)
+        val cur = if (forNoteUuid == null) {
+            if (justDirty)
+                db.rawQuery("SELECT * FROM $TABLE_TAG n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID WHERE e.$KEY_DIRTY=1", null)
+            else
+                db.rawQuery("SELECT * FROM $TABLE_TAG n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID", null)
+        }
         else
             db.rawQuery("SELECT * FROM $TABLE_TAG n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID WHERE n.$KEY_UUID=?", arrayOf(forNoteUuid))
         val items = ArrayList<Tag>(cur.count)
@@ -251,18 +261,19 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
             tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
             tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
-            tag.references = getReferences(tag.uuid, ContentType.Note)
+            if (fetchReferences)
+                tag.references = getReferences(tag.uuid, ContentType.Note)
             items.add(tag)
         }
         return items
     }
 
     fun getTag(uuid: String): Tag? {
-        return getAllTags(uuid).getOrNull(0)
+        return getAllTags(uuid, true, false).getOrNull(0)
     }
 
-    fun getAllTags(): List<Tag> {
-        return getAllTags(null)
+    fun getAllTags(fetchReferences: Boolean): List<Tag> {
+        return getAllTags(null, fetchReferences, false)
     }
 
     @Synchronized fun deleteItem(uuid: String) {

@@ -40,7 +40,7 @@ class TagListActivity : BaseActivity() {
         val listType = object : TypeToken<List<Tag>>() {}.type
         val selectedTagsList: List<Tag> = app.gson.fromJson(intent.getStringExtra(EXTRA_TAGS), listType)
         selectedTags = selectedTagsList.toSet()
-        tags = app.noteStore.getAllTags()
+        tags = app.noteStore.getAllTags(false)
 
         list.adapter = Adapter()
         list.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
@@ -59,7 +59,7 @@ class TagListActivity : BaseActivity() {
                         newTag.title = input.text.toString()
                         newTag.dirty = true
                         app.noteStore.putTag(newTag.uuid, newTag)
-                        tags = app.noteStore.getAllTags()
+                        tags = app.noteStore.getAllTags(false)
                         list.adapter.notifyDataSetChanged()
                     })
                     .setView(layout)
