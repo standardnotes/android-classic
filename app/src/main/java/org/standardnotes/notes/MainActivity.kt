@@ -129,6 +129,9 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         super.onCreateOptionsMenu(menu)
         menuInflater.inflate(R.menu.logged_in, menu)
+        if (BuildConfig.DEBUG) {
+            menu.findItem(R.id.debug).isVisible = true
+        }
         return true
     }
 
@@ -138,6 +141,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         else
             when (item?.itemId) {
                 R.id.settings -> startActivity(Intent(this, SettingsActivity::class.java))
+                R.id.debug -> startActivity(Intent(this, DebugActivity::class.java))
             }
         return true
     }

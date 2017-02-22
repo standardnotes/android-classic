@@ -42,6 +42,9 @@
             android:name=".SettingsActivity"
             android:label="@string/action_settings"
             android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".DebugActivity"
+            android:label="Debug" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"

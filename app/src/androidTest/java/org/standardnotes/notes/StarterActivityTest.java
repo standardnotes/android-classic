@@ -263,6 +263,60 @@ public class StarterActivityTest {
         pressBack();
     }
 
+    @Test
+    public void openCloseOpenClose() {
+
+        ViewInteraction floatingActionButton = onView(
+                allOf(withId(R.id.fab),
+                        withParent(allOf(withId(R.id.rootView),
+                                withParent(withId(R.id.drawer_layout)))),
+                        isDisplayed()));
+        floatingActionButton.perform(click());
+
+        ViewInteraction appCompatEditText = onView(
+                withId(R.id.titleEdit));
+        appCompatEditText.perform(scrollTo(), click());
+
+        ViewInteraction appCompatEditText2 = onView(
+                withId(R.id.titleEdit));
+        appCompatEditText2.perform(scrollTo(), replaceText("Title2"), closeSoftKeyboard());
+
+        ViewInteraction appCompatEditText14 = onView(
+                allOf(withId(R.id.bodyEdit)));
+        appCompatEditText14.perform(scrollTo(), replaceText("body2"), closeSoftKeyboard());
+        pressBack();
+
+        ViewInteraction recyclerView = onView(
+                allOf(withId(R.id.list),
+                        withParent(allOf(withId(R.id.noteListFrag),
+                                withParent(withId(R.id.rootView)))),
+                        isDisplayed()));
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+        recyclerView.perform(actionOnItemAtPosition(0, click()));
+        pressBack();
+    }
+
 
     private static Matcher<View> childAtPosition(
             final Matcher<View> parentMatcher, final int position) {
