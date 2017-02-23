@@ -157,9 +157,9 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQ_TAGS && data != null) {
             val listType = object : TypeToken<List<Tag>>() {}.type
-            tags = SApplication.Companion.instance!!.gson.fromJson(data.getStringExtra(EXTRA_TAGS), listType)
+            tags = SApplication.Companion.instance.gson.fromJson(data.getStringExtra(EXTRA_TAGS), listType)
             updateTags()
-            saveNote()
+            syncRunnable.run()
         }
     }
 
@@ -172,7 +172,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         when (item?.itemId) {
             R.id.tags -> {
                 val intent = Intent(activity, TagListActivity::class.java)
-                intent.putExtra(EXTRA_TAGS, SApplication.Companion.instance!!.gson.toJson(tags))
+                intent.putExtra(EXTRA_TAGS, SApplication.Companion.instance.gson.toJson(tags))
                 startActivityForResult(intent, REQ_TAGS)
                 return true
             }
@@ -209,11 +209,9 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
     }
 
     private fun tagsChanged(): Boolean {
-        val oldTagIds = SApplication.instance.noteStore.getTagsForNote(note.uuid).map { it.uuid }
+        val oldTagIds = SApplication.instance.noteStore.getTagsForNote(note.uuid).map { it.uuid }.sorted()
         val newTags = tags
-        val newTagIds = newTags.map { it.uuid }
-        Collections.sort(oldTagIds)
-        Collections.sort(newTagIds)
+        val newTagIds = newTags.map { it.uuid }.sorted()
         return oldTagIds != newTagIds
     }
 
