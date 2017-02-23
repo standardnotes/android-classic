@@ -256,6 +256,8 @@ public class Crypt {
             String hash = createHash(contentEnc, keys.ak);
             item.setAuthHash(hash);
             item.setContent(contentEnc);
+            item.setDeleted(note.getDeleted());
+            item.setDirty(note.getDirty());
             return item;
         } catch (Exception e) {
             e.printStackTrace();
