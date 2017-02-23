@@ -21,7 +21,7 @@ import org.standardnotes.notes.store.ValueStore
         formUri = "https://deftelf.cloudant.com/acra-notes/_design/acra-storage/_update/report",
         formUriBasicAuthLogin = "mrsuesendittlavessightio",
         formUriBasicAuthPassword = "9ff4e02277b4ae4be2102c475d6299f852260277",
-        sendReportsInDevMode = true,
+        sendReportsInDevMode = false,
         mode = ReportingInteractionMode.SILENT
         )
 class SApplication : Application() {
@@ -58,7 +58,8 @@ class SApplication : Application() {
 
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
-        ACRA.init(this)
+        if (!BuildConfig.DEBUG)
+            ACRA.init(this)
     }
 
     companion object {
