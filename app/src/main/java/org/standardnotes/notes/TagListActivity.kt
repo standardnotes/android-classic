@@ -16,13 +16,11 @@ import android.view.inputmethod.EditorInfo
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import com.google.gson.reflect.TypeToken
-import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_tags.*
 import org.joda.time.DateTime
 import org.standardnotes.notes.comms.Crypt
-import org.standardnotes.notes.comms.data.Note
+import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.Tag
 import java.util.*
 
@@ -38,16 +36,14 @@ class TagListActivity : BaseActivity() {
         setContentView(R.layout.activity_tags)
 
         val listType = object : TypeToken<List<Tag>>() {}.type
-        val selectedTagsList: List<Tag> = app.gson.fromJson(intent.getStringExtra(EXTRA_TAGS), listType)
+        val selectedTagsList: List<Tag> = app.gson.fromJson(
+                if (savedInstanceState == null) intent.getStringExtra(EXTRA_TAGS) else savedInstanceState.getString(EXTRA_TAGS),
+                listType)
         selectedTags = selectedTagsList.toSet()
-        tags = app.noteStore.getAllTags(false)
+        tags = app.noteStore.getAllTags(false).sortedBy { it.title.toLowerCase() }
 
         list.adapter = Adapter()
         list.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-
-        if (savedInstanceState == null) {
-            // TODO (also save)
-        }
 
         fab.setOnClickListener {
             val layout = LayoutInflater.from(this).inflate(R.layout.view_new_tag, null, false)
@@ -59,6 +55,7 @@ class TagListActivity : BaseActivity() {
                         newTag.title = input.text.toString()
                         newTag.dirty = true
                         app.noteStore.putTag(newTag.uuid, newTag)
+                        SyncManager.sync()
                         tags = app.noteStore.getAllTags(false)
                         list.adapter.notifyDataSetChanged()
                     })
@@ -88,6 +85,11 @@ class TagListActivity : BaseActivity() {
             })
             okbutton.isEnabled = false
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(EXTRA_TAGS, app.gson.toJson(selectedTags.toList()))
     }
 
     override fun finish() {
