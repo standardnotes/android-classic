@@ -15,5 +15,6 @@
         android:layout_marginRight="16dp"
         app:layoutManager="LinearLayoutManager"
         tools:context="org.standardnotes.notes.frag.NoteListFragment"
-        tools:listitem="@layout/item_note" />
+        tools:listitem="@layout/item_note"
+        android:background="@android:color/white" />
 </android.support.v4.widget.SwipeRefreshLayout>
