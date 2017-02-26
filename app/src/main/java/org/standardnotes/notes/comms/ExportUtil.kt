@@ -7,13 +7,7 @@ import android.support.v4.app.ShareCompat
 import android.support.v4.content.FileProvider
 import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
-import org.standardnotes.notes.comms.Crypt
-import org.standardnotes.notes.comms.data.ContentType
-import org.standardnotes.notes.comms.data.EncryptableItem
-import org.standardnotes.notes.comms.data.Note
-import org.standardnotes.notes.comms.data.Tag
-import org.standardnotes.notes.comms.data.ExportItems
-import org.standardnotes.notes.comms.data.PlaintextItem
+import org.standardnotes.notes.comms.data.*
 import org.standardnotes.notes.store.ValueStore
 import java.io.File
 import java.io.FileOutputStream
