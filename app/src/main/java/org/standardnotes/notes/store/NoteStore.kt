@@ -3,7 +3,6 @@ package org.standardnotes.notes.store
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.google.gson.reflect.TypeToken
 import org.joda.time.DateTime
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt

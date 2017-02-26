@@ -2,13 +2,11 @@ package org.standardnotes.notes
 
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.ActionBarDrawerToggle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.comms.SyncManager

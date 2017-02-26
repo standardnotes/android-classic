@@ -9,8 +9,8 @@ import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_settings.*
-import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.ExportUtil
+import org.standardnotes.notes.comms.SyncManager
 
 class SettingsActivity : BaseActivity() {
 

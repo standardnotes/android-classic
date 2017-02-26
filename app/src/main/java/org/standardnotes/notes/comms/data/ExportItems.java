@@ -3,9 +3,6 @@ package org.standardnotes.notes.comms.data;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import org.standardnotes.notes.comms.data.AuthParamsResponse;
-import org.standardnotes.notes.comms.data.EncryptableItem;
-
 import java.util.ArrayList;
 import java.util.List;
 

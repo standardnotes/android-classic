@@ -11,9 +11,11 @@ import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.view.*
 import android.widget.TextView
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.frag_note.*
