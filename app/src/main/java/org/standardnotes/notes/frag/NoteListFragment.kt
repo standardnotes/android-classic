@@ -47,9 +47,16 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         const val EXTRA_Y_COOR = "yCoor"
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (savedInstanceState != null) {
+            tagId = savedInstanceState.getString("tagId")
+        }
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val view = inflater!!.inflate(R.layout.frag_note_list, container, false)
+        val view = inflater.inflate(R.layout.frag_note_list, container, false)
         return view
     }
 
@@ -62,6 +69,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 R.color.colorPrimary,
                 R.color.colorAccent)
         swipeRefreshLayout.setOnRefreshListener { SyncManager.sync() }
+        refreshNotesForTag(tagId)
         SyncManager.sync()
         list.adapter = adapter
     }
@@ -69,6 +77,11 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
     override fun onDestroyView() {
         super.onDestroyView()
         SyncManager.unsubscribe(this)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("tagId", tagId)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

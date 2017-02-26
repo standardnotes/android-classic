@@ -33,7 +33,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         outState!!.putString("tag", selectedTagId)
     }
 
-    private var drawerToggle: ActionBarDrawerToggle? = null
+    private lateinit var drawerToggle: ActionBarDrawerToggle
     private var selectedTagId = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,9 +47,9 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
 
         drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
         drawer_layout.addDrawerListener(drawerToggle!!)
-        drawerToggle!!.isDrawerIndicatorEnabled = true
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        supportActionBar!!.setHomeButtonEnabled(true)
+        drawerToggle.isDrawerIndicatorEnabled = true
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeButtonEnabled(true)
         val header = drawer.inflateHeaderView(R.layout.view_navigation_header)
         val values = SApplication.instance.valueStore
         header.main_account_server.text = values.server
