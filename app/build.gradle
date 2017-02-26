@@ -9,15 +9,29 @@ android {
         applicationId "org.standardnotes.notes"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 1
-        versionName "0.0.1"
+        versionCode 901
+        versionName "0.9.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "SERVER_DEFAULT", "\"https://n3.standardnotes.org/\""
     }
+    // The release password should not be stored on the repository. Use a build parameter, eg:
+    // gradlew assembleRelease -PsignPass=xxxx
+    if (project.hasProperty('signPass')) {
+        signingConfigs {
+            release {
+                storeFile file(keystore)
+                storePassword signPass
+                keyAlias "notes"
+                keyPassword signPass
+            }
+        }
+    }
     buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        if (project.hasProperty('signPass')) {
+            release {
+                minifyEnabled false
+                signingConfig signingConfigs.release
+            }
         }
     }
     productFlavors {

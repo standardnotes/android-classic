@@ -25,6 +25,7 @@ class SettingsActivity : BaseActivity() {
         export.setOnClickListener { exportData() }
         feedback.setOnClickListener { startFeedbackIntent() }
         logout.setOnClickListener { logout() }
+        version.text = "v" + packageManager.getPackageInfo(packageName, 0).versionName
     }
 
 
