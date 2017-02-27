@@ -157,16 +157,16 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             note.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
             note.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
             note.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
-            note.references = getReferences(note.uuid, ContentType.Tag)
+            note.references = getReferences(db, note.uuid, ContentType.Tag)
             items.add(note)
         }
+        cur.close()
         items.sortByDescending { it.updatedAt }
         return items
     }
 
 
-    fun getReferences(uuid: String, type: ContentType): List<Reference> {
-        val db = readableDatabase
+    private fun getReferences(db: SQLiteDatabase, uuid: String, type: ContentType): List<Reference> {
         val cur = if (type == ContentType.Tag)
             db.query(TABLE_NOTE_TAG, arrayOf(KEY_TAG_UUID), "$KEY_NOTE_UUID=?", arrayOf(uuid), null, null, null)
         else
@@ -178,6 +178,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             ref.uuid = cur.getString(0)
             refs.add(ref)
         }
+        cur.close()
         return refs
     }
 
@@ -209,7 +210,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
             items.add(tag)
         }
-
+        cur.close()
         return items
 
     }
@@ -235,7 +236,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
             items.add(note)
         }
-
+        cur.close()
         return items
     }
 
@@ -261,9 +262,10 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
             tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
             if (fetchReferences)
-                tag.references = getReferences(tag.uuid, ContentType.Note)
+                tag.references = getReferences(db, tag.uuid, ContentType.Note)
             items.add(tag)
         }
+        cur.close()
         return items
     }
 
