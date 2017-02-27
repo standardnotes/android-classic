@@ -1,6 +1,7 @@
 package org.standardnotes.notes.store
 
 import android.content.ContentValues
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import org.joda.time.DateTime
@@ -140,29 +141,29 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         val cur = if (uuid == null) {
             if (justDirty)
                 db.rawQuery("SELECT * FROM $TABLE_NOTE n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID WHERE e.$KEY_DIRTY=1", null)
-                else
+            else
                 db.rawQuery("SELECT * FROM $TABLE_NOTE n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID", null)
-        }
-        else
+        } else
             db.rawQuery("SELECT * FROM $TABLE_NOTE n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID WHERE n.$KEY_UUID=?", arrayOf(uuid))
-        val items = ArrayList<Note>(cur.count)
-        while (cur.moveToNext()) {
-            val note = Note()
-            note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
-            note.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
-            note.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
-            note.text = cur.getString(cur.getColumnIndex(KEY_TEXT))
-            note.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
-            note.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
-            note.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
-            note.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
-            note.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
-            note.references = getReferences(db, note.uuid, ContentType.Tag)
-            items.add(note)
+        cur.use {
+            val items = ArrayList<Note>(cur.count)
+            while (cur.moveToNext()) {
+                val note = Note()
+                note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
+                note.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
+                note.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
+                note.text = cur.getString(cur.getColumnIndex(KEY_TEXT))
+                note.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
+                note.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
+                note.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
+                note.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
+                note.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                note.references = getReferences(db, note.uuid, ContentType.Tag)
+                items.add(note)
+            }
+            items.sortByDescending { it.updatedAt }
+            return items
         }
-        cur.close()
-        items.sortByDescending { it.updatedAt }
-        return items
     }
 
 
@@ -171,15 +172,16 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             db.query(TABLE_NOTE_TAG, arrayOf(KEY_TAG_UUID), "$KEY_NOTE_UUID=?", arrayOf(uuid), null, null, null)
         else
             db.query(TABLE_NOTE_TAG, arrayOf(KEY_NOTE_UUID), "$KEY_TAG_UUID=?", arrayOf(uuid), null, null, null)
-        val refs = ArrayList<Reference>(cur.count)
-        while (cur.moveToNext()) {
-            val ref = Reference()
-            ref.contentType = type.toString()
-            ref.uuid = cur.getString(0)
-            refs.add(ref)
+        cur.use {
+            val refs = ArrayList<Reference>(cur.count)
+            while (cur.moveToNext()) {
+                val ref = Reference()
+                ref.contentType = type.toString()
+                ref.uuid = cur.getString(0)
+                refs.add(ref)
+            }
+            return refs
         }
-        cur.close()
-        return refs
     }
 
 
@@ -197,22 +199,22 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 " INNER JOIN $TABLE_ENCRYPTABLE e ON t.$KEY_UUID=e.$KEY_UUID" +
                 " INNER JOIN $TABLE_NOTE_TAG nt ON nt.$KEY_TAG_UUID=t.$KEY_UUID" +
                 " WHERE nt.$KEY_NOTE_UUID=?", arrayOf(noteUuid))
-        val items = ArrayList<Tag>(cur.count)
-        while (cur.moveToNext()) {
-            val tag = Tag()
-            tag.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
-            tag.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
-            tag.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
-            tag.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
-            tag.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
-            tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
-            tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
-            tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
-            items.add(tag)
+        cur.use {
+            val items = ArrayList<Tag>(cur.count)
+            while (cur.moveToNext()) {
+                val tag = Tag()
+                tag.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
+                tag.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
+                tag.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
+                tag.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
+                tag.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
+                tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
+                tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
+                items.add(tag)
+            }
+            return items
         }
-        cur.close()
-        return items
-
     }
 
 
@@ -222,22 +224,23 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 " INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID" +
                 " INNER JOIN $TABLE_NOTE_TAG nt ON nt.$KEY_NOTE_UUID=n.$KEY_UUID" +
                 " WHERE nt.$KEY_TAG_UUID=?", arrayOf(tagUuid))
-        val items = ArrayList<Note>(cur.count)
-        while (cur.moveToNext()) {
-            val note = Note()
-            note.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
-            note.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
-            note.text = cur.getString(cur.getColumnIndex(KEY_TEXT))
-            note.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
-            note.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
-            note.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
-            note.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
-            note.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
-            note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
-            items.add(note)
+        cur.use {
+            val items = ArrayList<Note>(cur.count)
+            while (cur.moveToNext()) {
+                val note = Note()
+                note.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
+                note.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
+                note.text = cur.getString(cur.getColumnIndex(KEY_TEXT))
+                note.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
+                note.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
+                note.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
+                note.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
+                note.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
+                items.add(note)
+            }
+            return items
         }
-        cur.close()
-        return items
     }
 
     fun getAllTags(forNoteUuid: String?, fetchReferences: Boolean, justDirty: Boolean): List<Tag> {
@@ -250,23 +253,24 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         }
         else
             db.rawQuery("SELECT * FROM $TABLE_TAG n INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID WHERE n.$KEY_UUID=?", arrayOf(forNoteUuid))
-        val items = ArrayList<Tag>(cur.count)
-        while (cur.moveToNext()) {
-            val tag = Tag()
-            tag.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
-            tag.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
-            tag.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
-            tag.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
-            tag.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
-            tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
-            tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
-            tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
-            if (fetchReferences)
-                tag.references = getReferences(db, tag.uuid, ContentType.Note)
-            items.add(tag)
+        cur.use {
+            val items = ArrayList<Tag>(cur.count)
+            while (cur.moveToNext()) {
+                val tag = Tag()
+                tag.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
+                tag.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
+                tag.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
+                tag.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
+                tag.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
+                tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
+                tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
+                if (fetchReferences)
+                    tag.references = getReferences(db, tag.uuid, ContentType.Note)
+                items.add(tag)
+            }
+            return items
         }
-        cur.close()
-        return items
     }
 
     fun getTag(uuid: String): Tag? {
@@ -412,3 +416,10 @@ inline fun <T : SQLiteDatabase, R> T.transact(block: (T) -> R): R {
     }
 }
 
+inline fun <T : Cursor, R> T.use(block: (T) -> R): R {
+    try {
+        return block(this)
+    } finally {
+        this?.close()
+    }
+}
