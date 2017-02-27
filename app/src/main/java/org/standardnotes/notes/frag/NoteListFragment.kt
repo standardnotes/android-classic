@@ -1,6 +1,5 @@
 package org.standardnotes.notes.frag
 
-import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -27,8 +26,6 @@ import java.util.*
 
 
 class NoteListFragment : Fragment(), SyncManager.SyncListener {
-
-    private val REQ_EDIT_NOTE: Int = 1
 
     val adapter: Adapter by lazy { Adapter() }
 
@@ -69,7 +66,6 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 R.color.colorPrimary,
                 R.color.colorAccent)
         swipeRefreshLayout.setOnRefreshListener { SyncManager.sync() }
-        refreshNotesForTag(tagId)
         SyncManager.sync()
         list.adapter = adapter
     }
@@ -79,21 +75,14 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         SyncManager.unsubscribe(this)
     }
 
+    override fun onResume() {
+        super.onResume()
+        refreshNotesForTag() // This is too often and slow for large datasets, but necessary until we have an event to trigger refresh
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("tagId", tagId)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQ_EDIT_NOTE) {
-            if (SApplication.instance.noteStore.notesToSaveCount() > 0 ||
-                    resultCode == RESULT_OK) {
-                refreshNotesForTag()
-                adapter.notifyDataSetChanged()
-                SyncManager.sync()
-            }
-        }
     }
 
     override fun onSyncStarted() {
@@ -134,7 +123,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         intent.putExtra(EXTRA_X_COOR, x)
         intent.putExtra(EXTRA_Y_COOR, y)
         intent.putExtra(EXTRA_TAG_ID, uuid)
-        startActivityForResult(intent, REQ_EDIT_NOTE)
+        startActivity(intent)
     }
 
     inner class NoteHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -165,7 +154,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 intent.putExtra(EXTRA_NOTE_ID, note?.uuid)
                 intent.putExtra(EXTRA_X_COOR, lastTouchedX)
                 intent.putExtra(EXTRA_Y_COOR, lastTouchedY)
-                startActivityForResult(intent, REQ_EDIT_NOTE)
+                startActivity(intent)
             }
             itemView.setOnLongClickListener {
                 val popup = PopupMenu(activity, itemView)

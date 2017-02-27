@@ -1,7 +1,5 @@
 package org.standardnotes.notes.frag
 
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
@@ -11,19 +9,16 @@ import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
+import android.view.*
 import android.widget.TextView
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.frag_note.*
 import kotlinx.android.synthetic.main.item_tag_lozenge.view.*
 import org.joda.time.DateTime
-import org.standardnotes.notes.*
+import org.standardnotes.notes.EXTRA_TAGS
+import org.standardnotes.notes.R
+import org.standardnotes.notes.SApplication
+import org.standardnotes.notes.TagListActivity
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.ContentType
@@ -33,6 +28,8 @@ import org.standardnotes.notes.comms.data.Tag
 import java.util.*
 
 const val REQ_TAGS = 1
+
+val EXTRA_TEXT = "text"
 
 class NoteFragment : Fragment(), SyncManager.SyncListener {
 
@@ -49,6 +46,21 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val view = inflater!!.inflate(R.layout.frag_note, container, false)
+        return view
+    }
+
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val context = activity as AppCompatActivity
+        context.setSupportActionBar(toolbar)
+        context.supportActionBar?.setDisplayShowHomeEnabled(true)
+        context.supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         val noteUuid =
                 savedInstanceState?.getString(NoteListFragment.EXTRA_NOTE_ID) ?:
                         arguments?.getString(NoteListFragment.EXTRA_NOTE_ID)
@@ -67,27 +79,18 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
             } else {
                 tags = Collections.emptyList()
             }
+            val text = arguments?.getString(EXTRA_TEXT)
+            if (text != null) {
+                bodyEdit.setText(text)
+                syncRunnable.run()
+            }
         }
-        setHasOptionsMenu(true)
-    }
-
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater!!.inflate(R.layout.frag_note, container, false)
-        return view
-    }
-
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val context = activity as AppCompatActivity
-        context.setSupportActionBar(toolbar)
-        context.supportActionBar?.setDisplayShowHomeEnabled(true)
-        context.supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
         if (prefs.getBoolean("notes_monospace", false))
             bodyEdit.typeface = Typeface.MONOSPACE
-        titleEdit.setText(note?.title)
-        bodyEdit.setText(note?.text)
+        titleEdit.setText(note.title)
+        bodyEdit.setText(note.text)
 
         if (tags.count() > 0) {
             tagsRow.visibility = View.VISIBLE
@@ -106,7 +109,6 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                activity.setResult(Activity.RESULT_OK)
                 syncHandler.removeCallbacks(syncRunnable)
                 syncHandler.postDelayed(syncRunnable, SYNC_DELAY)
             }
@@ -150,7 +152,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         super.onPause()
         syncHandler.removeCallbacks(syncRunnable)
         SyncManager.unsubscribe(this)
-        saveNote()
+        syncRunnable.run()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

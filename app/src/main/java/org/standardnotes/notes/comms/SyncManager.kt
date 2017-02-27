@@ -2,6 +2,7 @@ package org.standardnotes.notes.comms
 
 import android.os.Handler
 import android.util.Log
+import org.acra.ACRA
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.SyncItems
@@ -32,7 +33,7 @@ object SyncManager {
         }
     }
 
-    private var syncing: Boolean = false
+    private var syncCall: Call<SyncItems>? = null
     private val syncListeners: MutableList<WeakReference<SyncListener>> = mutableListOf()
 
     fun subscribe(listener: SyncListener) {
@@ -48,13 +49,12 @@ object SyncManager {
                 .forEach { syncListeners.remove(it) }
     }
 
-    fun sync() {
+    @Synchronized fun sync() {
 
-        if (syncing) {
-            return
+        val existingCall = syncCall
+        if (existingCall != null && !existingCall.isCanceled) {
+            existingCall.cancel()
         }
-
-        syncing = true
 
         var iter = syncListeners.iterator()
         while (iter.hasNext()) {
@@ -71,24 +71,31 @@ object SyncManager {
         uploadSyncItems.syncToken = SApplication.instance.valueStore.syncToken
         val dirtyItems = SApplication.instance.noteStore.toSave
         dirtyItems.map { Crypt.encrypt(it) }.forEach { uploadSyncItems.items.add(it) }
-        SApplication.instance.comms.api.sync(uploadSyncItems).enqueue(object : Callback<SyncItems> {
+        syncCall = SApplication.instance.comms.api.sync(uploadSyncItems)
+        syncCall?.enqueue(object : Callback<SyncItems> {
             override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {
 
-                SApplication.instance.noteStore.putItems(response.body())
-                val notes = SApplication.instance.noteStore.notesList
+                if (response.isSuccessful) {
+                    SApplication.instance.noteStore.putItems(response.body())
+                    val notes = SApplication.instance.noteStore.notesList
 
-                iter = syncListeners.iterator()
-                while (iter.hasNext()) {
-                    val listening = iter.next()
-                    if (listening.get() == null) {
-                        iter.remove()
-                        Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
-                    } else {
-                        listening.get().onSyncCompleted(notes)
+                    iter = syncListeners.iterator()
+                    while (iter.hasNext()) {
+                        val listening = iter.next()
+                        if (listening.get() == null) {
+                            iter.remove()
+                            Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
+                        } else {
+                            listening.get().onSyncCompleted(notes)
+                        }
                     }
-                }
 
-                syncing = false
+                    syncCall = null
+                } else {
+                    val ex = Exception("sync failed " + response.errorBody().string())
+                    ACRA.getErrorReporter().handleException(ex)
+                    onFailure(call, ex)
+                }
             }
 
             override fun onFailure(call: Call<SyncItems>, t: Throwable) {
@@ -103,7 +110,7 @@ object SyncManager {
                     }
                 }
 
-                syncing = false
+                syncCall = null
             }
         })
     }
