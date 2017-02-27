@@ -1,6 +1,7 @@
 package org.standardnotes.notes.frag
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
@@ -16,15 +17,13 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.frag_note.*
 import kotlinx.android.synthetic.main.item_tag_lozenge.view.*
 import org.joda.time.DateTime
-import org.standardnotes.notes.EXTRA_TAGS
-import org.standardnotes.notes.R
-import org.standardnotes.notes.SApplication
-import org.standardnotes.notes.TagListActivity
+import org.standardnotes.notes.*
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.ContentType
@@ -120,7 +119,6 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         bodyEdit.addTextChangedListener(textWatcher)
 
         titleEdit.setSelection(titleEdit.text.length)
-
         setSubtitle(if (note.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
     }
 

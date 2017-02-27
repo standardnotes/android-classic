@@ -4,11 +4,9 @@ import android.animation.Animator
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.NavUtils
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewAnimationUtils
-import android.view.ViewTreeObserver
+import android.view.*
 import org.standardnotes.notes.frag.NoteFragment
+import org.standardnotes.notes.frag.NoteListFragment.Companion.EXTRA_NOTE_ID
 import org.standardnotes.notes.frag.NoteListFragment.Companion.EXTRA_X_COOR
 import org.standardnotes.notes.frag.NoteListFragment.Companion.EXTRA_Y_COOR
 
@@ -44,6 +42,9 @@ class NoteActivity : BaseActivity() {
                     })
                 }
             }
+        }
+        if (intent.extras.getString(EXTRA_NOTE_ID) == null) {
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
         }
     }
 
