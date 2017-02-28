@@ -81,20 +81,25 @@ object SyncManager {
             override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {
 
                 if (response.isSuccessful) {
-                    SApplication.instance.noteStore.putItems(response.body())
+                    val putItemErrors = SApplication.instance.noteStore.putItems(response.body())
 
-                    iter = syncListeners.iterator()
-                    while (iter.hasNext()) {
-                        val listening = iter.next()
-                        if (listening.get() == null) {
-                            iter.remove()
-                            Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
-                        } else {
-                            listening.get().onSyncCompleted()
+                    if (putItemErrors.isEmpty()) {
+                        iter = syncListeners.iterator()
+                        while (iter.hasNext()) {
+                            val listening = iter.next()
+                            if (listening.get() == null) {
+                                iter.remove()
+                                Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
+                            } else {
+                                listening.get().onSyncCompleted()
+                            }
                         }
-                    }
 
-                    syncCall = null
+                        syncCall = null
+                    } else {
+                        putItemErrors.forEach { ACRA.getErrorReporter().handleException(it) }
+                        onFailure(call, Exception("Sync error"))
+                    }
                 } else {
                     val ex = Exception("sync failed " + response.errorBody().string())
                     ACRA.getErrorReporter().handleException(ex)

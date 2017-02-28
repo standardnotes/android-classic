@@ -111,6 +111,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onSyncFailed() {
         swipeRefreshLayout.isRefreshing = false
+        // TODO this always assumes it's a network error, but the server may have errored or the local store may have failed
         currentSnackbar = Snackbar.make(activity.rootView, R.string.error_fail_sync, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.sync_retry, {
                     SyncManager.sync()

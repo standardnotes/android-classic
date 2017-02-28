@@ -294,10 +294,16 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         }
     }
 
-    @Synchronized fun putItems(items: SyncItems) {
+    @Synchronized fun putItems(items: SyncItems): List<Exception> {
         SApplication.instance.valueStore.syncToken = items.syncToken.trim()
-        items.retrievedItems.forEach { putItem(it, false) }
-        items.savedItems.forEach { putItem(it, true) }
+        val errors = ArrayList<Exception>(0)
+        items.retrievedItems.forEach {
+            try { putItem(it, false) } catch (ex: Exception) { errors += ex }
+        }
+        items.savedItems.forEach {
+            try { putItem(it, true) } catch (ex: Exception) { errors += ex }
+        }
+        return errors
     }
 
     private fun putItem(item: EncryptedItem, mergeWithOld: Boolean) {

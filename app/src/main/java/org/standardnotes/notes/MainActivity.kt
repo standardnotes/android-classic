@@ -19,6 +19,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
     }
 
     override fun onSyncFailed() {
+        onSyncCompleted()
     }
 
     override fun onSyncCompleted() {

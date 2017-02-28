@@ -58,8 +58,7 @@ class SApplication : Application() {
 
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
-        if (!BuildConfig.DEBUG)
-            ACRA.init(this)
+        ACRA.init(this)
     }
 
     companion object {
