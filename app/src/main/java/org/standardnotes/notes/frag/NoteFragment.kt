@@ -221,7 +221,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         setSubtitle(getString(R.string.sync_progress_saving))
     }
 
-    override fun onSyncCompleted(notes: List<Note>) {
+    override fun onSyncCompleted() {
         setSubtitle(getString(R.string.sync_progress_finished))
     }
 

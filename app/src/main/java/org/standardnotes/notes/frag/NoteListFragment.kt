@@ -90,7 +90,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         currentSnackbar?.dismiss()
     }
 
-    override fun onSyncCompleted(syncedNotes: List<Note>) {
+    override fun onSyncCompleted() {
         swipeRefreshLayout.isRefreshing = false
         currentSnackbar?.dismiss()
     }

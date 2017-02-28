@@ -17,7 +17,7 @@ object SyncManager {
     interface SyncListener {
         fun onSyncStarted()
 
-        fun onSyncCompleted(notes: List<Note>)
+        fun onSyncCompleted()
 
         fun onSyncFailed()
     }
@@ -44,9 +44,14 @@ object SyncManager {
     }
 
     fun unsubscribe(listener: SyncListener) {
-        syncListeners
+        val thisListeners = syncListeners
                 .filter { listener == it.get() }
-                .forEach { syncListeners.remove(it) }
+        if (thisListeners.isEmpty()) {
+            Log.w(TAG, "Cannot unsusbscribe, $listener is not subscribed")
+        } else {
+            thisListeners
+                    .forEach { syncListeners.remove(it) }
+        }
     }
 
     @Synchronized fun sync() {
@@ -77,7 +82,6 @@ object SyncManager {
 
                 if (response.isSuccessful) {
                     SApplication.instance.noteStore.putItems(response.body())
-                    val notes = SApplication.instance.noteStore.notesList
 
                     iter = syncListeners.iterator()
                     while (iter.hasNext()) {
@@ -86,7 +90,7 @@ object SyncManager {
                             iter.remove()
                             Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
                         } else {
-                            listening.get().onSyncCompleted(notes)
+                            listening.get().onSyncCompleted()
                         }
                     }
 

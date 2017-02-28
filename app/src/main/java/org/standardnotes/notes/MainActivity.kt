@@ -21,7 +21,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
     override fun onSyncFailed() {
     }
 
-    override fun onSyncCompleted(notes: List<Note>) {
+    override fun onSyncCompleted() {
         updateTagsMenu() // Update tags list
         noteListFragment().refreshNotesForTag(selectedTagId) // Update notes in fragment
     }
