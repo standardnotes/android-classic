@@ -113,11 +113,8 @@ public class StarterActivityTest {
     @Test
     public void createNote() {
 
-        ViewInteraction floatingActionButton = onView(
-                allOf(withId(R.id.fab),
-                        withParent(allOf(withId(R.id.rootView),
-                                withParent(withId(R.id.drawer_layout)))),
-                        isDisplayed()));
+
+        ViewInteraction floatingActionButton = onView(allOf(withId(R.id.fab), isDisplayed()));
         floatingActionButton.perform(click());
 
         ViewInteraction appCompatEditText = onView(
@@ -139,10 +136,7 @@ public class StarterActivityTest {
         upButton.perform(click());
 
         ViewInteraction recyclerView = onView(
-                allOf(withId(R.id.list),
-                        withParent(allOf(withId(R.id.noteListFrag),
-                                withParent(withId(R.id.rootView)))),
-                        isDisplayed()));
+                allOf(withId(R.id.list), isDisplayed()));
         recyclerView.perform(actionOnItemAtPosition(0, click()));
 
         ViewInteraction actionMenuItemView = onView(
@@ -188,11 +182,7 @@ public class StarterActivityTest {
 
     @Test
     public void tagSomething() {
-        ViewInteraction floatingActionButton = onView(
-                allOf(withId(R.id.fab),
-                        withParent(allOf(withId(R.id.rootView),
-                                withParent(withId(R.id.drawer_layout)))),
-                        isDisplayed()));
+        ViewInteraction floatingActionButton = onView(allOf(withId(R.id.fab), isDisplayed()));
         floatingActionButton.perform(click());
 
         ViewInteraction appCompatEditText = onView(
@@ -235,10 +225,7 @@ public class StarterActivityTest {
         signupin();
 
         ViewInteraction recyclerView = onView(
-                allOf(withId(R.id.list),
-                        withParent(allOf(withId(R.id.noteListFrag),
-                                withParent(withId(R.id.rootView)))),
-                        isDisplayed()));
+                allOf(withId(R.id.list), isDisplayed()));
         recyclerView.perform(actionOnItemAtPosition(0, click()));
         onView(withText("tag1")).check(matches(isDisplayed()));
 
@@ -266,11 +253,7 @@ public class StarterActivityTest {
     @Test
     public void openCloseOpenClose() {
 
-        ViewInteraction floatingActionButton = onView(
-                allOf(withId(R.id.fab),
-                        withParent(allOf(withId(R.id.rootView),
-                                withParent(withId(R.id.drawer_layout)))),
-                        isDisplayed()));
+        ViewInteraction floatingActionButton = onView(allOf(withId(R.id.fab), isDisplayed()));
         floatingActionButton.perform(click());
 
         ViewInteraction appCompatEditText = onView(
@@ -287,10 +270,7 @@ public class StarterActivityTest {
         pressBack();
 
         ViewInteraction recyclerView = onView(
-                allOf(withId(R.id.list),
-                        withParent(allOf(withId(R.id.noteListFrag),
-                                withParent(withId(R.id.rootView)))),
-                        isDisplayed()));
+                allOf(withId(R.id.list), isDisplayed()));
         recyclerView.perform(actionOnItemAtPosition(0, click()));
         pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));

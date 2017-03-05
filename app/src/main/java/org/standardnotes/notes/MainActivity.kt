@@ -55,20 +55,6 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         header.main_account_email.text = values.email
 
         title = getString(R.string.app_name)
-
-        var lastX: Int? = null
-        var lastY: Int? = null
-        fab.setOnTouchListener({ v, event ->
-            if (event.action == MotionEvent.ACTION_UP) {
-                lastX = event.rawX.toInt()
-                lastY = event.rawY.toInt()
-            }
-            false
-        })
-        fab.setOnClickListener { view ->
-            noteListFragment().startNewNote(lastX!!, lastY!!, selectedTagId)
-        }
-
     }
 
     fun noteListFragment(): NoteListFragment {
@@ -82,7 +68,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
                 drawer_layout.closeDrawers()
                 selectedTagId = uuid
                 updateTagsMenu()
-                noteListFragment().refreshNotesForTag(selectedTagId)
+                noteListFragment().refreshNotesForTag(selectedTagId) // TODO replace with some kind of listener
                 return@setOnMenuItemClickListener true
             }
         }

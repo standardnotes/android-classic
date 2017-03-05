@@ -15,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.frag_note_list.*
+import kotlinx.android.synthetic.main.frag_note_list.view.*
 import kotlinx.android.synthetic.main.item_note.view.*
 import org.joda.time.format.DateTimeFormat
 import org.standardnotes.notes.NoteActivity
@@ -31,6 +32,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     var notes = ArrayList<Note>()
     var tagId = ""
+    var selectedTagId = ""
 
     var currentSnackbar: Snackbar? = null
 
@@ -48,12 +50,27 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         super.onCreate(savedInstanceState)
         if (savedInstanceState != null) {
             tagId = savedInstanceState.getString("tagId")
+            selectedTagId = savedInstanceState.getString("tag")
         }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.frag_note_list, container, false)
+
+        var lastX: Int? = null
+        var lastY: Int? = null
+        view.fab.setOnTouchListener({ v, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                lastX = event.rawX.toInt()
+                lastY = event.rawY.toInt()
+            }
+            false
+        })
+        view.fab.setOnClickListener { view ->
+            startNewNote(lastX!!, lastY!!, selectedTagId)
+        }
+
         return view
     }
 
