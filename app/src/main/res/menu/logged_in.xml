@@ -6,12 +6,14 @@
         android:id="@+id/debug"
         android:title="Debug"
         app:showAsAction="ifRoom"
+        android:orderInCategory="10"
         android:visible="false" />
 
     <item
         android:id="@+id/settings"
         android:icon="@drawable/ic_settings_24dp"
         android:title="@string/action_settings"
+        android:orderInCategory="10"
         app:showAsAction="ifRoom" />
 
 </menu>

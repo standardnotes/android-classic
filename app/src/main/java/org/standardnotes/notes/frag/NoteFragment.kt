@@ -56,16 +56,12 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val context = activity as AppCompatActivity
-        context.setSupportActionBar(toolbar)
-        context.supportActionBar?.setDisplayShowHomeEnabled(true)
-        context.supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val noteUuid =
                 savedInstanceState?.getString(NoteListFragment.EXTRA_NOTE_ID) ?:
                         arguments?.getString(NoteListFragment.EXTRA_NOTE_ID)
-        if (noteUuid != null) {
-            note = SApplication.instance.noteStore.getNote(noteUuid)!!
+        if (noteUuid != "") {
+            note = SApplication.instance.noteStore.getNote(noteUuid!!)!!
             tags = SApplication.instance.noteStore.getTagsForNote(noteUuid)
         } else {
             note = newNote()

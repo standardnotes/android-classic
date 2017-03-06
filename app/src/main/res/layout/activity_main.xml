@@ -27,12 +27,8 @@
                     app:subtitleTextAppearance="@style/ToolbarSubtitleAppearance" />
 
         </android.support.design.widget.AppBarLayout>
-        <fragment
-                android:id="@+id/noteListFrag"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"
-                class="org.standardnotes.notes.frag.NoteListFragment" />
+
+        <include layout="@layout/main_container" />
 
     </android.support.design.widget.CoordinatorLayout>
     <android.support.design.widget.NavigationView

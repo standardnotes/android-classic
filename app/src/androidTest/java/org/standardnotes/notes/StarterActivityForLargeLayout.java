@@ -8,13 +8,6 @@ import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.LargeTest;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewParent;
-
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -43,7 +36,7 @@ import static org.standardnotes.notes.TestHelper.childAtPosition;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class StarterActivityTest {
+public class StarterActivityForLargeLayout {
 
     @Rule
     public ActivityTestRule<LoginActivity> mActivityTestRule = new ActivityTestRule<>(LoginActivity.class);
@@ -123,21 +116,20 @@ public class StarterActivityTest {
                 allOf(withId(R.id.bodyEdit)));
         appCompatEditText14.perform(scrollTo(), replaceText("body1"), closeSoftKeyboard());
 
-        pressBack();
-
-        ViewInteraction recyclerView = onView(
-                allOf(withId(R.id.list_note), isDisplayed()));
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-
         ViewInteraction actionMenuItemView = onView(
                 allOf(withId(R.id.tags), withContentDescription("Tags"), isDisplayed()));
         actionMenuItemView.perform(click());
 
         pressBack();
 
-        appCompatEditText14.perform(scrollTo(), replaceText("body1a"), closeSoftKeyboard());
+        appCompatEditText14.perform(replaceText("body1a"), closeSoftKeyboard());
 
-        pressBack();
+        // Not sure why adding this delay works, not a good solution.
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         ViewInteraction textView = onView(
                 allOf(withId(R.id.text), withText("body1a"),
@@ -164,10 +156,6 @@ public class StarterActivityTest {
 
         textView2.check(matches(withText("Title1")));
         textView.check(matches(withText("body1a")));
-    }
-
-    @Test
-    public void justSignInAndOut() {
     }
 
     @Test
@@ -205,8 +193,6 @@ public class StarterActivityTest {
 
         pressBack();
 
-        pressBack();
-
         logout();
         signupin();
 
@@ -223,7 +209,6 @@ public class StarterActivityTest {
         pressBack();
         onView(allOf(withText("tag2"), withId(R.id.tagText))).check(matches(isDisplayed()));
         onView(withText("tag1")).check(matches(not(isDisplayed())));
-        pressBack();
 
         logout();
         signupin();
@@ -231,8 +216,6 @@ public class StarterActivityTest {
         recyclerView.perform(actionOnItemAtPosition(0, click()));
         onView(allOf(withText("tag2"), withId(R.id.tagText))).check(matches(isDisplayed()));
         onView(withText("tag1")).check(matches(not(isDisplayed())));
-
-        pressBack();
     }
 
     @Test
@@ -251,33 +234,21 @@ public class StarterActivityTest {
         ViewInteraction appCompatEditText14 = onView(
                 allOf(withId(R.id.bodyEdit)));
         appCompatEditText14.perform(scrollTo(), replaceText("body2"), closeSoftKeyboard());
-        pressBack();
 
         ViewInteraction recyclerView = onView(
                 allOf(withId(R.id.list_note), isDisplayed()));
+
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
         recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
     }
 }
