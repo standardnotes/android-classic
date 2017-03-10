@@ -14,14 +14,16 @@ import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.frag.NoteFragment
 import org.standardnotes.notes.frag.NoteListFragment
 
-class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.OnNewNoteClickListener {
+class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.OnNewNoteClickListener, NoteFragment.DetachListener {
 
     override fun newNoteListener(uuid: String) {
         noteFragment = NoteFragment()
+        noteFragment!!.detachListener = this
         val bundle = Bundle()
         bundle.putString(NoteListFragment.EXTRA_NOTE_ID, uuid)
         noteFragment!!.arguments = bundle
         if (note_container == null) {
+            removeDrawerToggle()
             supportFragmentManager.beginTransaction().add(R.id.note_list_container, noteFragment, "note_fragment").addToBackStack(null).commit()
         } else {
             supportFragmentManager.beginTransaction().replace(R.id.note_container, noteFragment, "note_fragment").commit()
@@ -31,7 +33,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
     private lateinit var noteListFragment: NoteListFragment
     private var noteFragment: NoteFragment? = null
 
-    private lateinit var drawerToggle: ActionBarDrawerToggle
+    lateinit var drawerToggle: ActionBarDrawerToggle
     private var selectedTagId = ""
 
     override fun onSyncStarted() {
@@ -66,7 +68,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
 
         if (savedInstanceState == null) {
             noteListFragment = NoteListFragment()
-            supportFragmentManager.beginTransaction().replace(R.id.note_list_container, noteListFragment, "note_list_fragment").addToBackStack(null).commit()
+            supportFragmentManager.beginTransaction().replace(R.id.note_list_container, noteListFragment, "note_list_fragment").commit()
             supportFragmentManager.executePendingTransactions()
             if (note_container != null && noteListFragment.adapter.itemCount > 0) {
                 noteListFragment.list_note.findViewHolderForAdapterPosition(0).itemView.performClick()
@@ -88,9 +90,8 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
 
         drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
         drawer_layout.addDrawerListener(drawerToggle!!)
-        drawerToggle.isDrawerIndicatorEnabled = true
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeButtonEnabled(true)
+        addDrawerToggle()
+
         val header = drawer.inflateHeaderView(R.layout.view_navigation_header)
         val values = SApplication.instance.valueStore
         header.main_account_server.text = values.server
@@ -129,6 +130,18 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
         selected.isChecked = true
         toolbar.subtitle = selected.title
         selectedTagId = selectedId // In case selected tag wasn't found in list
+    }
+
+    override fun addDrawerToggle() {
+        drawerToggle.isDrawerIndicatorEnabled = true
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeButtonEnabled(true)
+    }
+
+    fun removeDrawerToggle() {
+        drawerToggle.isDrawerIndicatorEnabled = false
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
+        supportActionBar?.setHomeButtonEnabled(false)
     }
 
     override fun onResume() {

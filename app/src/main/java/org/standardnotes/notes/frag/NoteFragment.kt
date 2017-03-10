@@ -16,10 +16,7 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.frag_note.*
 import kotlinx.android.synthetic.main.item_tag_lozenge.view.*
 import org.joda.time.DateTime
-import org.standardnotes.notes.EXTRA_TAGS
-import org.standardnotes.notes.R
-import org.standardnotes.notes.SApplication
-import org.standardnotes.notes.TagListActivity
+import org.standardnotes.notes.*
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.ContentType
@@ -44,7 +41,8 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     lateinit var note: Note
     lateinit var tags: List<Tag>
-    lateinit var mActivity: AppCompatActivity
+    lateinit var mActivity: MainActivity
+    lateinit var detachListener: DetachListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,7 +122,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
-        mActivity = (context as AppCompatActivity)
+        mActivity = (context as MainActivity)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -232,6 +230,14 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         setSubtitle(getString(R.string.sync_progress_error))
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        detachListener.addDrawerToggle()
+    }
+
+    interface DetachListener {
+        fun addDrawerToggle()
+    }
 }
 
 fun newNote(): Note {
