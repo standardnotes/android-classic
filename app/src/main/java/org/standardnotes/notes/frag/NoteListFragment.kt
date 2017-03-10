@@ -1,6 +1,5 @@
 package org.standardnotes.notes.frag
 
-import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
@@ -220,6 +219,5 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
             val note: Note = notes[position]
             holder.note = note
         }
-
     }
 }

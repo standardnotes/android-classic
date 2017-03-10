@@ -7,6 +7,7 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.view.Menu
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.frag_note_list.*
 import kotlinx.android.synthetic.main.two_pane_container.*
 import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.comms.SyncManager
@@ -16,10 +17,10 @@ import org.standardnotes.notes.frag.NoteListFragment
 class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.OnNewNoteClickListener {
 
     override fun newNoteListener(uuid: String) {
-        val noteFragment = NoteFragment()
+        noteFragment = NoteFragment()
         val bundle = Bundle()
         bundle.putString(NoteListFragment.EXTRA_NOTE_ID, uuid)
-        noteFragment.arguments = bundle
+        noteFragment!!.arguments = bundle
         if (note_container == null) {
             supportFragmentManager.beginTransaction().add(R.id.note_list_container, noteFragment, "note_fragment").addToBackStack(null).commit()
         } else {
@@ -28,6 +29,8 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
     }
 
     private lateinit var noteListFragment: NoteListFragment
+    private var noteFragment: NoteFragment? = null
+
     private lateinit var drawerToggle: ActionBarDrawerToggle
     private var selectedTagId = ""
 
@@ -47,6 +50,9 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
         super.onSaveInstanceState(outState)
         outState!!.putString("tag", selectedTagId)
         supportFragmentManager.putFragment(outState, "note_list_fragment", noteListFragment)
+        if (noteFragment != null) {
+            supportFragmentManager.putFragment(outState, "note_fragment", noteFragment)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,17 +66,25 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
 
         if (savedInstanceState == null) {
             noteListFragment = NoteListFragment()
-            supportFragmentManager.beginTransaction().replace(R.id.note_list_container, noteListFragment, "note_list_fragment").commit()
+            supportFragmentManager.beginTransaction().replace(R.id.note_list_container, noteListFragment, "note_list_fragment").addToBackStack(null).commit()
+            supportFragmentManager.executePendingTransactions()
+            if (note_container != null && noteListFragment.adapter.itemCount > 0) {
+                noteListFragment.list_note.findViewHolderForAdapterPosition(0).itemView.performClick()
+            }
         } else {
             noteListFragment = supportFragmentManager.findFragmentByTag("note_list_fragment") as NoteListFragment
+            if (note_container != null) {
+                noteFragment = supportFragmentManager.findFragmentByTag("note_fragment") as? NoteFragment
+                if (noteFragment != null) {
+                    supportFragmentManager.beginTransaction().remove(noteFragment).commit()
+                    supportFragmentManager.executePendingTransactions()
+                }
+            } else {
+                noteFragment = null
+            }
         }
 
         noteListFragment.onNewNoteListener = this
-
-        if (note_container != null) {
-//            supportFragmentManager.beginTransaction().replace(R.id.note_container, NoteFragment(), "note_fragment").commit()
-            //TODO show first note
-        }
 
         drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
         drawer_layout.addDrawerListener(drawerToggle!!)
@@ -92,7 +106,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
                 drawer_layout.closeDrawers()
                 selectedTagId = uuid
                 updateTagsMenu()
-                noteListFragment.refreshNotesForTag(selectedTagId) // TODO replace with some kind of listener
+                noteListFragment.refreshNotesForTag(selectedTagId)
                 return@setOnMenuItemClickListener true
             }
         }
