@@ -55,6 +55,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        activity.setTitle(R.string.title_activity_note)
 
         val noteUuid =
                 savedInstanceState?.getString(NoteListFragment.EXTRA_NOTE_ID) ?:
@@ -170,6 +171,12 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         inflater.inflate(R.menu.note, menu)
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        menu.clear()
+        activity.menuInflater.inflate(R.menu.note, menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.tags -> {
@@ -231,6 +238,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onDetach() {
         super.onDetach()
+        activity.setTitle(R.string.app_name)
         detachListener?.addDrawerToggle()
     }
 
