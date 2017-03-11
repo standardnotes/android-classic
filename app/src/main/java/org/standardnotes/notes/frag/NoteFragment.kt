@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.preference.PreferenceManager
 import android.support.v4.app.Fragment
-import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
@@ -42,7 +41,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
     lateinit var note: Note
     lateinit var tags: List<Tag>
     lateinit var mActivity: MainActivity
-    lateinit var detachListener: DetachListener
+    var detachListener: DetachListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -232,7 +231,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onDetach() {
         super.onDetach()
-        detachListener.addDrawerToggle()
+        detachListener?.addDrawerToggle()
     }
 
     interface DetachListener {

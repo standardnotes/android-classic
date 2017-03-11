@@ -3,12 +3,11 @@ package org.standardnotes.notes
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.support.v4.app.FragmentManager
 import android.support.v7.app.ActionBarDrawerToggle
 import android.view.Menu
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.frag_note_list.*
-import kotlinx.android.synthetic.main.two_pane_container.*
 import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.frag.NoteFragment
@@ -22,11 +21,18 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
         val bundle = Bundle()
         bundle.putString(NoteListFragment.EXTRA_NOTE_ID, uuid)
         noteFragment!!.arguments = bundle
-        if (note_container == null) {
+        if (findViewById(R.id.note_container) == null) {
             removeDrawerToggle()
-            supportFragmentManager.beginTransaction().add(R.id.note_list_container, noteFragment, "note_fragment").addToBackStack(null).commit()
+            supportFragmentManager
+                    .beginTransaction()
+                    .add(R.id.note_list_container, noteFragment, "note_fragment")
+                    .addToBackStack(null)
+                    .commit()
         } else {
-            supportFragmentManager.beginTransaction().replace(R.id.note_container, noteFragment, "note_fragment").commit()
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.note_container, noteFragment, "note_fragment")
+                    .commit()
         }
     }
 
@@ -52,7 +58,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
         super.onSaveInstanceState(outState)
         outState!!.putString("tag", selectedTagId)
         supportFragmentManager.putFragment(outState, "note_list_fragment", noteListFragment)
-        if (noteFragment != null) {
+        if (supportFragmentManager.findFragmentByTag("note_fragment") != null ) {
             supportFragmentManager.putFragment(outState, "note_fragment", noteFragment)
         }
     }
@@ -66,31 +72,54 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
+        drawer_layout.addDrawerListener(drawerToggle!!)
+        addDrawerToggle()
+
         if (savedInstanceState == null) {
             noteListFragment = NoteListFragment()
-            supportFragmentManager.beginTransaction().replace(R.id.note_list_container, noteListFragment, "note_list_fragment").commit()
-            supportFragmentManager.executePendingTransactions()
-            if (note_container != null && noteListFragment.adapter.itemCount > 0) {
-                noteListFragment.list_note.findViewHolderForAdapterPosition(0).itemView.performClick()
-            }
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.note_list_container, noteListFragment, "note_list_fragment")
+                    .commit()
         } else {
             noteListFragment = supportFragmentManager.findFragmentByTag("note_list_fragment") as NoteListFragment
-            if (note_container != null) {
-                noteFragment = supportFragmentManager.findFragmentByTag("note_fragment") as? NoteFragment
-                if (noteFragment != null) {
-                    supportFragmentManager.beginTransaction().remove(noteFragment).commit()
-                    supportFragmentManager.executePendingTransactions()
+            noteFragment = supportFragmentManager.findFragmentByTag("note_fragment") as? NoteFragment
+            noteFragment?.detachListener = this
+
+            if (noteFragment != null) {
+                supportFragmentManager
+                        .popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                supportFragmentManager
+                        .beginTransaction()
+                        .remove(noteFragment)
+                        .commitNow()
+
+                if (findViewById(R.id.note_container) != null) {
+                    supportFragmentManager
+                            .beginTransaction()
+                            .remove(noteListFragment)
+                            .commitNow()
+
+                    supportFragmentManager
+                            .beginTransaction()
+                            .add(R.id.note_list_container, noteListFragment, "note_list_fragment")
+                            .replace(R.id.note_container, noteFragment, "note_fragment")
+                            .commit()
+
+                } else {
+
+                    removeDrawerToggle()
+                    supportFragmentManager
+                            .beginTransaction()
+                            .add(R.id.note_list_container, noteFragment, "note_fragment")
+                            .addToBackStack(null)
+                            .commit()
                 }
-            } else {
-                noteFragment = null
             }
         }
 
         noteListFragment.onNewNoteListener = this
-
-        drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
-        drawer_layout.addDrawerListener(drawerToggle!!)
-        addDrawerToggle()
 
         val header = drawer.inflateHeaderView(R.layout.view_navigation_header)
         val values = SApplication.instance.valueStore
