@@ -1,12 +1,12 @@
 package org.standardnotes.notes.frag
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.preference.PreferenceManager
 import android.support.v4.app.Fragment
+import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
@@ -40,7 +40,6 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     lateinit var note: Note
     lateinit var tags: List<Tag>
-    lateinit var mActivity: MainActivity
     var detachListener: DetachListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -120,11 +119,6 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         setSubtitle(if (note.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
     }
 
-    override fun onAttach(context: Context?) {
-        super.onAttach(context)
-        mActivity = (context as MainActivity)
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(NoteListFragment.EXTRA_NOTE_ID, note.uuid)
@@ -191,7 +185,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     fun setSubtitle(subTitle: String) {
         bodyEdit.postDelayed({
-            mActivity.supportActionBar!!.subtitle = subTitle
+            (activity as AppCompatActivity).supportActionBar!!.subtitle = subTitle
         }, 100)
     }
 

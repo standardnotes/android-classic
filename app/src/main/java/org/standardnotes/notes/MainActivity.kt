@@ -15,58 +15,29 @@ import org.standardnotes.notes.frag.NoteListFragment
 
 class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.OnNewNoteClickListener, NoteFragment.DetachListener {
 
-    override fun newNoteListener(uuid: String) {
-        noteFragment = NoteFragment()
-        noteFragment!!.detachListener = this
-        val bundle = Bundle()
-        bundle.putString(NoteListFragment.EXTRA_NOTE_ID, uuid)
-        noteFragment!!.arguments = bundle
-        if (findViewById(R.id.note_container) == null) {
-            removeDrawerToggle()
-            supportFragmentManager
-                    .beginTransaction()
-                    .add(R.id.note_list_container, noteFragment, "note_fragment")
-                    .addToBackStack(null)
-                    .commit()
-        } else {
-            supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.note_container, noteFragment, "note_fragment")
-                    .commit()
-        }
-    }
+    val TAG_NOTE_FRAGMENT = "note_fragment"
+    val TAG_NOTE_LIST_FRAGMENT = "note_list_fragment"
+    val EXTRA_TAG = "tag"
 
     private lateinit var noteListFragment: NoteListFragment
     private var noteFragment: NoteFragment? = null
 
-    lateinit var drawerToggle: ActionBarDrawerToggle
+    private lateinit var drawerToggle: ActionBarDrawerToggle
     private var selectedTagId = ""
-
-    override fun onSyncStarted() {
-    }
-
-    override fun onSyncFailed() {
-        onSyncCompleted()
-    }
-
-    override fun onSyncCompleted() {
-        updateTagsMenu()
-        noteListFragment.refreshNotesForTag(selectedTagId)
-    }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        outState!!.putString("tag", selectedTagId)
-        supportFragmentManager.putFragment(outState, "note_list_fragment", noteListFragment)
-        if (supportFragmentManager.findFragmentByTag("note_fragment") != null ) {
-            supportFragmentManager.putFragment(outState, "note_fragment", noteFragment)
+        outState!!.putString(EXTRA_TAG, selectedTagId)
+        supportFragmentManager.putFragment(outState, TAG_NOTE_LIST_FRAGMENT, noteListFragment)
+        if (supportFragmentManager.findFragmentByTag(TAG_NOTE_FRAGMENT) != null ) {
+            supportFragmentManager.putFragment(outState, TAG_NOTE_FRAGMENT, noteFragment)
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState != null && savedInstanceState?.containsKey("tag")) {
-            selectedTagId = savedInstanceState.getString("tag")
+        if (savedInstanceState != null && savedInstanceState?.containsKey(EXTRA_TAG)) {
+            selectedTagId = savedInstanceState.getString(EXTRA_TAG)
         }
 
         setContentView(R.layout.activity_main)
@@ -80,11 +51,11 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
             noteListFragment = NoteListFragment()
             supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.note_list_container, noteListFragment, "note_list_fragment")
+                    .replace(R.id.note_list_container, noteListFragment, TAG_NOTE_LIST_FRAGMENT)
                     .commit()
         } else {
-            noteListFragment = supportFragmentManager.findFragmentByTag("note_list_fragment") as NoteListFragment
-            noteFragment = supportFragmentManager.findFragmentByTag("note_fragment") as? NoteFragment
+            noteListFragment = supportFragmentManager.findFragmentByTag(TAG_NOTE_LIST_FRAGMENT) as NoteListFragment
+            noteFragment = supportFragmentManager.findFragmentByTag(TAG_NOTE_FRAGMENT) as? NoteFragment
             noteFragment?.detachListener = this
 
             if (noteFragment != null) {
@@ -103,8 +74,8 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
 
                     supportFragmentManager
                             .beginTransaction()
-                            .add(R.id.note_list_container, noteListFragment, "note_list_fragment")
-                            .replace(R.id.note_container, noteFragment, "note_fragment")
+                            .add(R.id.note_list_container, noteListFragment, TAG_NOTE_LIST_FRAGMENT)
+                            .replace(R.id.note_container, noteFragment, TAG_NOTE_FRAGMENT)
                             .commit()
 
                 } else {
@@ -112,7 +83,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
                     removeDrawerToggle()
                     supportFragmentManager
                             .beginTransaction()
-                            .add(R.id.note_list_container, noteFragment, "note_fragment")
+                            .add(R.id.note_list_container, noteFragment, TAG_NOTE_FRAGMENT)
                             .addToBackStack(null)
                             .commit()
                 }
@@ -161,16 +132,37 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
         selectedTagId = selectedId // In case selected tag wasn't found in list
     }
 
+    fun removeDrawerToggle() {
+        drawerToggle.isDrawerIndicatorEnabled = false
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
+        supportActionBar?.setHomeButtonEnabled(false)
+    }
+
     override fun addDrawerToggle() {
         drawerToggle.isDrawerIndicatorEnabled = true
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeButtonEnabled(true)
     }
 
-    fun removeDrawerToggle() {
-        drawerToggle.isDrawerIndicatorEnabled = false
-        supportActionBar?.setDisplayHomeAsUpEnabled(false)
-        supportActionBar?.setHomeButtonEnabled(false)
+    override fun newNoteListener(uuid: String) {
+        noteFragment = NoteFragment()
+        noteFragment!!.detachListener = this
+        val bundle = Bundle()
+        bundle.putString(NoteListFragment.EXTRA_NOTE_ID, uuid)
+        noteFragment!!.arguments = bundle
+        if (findViewById(R.id.note_container) == null) {
+            removeDrawerToggle()
+            supportFragmentManager
+                    .beginTransaction()
+                    .add(R.id.note_list_container, noteFragment, TAG_NOTE_FRAGMENT)
+                    .addToBackStack(null)
+                    .commit()
+        } else {
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.note_container, noteFragment, TAG_NOTE_FRAGMENT)
+                    .commit()
+        }
     }
 
     override fun onResume() {
@@ -214,5 +206,17 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
         drawerToggle?.syncState()
+    }
+
+    override fun onSyncStarted() {
+    }
+
+    override fun onSyncFailed() {
+        onSyncCompleted()
+    }
+
+    override fun onSyncCompleted() {
+        updateTagsMenu()
+        noteListFragment.refreshNotesForTag(selectedTagId)
     }
 }

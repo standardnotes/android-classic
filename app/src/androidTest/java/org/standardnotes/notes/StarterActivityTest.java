@@ -8,13 +8,6 @@ import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.LargeTest;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewParent;
-
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -123,7 +116,9 @@ public class StarterActivityTest {
                 allOf(withId(R.id.bodyEdit)));
         appCompatEditText14.perform(scrollTo(), replaceText("body1"), closeSoftKeyboard());
 
-        pressBack();
+        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+            pressBack();
+        }
 
         ViewInteraction recyclerView = onView(
                 allOf(withId(R.id.list_note), isDisplayed()));
@@ -137,7 +132,16 @@ public class StarterActivityTest {
 
         appCompatEditText14.perform(scrollTo(), replaceText("body1a"), closeSoftKeyboard());
 
-        pressBack();
+        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+            pressBack();
+        } else {
+            // Not sure why adding this delay works, not a good solution.
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
         ViewInteraction textView = onView(
                 allOf(withId(R.id.text), withText("body1a"),
@@ -205,7 +209,9 @@ public class StarterActivityTest {
 
         pressBack();
 
-        pressBack();
+        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+            pressBack();
+        }
 
         logout();
         signupin();
@@ -223,7 +229,10 @@ public class StarterActivityTest {
         pressBack();
         onView(allOf(withText("tag2"), withId(R.id.tagText))).check(matches(isDisplayed()));
         onView(withText("tag1")).check(matches(not(isDisplayed())));
-        pressBack();
+
+        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+            pressBack();
+        }
 
         logout();
         signupin();
@@ -232,7 +241,9 @@ public class StarterActivityTest {
         onView(allOf(withText("tag2"), withId(R.id.tagText))).check(matches(isDisplayed()));
         onView(withText("tag1")).check(matches(not(isDisplayed())));
 
-        pressBack();
+        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+            pressBack();
+        }
     }
 
     @Test
@@ -251,33 +262,21 @@ public class StarterActivityTest {
         ViewInteraction appCompatEditText14 = onView(
                 allOf(withId(R.id.bodyEdit)));
         appCompatEditText14.perform(scrollTo(), replaceText("body2"), closeSoftKeyboard());
-        pressBack();
+
+        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+            pressBack();
+        }
 
         ViewInteraction recyclerView = onView(
                 allOf(withId(R.id.list_note), isDisplayed()));
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
-        recyclerView.perform(actionOnItemAtPosition(0, click()));
-        pressBack();
+
+        int i = 0;
+        do {
+            recyclerView.perform(actionOnItemAtPosition(0, click()));
+            if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+                pressBack();
+            }
+            i++;
+        } while (i < 10);
     }
 }
