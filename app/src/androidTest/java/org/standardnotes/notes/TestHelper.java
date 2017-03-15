@@ -1,7 +1,6 @@
 package org.standardnotes.notes;
 
 import android.app.Activity;
-import android.content.res.Configuration;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,10 +31,9 @@ public class TestHelper {
         };
     }
 
-    public static boolean isScreenSw600dpAndLandscape(Activity activity) {
+    public static boolean isScreenW600dp(Activity activity) {
         DisplayMetrics displayMetrics = activity.getResources().getDisplayMetrics();
         float widthDp = displayMetrics.widthPixels / displayMetrics.density;
-        return widthDp >= 600 && activity.getResources().getConfiguration()
-                .orientation == Configuration.ORIENTATION_LANDSCAPE;
+        return widthDp >= 600;
     }
 }

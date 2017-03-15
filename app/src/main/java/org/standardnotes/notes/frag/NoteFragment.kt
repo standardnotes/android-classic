@@ -42,14 +42,14 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
     lateinit var tags: List<Tag>
     var detachListener: DetachListener? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            setHasOptionsMenu(true)
+        }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater!!.inflate(R.layout.frag_note, container, false)
-        return view
+        override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+            val view = inflater!!.inflate(R.layout.frag_note, container, false)
+            return view
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
@@ -59,8 +59,8 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         val noteUuid =
                 savedInstanceState?.getString(NoteListFragment.EXTRA_NOTE_ID) ?:
                         arguments?.getString(NoteListFragment.EXTRA_NOTE_ID)
-        if (noteUuid != "") {
-            note = SApplication.instance.noteStore.getNote(noteUuid!!)!!
+        if (noteUuid != null && noteUuid != "") {
+            note = SApplication.instance.noteStore.getNote(noteUuid)!!
             tags = SApplication.instance.noteStore.getTagsForNote(noteUuid)
         } else {
             note = newNote()

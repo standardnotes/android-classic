@@ -116,7 +116,7 @@ public class StarterActivityTest {
                 allOf(withId(R.id.bodyEdit)));
         appCompatEditText14.perform(scrollTo(), replaceText("body1"), closeSoftKeyboard());
 
-        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+        if (!TestHelper.isScreenW600dp(mActivityTestRule.getActivity())) {
             pressBack();
         }
 
@@ -132,15 +132,8 @@ public class StarterActivityTest {
 
         appCompatEditText14.perform(scrollTo(), replaceText("body1a"), closeSoftKeyboard());
 
-        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+        if (!TestHelper.isScreenW600dp(mActivityTestRule.getActivity())) {
             pressBack();
-        } else {
-            // Not sure why adding this delay works, not a good solution.
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
 
         ViewInteraction textView = onView(
@@ -209,8 +202,8 @@ public class StarterActivityTest {
 
         pressBack();
 
-        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
-            pressBack();
+        if (!TestHelper.isScreenW600dp(mActivityTestRule.getActivity())) {
+                pressBack();
         }
 
         logout();
@@ -230,7 +223,7 @@ public class StarterActivityTest {
         onView(allOf(withText("tag2"), withId(R.id.tagText))).check(matches(isDisplayed()));
         onView(withText("tag1")).check(matches(not(isDisplayed())));
 
-        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+        if (!TestHelper.isScreenW600dp(mActivityTestRule.getActivity())) {
             pressBack();
         }
 
@@ -241,7 +234,7 @@ public class StarterActivityTest {
         onView(allOf(withText("tag2"), withId(R.id.tagText))).check(matches(isDisplayed()));
         onView(withText("tag1")).check(matches(not(isDisplayed())));
 
-        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+        if (!TestHelper.isScreenW600dp(mActivityTestRule.getActivity())) {
             pressBack();
         }
     }
@@ -263,7 +256,7 @@ public class StarterActivityTest {
                 allOf(withId(R.id.bodyEdit)));
         appCompatEditText14.perform(scrollTo(), replaceText("body2"), closeSoftKeyboard());
 
-        if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+        if (!TestHelper.isScreenW600dp(mActivityTestRule.getActivity())) {
             pressBack();
         }
 
@@ -273,7 +266,7 @@ public class StarterActivityTest {
         int i = 0;
         do {
             recyclerView.perform(actionOnItemAtPosition(0, click()));
-            if (!TestHelper.isScreenSw600dpAndLandscape(mActivityTestRule.getActivity())) {
+            if (!TestHelper.isScreenW600dp(mActivityTestRule.getActivity())) {
                 pressBack();
             }
             i++;

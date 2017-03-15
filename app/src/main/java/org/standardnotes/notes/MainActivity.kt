@@ -51,7 +51,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
             noteListFragment = NoteListFragment()
             supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.note_list_container, noteListFragment, TAG_NOTE_LIST_FRAGMENT)
+                    .replace(R.id.master_container, noteListFragment, TAG_NOTE_LIST_FRAGMENT)
                     .commit()
         } else {
             noteListFragment = supportFragmentManager.findFragmentByTag(TAG_NOTE_LIST_FRAGMENT) as NoteListFragment
@@ -66,7 +66,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
                         .remove(noteFragment)
                         .commitNow()
 
-                if (findViewById(R.id.note_container) != null) {
+                if (findViewById(R.id.detail_container) != null) {
                     supportFragmentManager
                             .beginTransaction()
                             .remove(noteListFragment)
@@ -74,8 +74,8 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
 
                     supportFragmentManager
                             .beginTransaction()
-                            .add(R.id.note_list_container, noteListFragment, TAG_NOTE_LIST_FRAGMENT)
-                            .replace(R.id.note_container, noteFragment, TAG_NOTE_FRAGMENT)
+                            .add(R.id.master_container, noteListFragment, TAG_NOTE_LIST_FRAGMENT)
+                            .replace(R.id.detail_container, noteFragment, TAG_NOTE_FRAGMENT)
                             .commit()
 
                 } else {
@@ -83,7 +83,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
                     removeDrawerToggle()
                     supportFragmentManager
                             .beginTransaction()
-                            .add(R.id.note_list_container, noteFragment, TAG_NOTE_FRAGMENT)
+                            .add(R.id.master_container, noteFragment, TAG_NOTE_FRAGMENT)
                             .addToBackStack(null)
                             .commit()
                 }
@@ -150,17 +150,17 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.
         val bundle = Bundle()
         bundle.putString(NoteListFragment.EXTRA_NOTE_ID, uuid)
         noteFragment!!.arguments = bundle
-        if (findViewById(R.id.note_container) == null) {
+        if (findViewById(R.id.detail_container) == null) {
             removeDrawerToggle()
             supportFragmentManager
                     .beginTransaction()
-                    .add(R.id.note_list_container, noteFragment, TAG_NOTE_FRAGMENT)
+                    .add(R.id.master_container, noteFragment, TAG_NOTE_FRAGMENT)
                     .addToBackStack(null)
                     .commit()
         } else {
             supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.note_container, noteFragment, TAG_NOTE_FRAGMENT)
+                    .replace(R.id.detail_container, noteFragment, TAG_NOTE_FRAGMENT)
                     .commit()
         }
     }
