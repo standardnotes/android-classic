@@ -82,7 +82,7 @@ dependencies {
     compile "com.android.support:preference-v7:$android_support"
     compile "com.android.support:preference-v14:$android_support"
     compile 'org.glassfish:javax.annotation:10.0-b28'
-    compile 'com.google.code.gson:gson:2.7'
+    compile 'com.google.code.gson:gson:2.8.0'
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
