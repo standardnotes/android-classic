@@ -33,7 +33,7 @@ val EXTRA_TEXT = "text"
 
 class NoteFragment : Fragment(), SyncManager.SyncListener {
 
-    val SYNC_DELAY = 250L
+    val SYNC_DELAY = 500L
     val syncHandler: Handler = Handler()
     val syncRunnable: Runnable = Runnable {
         if (saveNote()) {
