@@ -32,7 +32,6 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".NoteActivity"
-            android:label="@string/title_activity_note"
             android:windowSoftInputMode="stateHidden|adjustResize"
             android:theme="@style/AppTheme.NoActionBar.Transparent"/>
         <activity

@@ -10,6 +10,8 @@ import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.TextView
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.frag_note.*
@@ -189,9 +191,23 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
     }
 
     fun setSubtitle(subTitle: String) {
-        bodyEdit.postDelayed({
-            (activity as AppCompatActivity).supportActionBar!!.subtitle = subTitle
-        }, 100)
+        toolbarSubtitle.animation?.setAnimationListener(null)
+        toolbarSubtitle.animation?.cancel()
+        val fadeOut = AnimationUtils.loadAnimation(activity, R.anim.abc_fade_out)
+        fadeOut.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationRepeat(animation: Animation?) {
+            }
+
+            override fun onAnimationStart(animation: Animation?) {
+            }
+
+            override fun onAnimationEnd(animation: Animation?) {
+                toolbarSubtitle.text = subTitle
+                toolbarSubtitle.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.abc_fade_in))
+            }
+
+        })
+        toolbarSubtitle.startAnimation(fadeOut)
     }
 
     fun saveNote(): Boolean {
