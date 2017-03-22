@@ -26,7 +26,7 @@
                 android:id="@+id/titleEdit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="8dp"
                 android:background="@android:color/transparent"
                 android:hint="@string/prompt_title"
                 android:imeOptions="actionNext"
@@ -40,13 +40,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:paddingBottom="8dp"
                 android:visibility="gone">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
-                    android:paddingLeft="4dp"
                     android:text="Tags:" />
 
                 <HorizontalScrollView

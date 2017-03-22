@@ -122,6 +122,8 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
         titleEdit.setSelection(titleEdit.text.length)
         setSubtitle(if (note.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
+        tagsRow.setOnClickListener { selectTags() }
+        tagsLayout.setOnClickListener { selectTags() }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -173,13 +175,17 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.tags -> {
-                val intent = Intent(activity, TagListActivity::class.java)
-                intent.putExtra(EXTRA_TAGS, SApplication.Companion.instance.gson.toJson(tags))
-                startActivityForResult(intent, REQ_TAGS)
+                selectTags()
                 return true
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun selectTags() {
+        val intent = Intent(activity, TagListActivity::class.java)
+        intent.putExtra(EXTRA_TAGS, SApplication.instance.gson.toJson(tags))
+        startActivityForResult(intent, REQ_TAGS)
     }
 
     fun setSubtitle(subTitle: String) {
