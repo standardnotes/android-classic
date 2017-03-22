@@ -88,7 +88,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         }
         drawer.menu.clear()
         drawer.inflateMenu(R.menu.drawer_tags)
-        val tags = SApplication.instance.noteStore.getAllTags(false)
+        val tags = SApplication.instance.noteStore.getAllTags(false).sortedBy { it.title.toLowerCase() }
         val menu = drawer.menu.findItem(R.id.menu_account_tags).subMenu
         var allNotes = menu.add(getString(R.string.drawer_all_notes))
         var selectedId = ""
