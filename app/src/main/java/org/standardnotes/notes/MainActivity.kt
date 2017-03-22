@@ -3,42 +3,41 @@ package org.standardnotes.notes
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.support.v4.app.FragmentManager
 import android.support.v7.app.ActionBarDrawerToggle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.MotionEvent
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.comms.SyncManager
-import org.standardnotes.notes.comms.data.Note
+import org.standardnotes.notes.frag.NoteFragment
 import org.standardnotes.notes.frag.NoteListFragment
 
-class MainActivity : BaseActivity(), SyncManager.SyncListener {
+class MainActivity : BaseActivity(), SyncManager.SyncListener, NoteListFragment.OnNewNoteClickListener, NoteFragment.DetachListener {
 
-    override fun onSyncStarted() {
-    }
+    val TAG_NOTE_FRAGMENT = "note_fragment"
+    val TAG_NOTE_LIST_FRAGMENT = "note_list_fragment"
+    val EXTRA_TAG = "tag"
 
-    override fun onSyncFailed() {
-        onSyncCompleted()
-    }
-
-    override fun onSyncCompleted() {
-        updateTagsMenu() // Update tags list
-        noteListFragment().refreshNotesForTag(selectedTagId) // Update notes in fragment
-    }
-
-    override fun onSaveInstanceState(outState: Bundle?) {
-        super.onSaveInstanceState(outState)
-        outState!!.putString("tag", selectedTagId)
-    }
+    private lateinit var noteListFragment: NoteListFragment
+    private var noteFragment: NoteFragment? = null
 
     private lateinit var drawerToggle: ActionBarDrawerToggle
     private var selectedTagId = ""
 
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState!!.putString(EXTRA_TAG, selectedTagId)
+        supportFragmentManager.putFragment(outState, TAG_NOTE_LIST_FRAGMENT, noteListFragment)
+        if (supportFragmentManager.findFragmentByTag(TAG_NOTE_FRAGMENT) != null ) {
+            supportFragmentManager.putFragment(outState, TAG_NOTE_FRAGMENT, noteFragment)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState != null && savedInstanceState?.containsKey("tag")) {
-            selectedTagId = savedInstanceState.getString("tag")
+        if (savedInstanceState != null && savedInstanceState?.containsKey(EXTRA_TAG)) {
+            selectedTagId = savedInstanceState.getString(EXTRA_TAG)
         }
 
         setContentView(R.layout.activity_main)
@@ -46,33 +45,59 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
 
         drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
         drawer_layout.addDrawerListener(drawerToggle!!)
-        drawerToggle.isDrawerIndicatorEnabled = true
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeButtonEnabled(true)
+        addDrawerToggle()
+
+        if (savedInstanceState == null) {
+            noteListFragment = NoteListFragment()
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.master_container, noteListFragment, TAG_NOTE_LIST_FRAGMENT)
+                    .commit()
+        } else {
+            noteListFragment = supportFragmentManager.findFragmentByTag(TAG_NOTE_LIST_FRAGMENT) as NoteListFragment
+            noteFragment = supportFragmentManager.findFragmentByTag(TAG_NOTE_FRAGMENT) as? NoteFragment
+            noteFragment?.detachListener = this
+
+            if (noteFragment != null) {
+                supportFragmentManager
+                        .popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                supportFragmentManager
+                        .beginTransaction()
+                        .remove(noteFragment)
+                        .commitNow()
+
+                if (findViewById(R.id.detail_container) != null) {
+                    supportFragmentManager
+                            .beginTransaction()
+                            .remove(noteListFragment)
+                            .commitNow()
+
+                    supportFragmentManager
+                            .beginTransaction()
+                            .add(R.id.master_container, noteListFragment, TAG_NOTE_LIST_FRAGMENT)
+                            .replace(R.id.detail_container, noteFragment, TAG_NOTE_FRAGMENT)
+                            .commit()
+
+                } else {
+
+                    removeDrawerToggle()
+                    supportFragmentManager
+                            .beginTransaction()
+                            .add(R.id.master_container, noteFragment, TAG_NOTE_FRAGMENT)
+                            .addToBackStack(null)
+                            .commit()
+                }
+            }
+        }
+
+        noteListFragment.onNewNoteListener = this
+
         val header = drawer.inflateHeaderView(R.layout.view_navigation_header)
         val values = SApplication.instance.valueStore
         header.main_account_server.text = values.server
         header.main_account_email.text = values.email
 
         title = getString(R.string.app_name)
-
-        var lastX: Int? = null
-        var lastY: Int? = null
-        fab.setOnTouchListener({ v, event ->
-            if (event.action == MotionEvent.ACTION_UP) {
-                lastX = event.rawX.toInt()
-                lastY = event.rawY.toInt()
-            }
-            false
-        })
-        fab.setOnClickListener { view ->
-            noteListFragment().startNewNote(lastX!!, lastY!!, selectedTagId)
-        }
-
-    }
-
-    fun noteListFragment(): NoteListFragment {
-        return supportFragmentManager.findFragmentById(R.id.noteListFrag) as NoteListFragment
     }
 
     fun updateTagsMenu() {
@@ -82,7 +107,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
                 drawer_layout.closeDrawers()
                 selectedTagId = uuid
                 updateTagsMenu()
-                noteListFragment().refreshNotesForTag(selectedTagId)
+                noteListFragment.refreshNotesForTag(selectedTagId)
                 return@setOnMenuItemClickListener true
             }
         }
@@ -107,6 +132,39 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         selectedTagId = selectedId // In case selected tag wasn't found in list
     }
 
+    fun removeDrawerToggle() {
+        drawerToggle.isDrawerIndicatorEnabled = false
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
+        supportActionBar?.setHomeButtonEnabled(false)
+    }
+
+    override fun addDrawerToggle() {
+        drawerToggle.isDrawerIndicatorEnabled = true
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeButtonEnabled(true)
+    }
+
+    override fun newNoteListener(uuid: String) {
+        noteFragment = NoteFragment()
+        noteFragment!!.detachListener = this
+        val bundle = Bundle()
+        bundle.putString(NoteListFragment.EXTRA_NOTE_ID, uuid)
+        noteFragment!!.arguments = bundle
+        if (findViewById(R.id.detail_container) == null) {
+            removeDrawerToggle()
+            supportFragmentManager
+                    .beginTransaction()
+                    .add(R.id.master_container, noteFragment, TAG_NOTE_FRAGMENT)
+                    .addToBackStack(null)
+                    .commit()
+        } else {
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.detail_container, noteFragment, TAG_NOTE_FRAGMENT)
+                    .commit()
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         SyncManager.startSyncTimer()
@@ -118,10 +176,6 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         super.onPause()
         SyncManager.stopSyncTimer()
         SyncManager.unsubscribe(this)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -141,9 +195,8 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
                 R.id.settings -> startActivity(Intent(this, SettingsActivity::class.java))
                 R.id.debug -> startActivity(Intent(this, DebugActivity::class.java))
             }
-        return true
+        return false
     }
-
 
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
@@ -155,4 +208,15 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         drawerToggle?.syncState()
     }
 
+    override fun onSyncStarted() {
+    }
+
+    override fun onSyncFailed() {
+        onSyncCompleted()
+    }
+
+    override fun onSyncCompleted() {
+        updateTagsMenu()
+        noteListFragment.refreshNotesForTag(selectedTagId)
+    }
 }

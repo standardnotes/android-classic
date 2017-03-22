@@ -15,10 +15,7 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.frag_note.*
 import kotlinx.android.synthetic.main.item_tag_lozenge.view.*
 import org.joda.time.DateTime
-import org.standardnotes.notes.EXTRA_TAGS
-import org.standardnotes.notes.R
-import org.standardnotes.notes.SApplication
-import org.standardnotes.notes.TagListActivity
+import org.standardnotes.notes.*
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.ContentType
@@ -43,28 +40,26 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
 
     lateinit var note: Note
     lateinit var tags: List<Tag>
+    var detachListener: DetachListener? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            setHasOptionsMenu(true)
+        }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater!!.inflate(R.layout.frag_note, container, false)
-        return view
+        override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+            val view = inflater!!.inflate(R.layout.frag_note, container, false)
+            return view
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val context = activity as AppCompatActivity
-        context.setSupportActionBar(toolbar)
-        context.supportActionBar?.setDisplayShowHomeEnabled(true)
-        context.supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        activity.setTitle(R.string.title_activity_note)
 
         val noteUuid =
                 savedInstanceState?.getString(NoteListFragment.EXTRA_NOTE_ID) ?:
                         arguments?.getString(NoteListFragment.EXTRA_NOTE_ID)
-        if (noteUuid != null) {
+        if (noteUuid != null && noteUuid != "") {
             note = SApplication.instance.noteStore.getNote(noteUuid)!!
             tags = SApplication.instance.noteStore.getTagsForNote(noteUuid)
         } else {
@@ -170,6 +165,12 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         inflater.inflate(R.menu.note, menu)
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        menu.clear()
+        activity.menuInflater.inflate(R.menu.note, menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.tags -> {
@@ -229,6 +230,15 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         setSubtitle(getString(R.string.sync_progress_error))
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        activity.setTitle(R.string.app_name)
+        detachListener?.addDrawerToggle()
+    }
+
+    interface DetachListener {
+        fun addDrawerToggle()
+    }
 }
 
 fun newNote(): Note {

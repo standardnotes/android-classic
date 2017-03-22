@@ -1,6 +1,5 @@
 package org.standardnotes.notes.frag
 
-import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
@@ -9,21 +8,18 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.RecyclerView
 import android.text.TextUtils
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.frag_note_list.*
+import kotlinx.android.synthetic.main.frag_note_list.view.*
 import kotlinx.android.synthetic.main.item_note.view.*
 import org.joda.time.format.DateTimeFormat
-import org.standardnotes.notes.NoteActivity
 import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.Note
 import java.util.*
-
+import android.view.MenuInflater
 
 class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
@@ -31,11 +27,14 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     var notes = ArrayList<Note>()
     var tagId = ""
+    var selectedTagId = ""
 
     var currentSnackbar: Snackbar? = null
 
     var lastTouchedX: Int? = null
     var lastTouchedY: Int? = null
+
+    lateinit var onNewNoteListener: OnNewNoteClickListener
 
     companion object {
         const val EXTRA_NOTE_ID = "noteId"
@@ -44,30 +43,26 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         const val EXTRA_Y_COOR = "yCoor"
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (savedInstanceState != null) {
-            tagId = savedInstanceState.getString("tagId")
-        }
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.frag_note_list, container, false)
+        setHasOptionsMenu(true)
+        setFabClickListener(view)
+
         return view
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         SyncManager.subscribe(this)
-        list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-        list.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
+        list_note.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+        list_note.addItemDecoration(DividerItemDecoration(activity, LinearLayoutManager.VERTICAL))
         swipeRefreshLayout.setColorSchemeResources(
                 R.color.colorPrimary,
                 R.color.colorAccent)
         swipeRefreshLayout.setOnRefreshListener { SyncManager.sync() }
         SyncManager.sync()
-        list.adapter = adapter
+        list_note.adapter = adapter
     }
 
     override fun onDestroyView() {
@@ -80,9 +75,32 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         refreshNotesForTag() // This is too often and slow for large datasets, but necessary until we have an event to trigger refresh
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.note_list, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.new_note -> startNewNote(selectedTagId)
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("tagId", tagId)
+        outState.putString("tag", selectedTagId)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+        if (savedInstanceState != null) {
+            tagId = savedInstanceState.getString("tagId")
+            selectedTagId = savedInstanceState.getString("tag")
+        }
     }
 
     override fun onSyncStarted() {
@@ -93,6 +111,25 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
     override fun onSyncCompleted() {
         swipeRefreshLayout.isRefreshing = false
         currentSnackbar?.dismiss()
+    }
+
+    fun setFabClickListener(view: View) {
+        if (view.fab_new_note == null) {
+            return
+        }
+
+        var lastX: Int? = null
+        var lastY: Int? = null
+        view.fab_new_note.setOnTouchListener({ v, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                lastX = event.rawX.toInt()
+                lastY = event.rawY.toInt()
+            }
+            false
+        })
+        view.fab_new_note.setOnClickListener { view ->
+            startNewNote(selectedTagId)
+        }
     }
 
     fun refreshNotesForTag(uuid: String? = null) {
@@ -119,12 +156,12 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         currentSnackbar!!.show()
     }
 
-    fun startNewNote(x: Int, y: Int, uuid: String) {
-        val intent: Intent = Intent(activity, NoteActivity::class.java)
-        intent.putExtra(EXTRA_X_COOR, x)
-        intent.putExtra(EXTRA_Y_COOR, y)
-        intent.putExtra(EXTRA_TAG_ID, uuid)
-        startActivity(intent)
+    fun startNewNote(uuid: String) {
+        onNewNoteListener.newNoteListener(uuid)
+    }
+
+    interface OnNewNoteClickListener {
+        fun newNoteListener(uuid: String)
     }
 
     inner class NoteHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -151,11 +188,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 false
             })
             itemView.setOnClickListener {
-                val intent: Intent = Intent(activity, NoteActivity::class.java)
-                intent.putExtra(EXTRA_NOTE_ID, note?.uuid)
-                intent.putExtra(EXTRA_X_COOR, lastTouchedX)
-                intent.putExtra(EXTRA_Y_COOR, lastTouchedY)
-                startActivity(intent)
+                onNewNoteListener.newNoteListener(note!!.uuid)
             }
             itemView.setOnLongClickListener {
                 val popup = PopupMenu(activity, itemView)
@@ -186,6 +219,5 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
             val note: Note = notes[position]
             holder.note = note
         }
-
     }
 }

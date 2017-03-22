@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="main_container" type="layout">@layout/two_pane_container</item>
+</resources>
