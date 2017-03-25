@@ -40,7 +40,7 @@ class TagListActivity : BaseActivity() {
                 if (savedInstanceState == null) intent.getStringExtra(EXTRA_TAGS) else savedInstanceState.getString(EXTRA_TAGS),
                 listType)
         selectedTags = selectedTagsList.toSet()
-        tags = app.noteStore.getAllTags(false).sortedBy { it.title.toLowerCase() }
+        tags = app.noteStore.getAllTags(false)
 
         list.adapter = Adapter()
         list.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)

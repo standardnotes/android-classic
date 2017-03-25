@@ -213,7 +213,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
                 items.add(tag)
             }
-            items.sortBy { it.title }
+            items.sortBy { it.title.toLowerCase() }
             return items
         }
     }
@@ -272,7 +272,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 items.add(tag)
             }
             if (!justDirty)
-                items.sortBy { it.title }
+                items.sortBy { it.title.toLowerCase() }
             return items
         }
     }
