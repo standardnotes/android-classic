@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.TypedValue
 import android.view.*
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -56,6 +57,37 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         return view
     }
 
+    fun pinchToScale(view: TextView) {
+        var beginDp: Double = 0.0
+        var scaling = false
+        val gestureDetector = ScaleGestureDetector(context, object: ScaleGestureDetector.SimpleOnScaleGestureListener() {
+
+            override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean {
+                beginDp = (view.textSize / context.resources.displayMetrics.density).toDouble()
+                scaling = true
+                return super.onScaleBegin(detector)
+            }
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
+                val dp = beginDp * detector?.scaleFactor
+                view.setTextSize(TypedValue.COMPLEX_UNIT_DIP, dp.toFloat())
+                return false
+            }
+
+            override fun onScaleEnd(detector: ScaleGestureDetector) {
+                scaling = false
+                super.onScaleEnd(detector)
+                // Save font size
+                SApplication!!.instance.valueStore.noteFontSize = (beginDp * detector.scaleFactor).toFloat()
+            }
+        })
+        view.setOnTouchListener(View.OnTouchListener { view, event ->
+            if (event?.pointerCount == 1 && !scaling) // Ignore non-scaling events
+                return@OnTouchListener false
+            gestureDetector.onTouchEvent(event)
+            true
+        })
+    }
+
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val context = activity as AppCompatActivity
@@ -63,6 +95,10 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         context.supportActionBar?.setDisplayShowHomeEnabled(true)
         context.supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        var fontSize = SApplication!!.instance.valueStore.noteFontSize
+        if (fontSize > 0) // Font size has been changed - set custom font size
+            bodyEdit.setTextSize(TypedValue.COMPLEX_UNIT_DIP, fontSize)
+        pinchToScale(bodyEdit)
         val noteUuid =
                 savedInstanceState?.getString(NoteListFragment.EXTRA_NOTE_ID) ?:
                         arguments?.getString(NoteListFragment.EXTRA_NOTE_ID)

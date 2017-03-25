@@ -25,6 +25,10 @@ class ValueStore(context: Context) {
         get() = prefs.getString("server", BuildConfig.SERVER_DEFAULT)
         set(value) { prefs.edit().putString("server", value).apply() }
 
+    var noteFontSize: Float
+        get() = prefs.getFloat("noteFontSize", 0.0F)
+        set(value) { prefs.edit().putFloat("noteFontSize", value).apply() }
+
     var email: String?
         get() = prefs.getString("email", "") // Set on login/registration
         set(value) { prefs.edit().putString("email", value).apply() }
