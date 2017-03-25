@@ -213,6 +213,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
                 items.add(tag)
             }
+            items.sortBy { it.title.toLowerCase() }
             return items
         }
     }
@@ -239,6 +240,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
                 items.add(note)
             }
+            items.sortByDescending { it.updatedAt }
             return items
         }
     }
@@ -269,6 +271,8 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                     tag.references = getReferences(db, tag.uuid, ContentType.Note)
                 items.add(tag)
             }
+            if (!justDirty)
+                items.sortBy { it.title.toLowerCase() }
             return items
         }
     }
