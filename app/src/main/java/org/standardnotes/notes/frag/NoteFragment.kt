@@ -1,5 +1,6 @@
 package org.standardnotes.notes.frag
 
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
@@ -9,6 +10,7 @@ import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.*
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -123,7 +125,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         bodyEdit.addTextChangedListener(textWatcher)
 
         titleEdit.setSelection(titleEdit.text.length)
-        setSubtitle(if (note.dirty) getString(R.string.sync_progress_error) else getString(R.string.sync_progress_finished))
+        setSubtitle(if (note.dirty) R.string.sync_progress_error else R.string.sync_progress_finished)
         tagsRow.setOnClickListener { selectTags() }
         tagsLayout.setOnClickListener { selectTags() }
     }
@@ -190,24 +192,30 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         startActivityForResult(intent, REQ_TAGS)
     }
 
-    fun setSubtitle(subTitle: String) {
-        toolbarSubtitle.animation?.setAnimationListener(null)
-        toolbarSubtitle.animation?.cancel()
-        val fadeOut = AnimationUtils.loadAnimation(activity, R.anim.abc_fade_out)
-        fadeOut.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationRepeat(animation: Animation?) {
+    fun setSubtitle(res: Int) {
+        val DURATION = 300L
+        when (res) {
+            R.id.toolbarSubtitleError -> {
+                toolbarSubtitleError.alpha = 1f
+                toolbarSubtitleSaving.animate().setDuration(DURATION).alpha(0F)
+                toolbarSubtitleFinished.animate().setDuration(DURATION).alpha(0F)
             }
-
-            override fun onAnimationStart(animation: Animation?) {
+            R.id.toolbarSubtitleFinished -> {
+                toolbarSubtitleError.alpha = 0f
+                toolbarSubtitleSaving.animate().setDuration(DURATION).alpha(0F)
+                toolbarSubtitleFinished.animate().setDuration(DURATION).alpha(1F)
             }
-
-            override fun onAnimationEnd(animation: Animation?) {
-                toolbarSubtitle.text = subTitle
-                toolbarSubtitle.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.abc_fade_in))
+            R.id.toolbarSubtitleSaving -> {
+                toolbarSubtitleError.alpha = 0f
+                toolbarSubtitleSaving.animate().setDuration(DURATION).alpha(1F)
+                toolbarSubtitleFinished.animate().setDuration(DURATION).alpha(0F)
             }
-
-        })
-        toolbarSubtitle.startAnimation(fadeOut)
+            else -> {
+                toolbarSubtitleError.alpha = 0f
+                toolbarSubtitleSaving.alpha = 0f
+                toolbarSubtitleFinished.alpha = 0f
+            }
+        }
     }
 
     fun saveNote(): Boolean {
@@ -240,15 +248,15 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
     }
 
     override fun onSyncStarted() {
-        setSubtitle(getString(R.string.sync_progress_saving))
+        setSubtitle(R.id.toolbarSubtitleSaving)
     }
 
     override fun onSyncCompleted() {
-        setSubtitle(getString(R.string.sync_progress_finished))
+        setSubtitle(R.id.toolbarSubtitleFinished)
     }
 
     override fun onSyncFailed() {
-        setSubtitle(getString(R.string.sync_progress_error))
+        setSubtitle(R.id.toolbarSubtitleError)
     }
 
 }

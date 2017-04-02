@@ -88,7 +88,7 @@
             android:layout_width="match_parent"
             android:layout_height="?android:attr/actionBarSize"
             android:background="?android:attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" >
+            app:popupTheme="@style/AppTheme.PopupOverlay">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -102,11 +102,35 @@
                     android:layout_height="wrap_content"
                     android:text="@string/title_activity_note" />
 
-                <TextView
-                    android:id="@+id/toolbarSubtitle"
-                    style="@style/ToolbarSubtitleAppearance"
+                <FrameLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/toolbarSubtitleFinished"
+                        style="@style/ToolbarSubtitleAppearance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sync_progress_finished"
+                        android:alpha="0"/>
+
+                    <TextView
+                        android:id="@+id/toolbarSubtitleSaving"
+                        style="@style/ToolbarSubtitleAppearance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sync_progress_saving"
+                        android:alpha="0"/>
+
+                    <TextView
+                        android:id="@+id/toolbarSubtitleError"
+                        style="@style/ToolbarSubtitleAppearance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sync_progress_error"
+                        android:alpha="0"/>
+
+                </FrameLayout>
 
             </LinearLayout>
 
