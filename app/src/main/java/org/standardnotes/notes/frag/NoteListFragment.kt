@@ -1,9 +1,11 @@
 package org.standardnotes.notes.frag
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.PopupMenu
@@ -161,9 +163,16 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                 val popup = PopupMenu(activity, itemView)
                 popup.menu.add(activity.getString(R.string.action_delete))
                 popup.setOnMenuItemClickListener {
-                    SApplication.instance.noteStore.deleteItem(note!!.uuid)
-                    refreshNotesForTag()
-                    SyncManager.sync()
+                    AlertDialog.Builder(activity)
+                            .setTitle(R.string.title_delete_confirm)
+                            .setMessage(R.string.prompt_are_you_sure)
+                            .setPositiveButton(R.string.action_delete, { dialogInterface, i ->
+                                SApplication.instance.noteStore.deleteItem(note!!.uuid)
+                                refreshNotesForTag()
+                                SyncManager.sync()
+                            })
+                            .setNegativeButton(R.string.action_cancel, null)
+                            .show()
                     true
                 }
                 popup.show()
