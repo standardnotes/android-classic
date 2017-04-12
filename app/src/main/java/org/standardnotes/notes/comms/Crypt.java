@@ -50,6 +50,8 @@ public class Crypt {
     private static ContentDecryptor<Note> noteDecryptor = new ContentDecryptor<>(Note.class);
     private static ContentDecryptor<Tag> tagDecryptor = new ContentDecryptor<>(Tag.class);
 
+    public static final String ENCRYPTION_VERSION = "001";
+
     @NotNull
     public static boolean isParamsSupported(AuthParamsResponse params) {
         if (!"sha512".equals(params.getPwAlg())) {
@@ -136,11 +138,15 @@ public class Crypt {
     }
 
     private static class Keys {
+        Keys(String ek, String ak) {
+            this.ek = ek;
+            this.ak = ak;
+        }
         String ek;
         String ak;
     }
 
-    final static IvParameterSpec ivSpec = new IvParameterSpec(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    final static IvParameterSpec emptyIvSpec = new IvParameterSpec(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     public static byte[] generateKey(byte[] passphraseOrPin, byte[] salt, int iterations, int outputKeyLength) throws NoSuchAlgorithmException, InvalidKeySpecException {
         PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
@@ -157,33 +163,69 @@ public class Crypt {
         return keyHex;
     }
 
-    public static String generateEncryptedKey(int size) throws Exception {
-        return encrypt(generateKey(size), SApplication.Companion.getInstance().getValueStore().getMasterKey());
+    private static Keys generate002KeysFromMasterKey() throws InvalidKeyException, NoSuchAlgorithmException {
+        String masterKey = SApplication.Companion.getInstance().getValueStore().getMasterKey();
+        String encryptionKey = createHash(masterKey, Hex.toHexString("e".getBytes()));
+        String authKey = createHash(masterKey, Hex.toHexString("a".getBytes()));
+        return new Keys(encryptionKey, authKey);
     }
 
-    public static Keys getItemKeys(EncryptedItem item) throws Exception {
-        String itemKey = decrypt(item.getEncItemKey(), SApplication.Companion.getInstance().getValueStore().getMasterKey());
-        Keys val = new Keys();
-        val.ek = itemKey.substring(0, itemKey.length() / 2);
-        val.ak = itemKey.substring(itemKey.length() / 2);
-        return val;
+    public static String generateEncryptedKey(int size, String version) throws Exception {
+        String itemKey = generateKey(size);
+        if (version.equals("001")) {
+            return encrypt(itemKey, SApplication.Companion.getInstance().getValueStore().getMasterKey(), null);
+        } else if (version.equals("002")) {
+            String ivHex = generateKey(128);
+            Keys keys = generate002KeysFromMasterKey();
+            String cipherText = encrypt(itemKey, keys.ek, ivHex);
+            String stringToAuth = version + ":" + ivHex + ":" + cipherText;
+            String authHash = createHash(stringToAuth, keys.ak);
+            return version + ":" + authHash + ":" + ivHex + ":" + cipherText;
+        }
+        throw new RuntimeException("Encryption version " + version + " not supported");
     }
 
-    public static String decrypt(String base64Text, String hexKey) throws Exception {
+    public static Keys getItemKeys(EncryptedItem item, String version) throws Exception {
+        if (version.equals("001")) {
+            String itemKey = decrypt(item.getEncItemKey(), SApplication.Companion.getInstance().getValueStore().getMasterKey(), null);
+            Keys val = new Keys(itemKey.substring(0, itemKey.length() / 2), itemKey.substring(itemKey.length() / 2));
+            return val;
+        } else if (version.equals("002")) {
+            String[] keyBits = item.getEncItemKey().split(":");
+            String authHash = keyBits[1];
+            String ivHex = keyBits[2];
+            String keyCipherText = keyBits[3];
+            Keys keys = generate002KeysFromMasterKey();
+            String stringToAuth = version + ":" + ivHex + ":" + keyCipherText;
+
+            String localAuthHash = createHash(stringToAuth, keys.ak);
+            if (!localAuthHash.equals(authHash)) {
+                Log.d("Crypt", "Auth hash does not match.");
+                return null;
+            }
+            String decryptedKey = decrypt(keyCipherText, keys.ek, ivHex);
+            if (decryptedKey == null)
+                return null;
+            return new Keys(decryptedKey.substring(0, decryptedKey.length() / 2), decryptedKey.substring(decryptedKey.length() / 2));
+        }
+        throw new RuntimeException("Encryption version " + version + " not supported");
+    }
+
+    public static String decrypt(String base64Text, String hexKey, String hexIv) throws Exception {
         byte[] base64Data = Base64.decode(base64Text, Base64.NO_WRAP);
         Cipher ecipher = Cipher.getInstance(AES_CBC_PKCS5_PADDING);
         byte[] key = Hex.decode(hexKey);
         SecretKey sks = new SecretKeySpec(key, AES);
-        ecipher.init(Cipher.DECRYPT_MODE, sks, ivSpec);
+        ecipher.init(Cipher.DECRYPT_MODE, sks, hexIv == null ? emptyIvSpec : new IvParameterSpec(Hex.decode(hexIv)));
         byte[] resultData = ecipher.doFinal(base64Data);
         return new String(resultData, Charsets.UTF_8);
     }
 
-    public static String encrypt(String text, String hexKey) throws Exception {
+    public static String encrypt(String text, String hexKey, String hexIv) throws Exception {
         Cipher ecipher = Cipher.getInstance(AES_CBC_PKCS5_PADDING);
         byte[] key = Hex.decode(hexKey);
         SecretKey sks = new SecretKeySpec(key, AES);
-        ecipher.init(Cipher.ENCRYPT_MODE, sks, ivSpec);
+        ecipher.init(Cipher.ENCRYPT_MODE, sks, hexIv == null ? emptyIvSpec : new IvParameterSpec(Hex.decode(hexIv)));
         byte[] resultData = ecipher.doFinal(text.getBytes(Charsets.UTF_8));
         String base64Encr = Base64.encodeToString(resultData, Base64.NO_WRAP);
         return base64Encr;
@@ -211,12 +253,12 @@ public class Crypt {
     }
 
 
-    public static EncryptedItem encrypt(EncryptableItem thing) {
+    public static EncryptedItem encrypt(EncryptableItem thing, String version) {
         try {
             EncryptedItem item = new EncryptedItem();
             copyInEncryptableItemFields(thing, item);
             String contentJson = null;
-            Keys keys = Crypt.getItemKeys(item);
+            Keys keys = Crypt.getItemKeys(item, version);
             if (thing instanceof Note) {
                 item.setContentType(ContentType.Note.toString());
                 NoteContent justUnencContent = new NoteContent();
@@ -252,15 +294,35 @@ public class Crypt {
             if (BuildConfig.DEBUG) {
                 Log.d("Crypt", "Encrypting " + item.getContentType() + " " + item.getUuid() + ": " + contentJson);
             }
-            String contentEnc = "001" + encrypt(contentJson, keys.ek);
-            String hash = createHash(contentEnc, keys.ak);
-            item.setAuthHash(hash);
-            item.setContent(contentEnc);
+            item.setContent(createContentEncrypted(contentJson, keys, version));
+            item.setAuthHash(createItemAuthHash(item.getContent(), keys.ak, version));
             return item;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private static String createContentEncrypted(String contentJson, Keys keys, String version) throws Exception {
+        if (version.equals("001")) {
+            return version + encrypt(contentJson, keys.ek, null);
+        } else if (version.equals("002")) {
+            String hexIv = generateKey(128);
+            String cipherText = encrypt(contentJson, keys.ek, hexIv);
+            String stringToAuth = version + ":" + hexIv + ":" + cipherText;
+            String authHash = createHash(stringToAuth, keys.ak);
+            return version + ":" + authHash + ":" + hexIv + ":" + cipherText;
+        }
+        throw new RuntimeException("Encryption version " + version + " not supported");
+    }
+
+    private static String createItemAuthHash(String contentEnc, String key, String version) throws Exception {
+        if (version.equals("001")) {
+            return createHash(contentEnc, key);
+        } else if (version.equals("002")) {
+            return null;
+        }
+        throw new RuntimeException("Encryption version " + version + " not supported");
     }
 
     private static List<Reference> generateReferences(Collection<EncryptableItem> items, ContentType type) {
@@ -321,19 +383,37 @@ public class Crypt {
 
                 if (item.getContent() != null) {
                     String contentJson;
-                    String contentWithoutType = item.getContent().substring(3);
-                    if (item.getContent().startsWith("000")) {
-                        contentJson = new String(Base64.decode(contentWithoutType, Base64.NO_PADDING), Charsets.UTF_8);
-                    } else {
-                        Keys keys = Crypt.getItemKeys(item);
+                    String version = item.getContent().substring(0, 3);
+                    String contentToDecrypt = item.getContent().substring(3);
+                    if (version.equals("000")) {
+                        contentJson = new String(Base64.decode(contentToDecrypt, Base64.NO_PADDING), Charsets.UTF_8);
+                    } else if (version.equals("001") || version.equals("002")) {
+                        Keys keys = Crypt.getItemKeys(item, version);
 
-                        // authenticate
-                        String hash = createHash(item.getContent(), keys.ak);
-                        if (!hash.equals(item.getAuthHash())) {
-                            throw new Exception("could not authenticate item");
+                        if (version.equals("002")) {
+                            String[] contentBits = contentToDecrypt.split(":");
+                            String authHash = contentBits[1];
+                            String ivHex = contentBits[2];
+                            String cipherText = contentBits[3];
+                            String stringToAuth = version + ":" + ivHex + ":" + cipherText;
+
+                            // authenticate
+                            String hash = createHash(stringToAuth, keys.ak);
+                            if (!hash.equals(authHash)) {
+                                throw new Exception("could not authenticate item");
+                            }
+
+                            contentJson = Crypt.decrypt(cipherText, keys.ek, ivHex);
+                        } else { // "001"
+                            // authenticate
+                            String hash = createHash(item.getContent(), keys.ak);
+                            if (!hash.equals(item.getAuthHash())) {
+                                throw new Exception("could not authenticate item");
+                            }
+                            contentJson = Crypt.decrypt(contentToDecrypt, keys.ek, null);
                         }
-
-                        contentJson = Crypt.decrypt(contentWithoutType, keys.ek);
+                    } else {
+                        throw new RuntimeException("Encryption version " + version + " not supported");
                     }
 
                     T thing = SApplication.Companion.getInstance().getGson().fromJson(contentJson, type);

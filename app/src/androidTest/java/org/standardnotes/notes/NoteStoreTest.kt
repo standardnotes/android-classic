@@ -155,7 +155,7 @@ class NoteStoreTest {
     }
 
     @Test
-    fun encrypt() {
+    fun encrypt001() {
         val mk = "96fbfbace17d0d268cc5a57900fe785e50a40cf7ae2d23a3dcdd2f28d5fd09d8"
         SApplication.instance.valueStore.setTokenAndMasterKey("", mk)
 
@@ -163,7 +163,30 @@ class NoteStoreTest {
         n.text = UUID.randomUUID().toString()
         n.title = UUID.randomUUID().toString()
 
-        val cn = Crypt.encrypt(n)
+        val cn = Crypt.encrypt(n, "001")
+        val n2 = Crypt.decryptNote(cn)
+        Assert.assertEquals(n.uuid, n2.uuid)
+        Assert.assertEquals(n.title, n2.title)
+        Assert.assertEquals(n.text, n2.text)
+        Assert.assertEquals(n.createdAt, n2.createdAt)
+        Assert.assertEquals(n.updatedAt, n2.updatedAt)
+
+    }
+
+    @Test
+    fun encrypt002() {
+        val mk = "96fbfbace17d0d268cc5a57900fe785e50a40cf7ae2d23a3dcdd2f28d5fd09d8"
+        SApplication.instance.valueStore.setTokenAndMasterKey("", mk)
+
+        val n = Note()
+        n.uuid = UUID.randomUUID().toString()
+        n.encItemKey = Crypt.generateEncryptedKey(512, "002")
+        n.createdAt = DateTime.now()
+        n.updatedAt = n.createdAt
+        n.text = UUID.randomUUID().toString()
+        n.title = UUID.randomUUID().toString()
+
+        val cn = Crypt.encrypt(n, "002")
         val n2 = Crypt.decryptNote(cn)
         Assert.assertEquals(n.uuid, n2.uuid)
         Assert.assertEquals(n.title, n2.title)
