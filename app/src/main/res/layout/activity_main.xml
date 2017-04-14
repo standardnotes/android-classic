@@ -46,7 +46,10 @@
         android:id="@+id/drawer"
         android:layout_gravity="start"
         android:layout_width="@dimen/drawer_width"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:itemTextColor="@color/drawer_item"
+        app:itemIconTint="@color/drawer_item"
+        >
 
     </android.support.design.widget.NavigationView>
 </android.support.v4.widget.DrawerLayout>
