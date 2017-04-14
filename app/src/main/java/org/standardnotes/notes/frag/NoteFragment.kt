@@ -182,6 +182,10 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
                 selectTags()
                 return true
             }
+            R.id.share -> {
+                shareNote()
+                return true
+            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -190,6 +194,15 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
         val intent = Intent(activity, TagListActivity::class.java)
         intent.putExtra(EXTRA_TAGS, SApplication.instance.gson.toJson(tags))
         startActivityForResult(intent, REQ_TAGS)
+    }
+
+    private fun shareNote() {
+        val intent = Intent()
+        intent.action = Intent.ACTION_SEND
+        intent.putExtra(Intent.EXTRA_TITLE, note.title)
+        intent.putExtra(Intent.EXTRA_TEXT, note.text)
+        intent.type = "text/plain"
+        startActivity(intent)
     }
 
     fun setSubtitle(res: Int) {
