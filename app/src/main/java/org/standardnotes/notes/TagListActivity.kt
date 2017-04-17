@@ -42,10 +42,10 @@ class TagListActivity : BaseActivity() {
         selectedTags = selectedTagsList.toSet()
         tags = app.noteStore.getAllTags(false)
 
-        list.adapter = Adapter()
-        list.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        list_tag.adapter = Adapter()
+        list_tag.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
-        fab.setOnClickListener {
+        fab_new_tag.setOnClickListener {
             val layout = LayoutInflater.from(this).inflate(R.layout.view_new_tag, null, false)
             val input = layout.findViewById(R.id.tag) as EditText
             val dialog = AlertDialog.Builder(this).setTitle(R.string.prompt_new_tag)
@@ -57,7 +57,7 @@ class TagListActivity : BaseActivity() {
                         app.noteStore.putTag(newTag.uuid, newTag)
                         SyncManager.sync()
                         tags = app.noteStore.getAllTags(false)
-                        list.adapter.notifyDataSetChanged()
+                        list_tag.adapter.notifyDataSetChanged()
                     })
                     .setView(layout)
                     .show()

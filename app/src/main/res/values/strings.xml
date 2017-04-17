@@ -62,5 +62,6 @@
     <string name="title_share_file">Share File</string>
     <string name="title_delete_confirm">Confirm delete</string>
     <string name="prompt_are_you_sure">Are you sure?</string>
+    <string name="new_note">New Note</string>
 
 </resources>

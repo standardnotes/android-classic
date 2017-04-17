@@ -15,7 +15,7 @@ class StarterActivity : AppCompatActivity() {
             if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
                 var text = intent.getStringExtra(Intent.EXTRA_TEXT)
                 if (text != null) {
-                    val intent = Intent(this, NoteActivity::class.java)
+                    val intent = Intent(this, MainActivity::class.java)
                     intent.putExtra(EXTRA_TEXT, text)
                     startActivity(intent)
                 }
