@@ -1,7 +1,5 @@
 package org.standardnotes.notes
 
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
@@ -12,9 +10,7 @@ import android.view.MotionEvent
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.comms.SyncManager
-import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.frag.NoteListFragment
-import org.standardnotes.notes.widget.NoteListWidget
 
 class MainActivity : BaseActivity(), SyncManager.SyncListener {
 
@@ -28,20 +24,13 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
     override fun onSyncCompleted() {
         updateTagsMenu() // Update tags list
         noteListFragment().refreshNotesForTag(selectedTagId) // Update notes in fragment
-        updateWidgts()
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
         outState!!.putString("tag", selectedTagId)
     }
-    fun updateWidgts() {
-        val intent = Intent(this, NoteListWidget::class.java)
-        intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-        val ids = AppWidgetManager.getInstance(this).getAppWidgetIds(ComponentName(this, NoteListWidget::class.java))
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-        this.sendBroadcast(intent)
-    }
+
 
     private lateinit var drawerToggle: ActionBarDrawerToggle
     private var selectedTagId = ""
@@ -116,7 +105,6 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         selected.isChecked = true
         toolbar.subtitle = selected.title
         selectedTagId = selectedId // In case selected tag wasn't found in list
-        updateWidgts()
     }
 
     override fun onResume() {

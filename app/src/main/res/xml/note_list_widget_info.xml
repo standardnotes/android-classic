@@ -2,8 +2,11 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:initialKeyguardLayout="@layout/widget_note_list"
     android:initialLayout="@layout/widget_note_list"
-    android:minHeight="40dp"
+    android:minResizeHeight="40dp"
+    android:minResizeWidth="100dp"
+    android:minHeight="80dp"
     android:minWidth="180dp"
+
     android:previewImage="@drawable/appwidget_preview"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="86400000"

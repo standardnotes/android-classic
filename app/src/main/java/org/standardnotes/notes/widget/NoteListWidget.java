@@ -42,7 +42,7 @@ public class NoteListWidget extends AppWidgetProvider {
         PendingIntent pendingIntentstart = PendingIntent.getActivity(context, 0, intentstart, 0);
         remoteViews.setOnClickPendingIntent(R.id.start_app, pendingIntentstart);
 
-        //Intetn for new Note Button
+        //Intent for new Note Button
         Intent intentnew = new Intent(context, NoteActivity.class);
         intentnew.setAction(Intent.ACTION_SEND);
         intentnew.setType("text/plain");
@@ -56,6 +56,7 @@ public class NoteListWidget extends AppWidgetProvider {
         Intent startActivityIntent = new Intent(context, NoteActivity.class);
         startActivityIntent.setAction(Intent.ACTION_SEND);
         startActivityIntent.setType("text/plain");
+        startActivityIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Close previous note activity if already open
         PendingIntent startActivityPendingIntent = PendingIntent.getActivity(context, iUniqueId+10, startActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteViews.setPendingIntentTemplate(R.id.noteListView, startActivityPendingIntent);
 
