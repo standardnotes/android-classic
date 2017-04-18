@@ -5,12 +5,13 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/drawer_layout">
+        android:id="@+id/drawer_layout"
+        android:fitsSystemWindows="true">
     <android.support.design.widget.CoordinatorLayout
             android:id="@+id/rootView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
+            android:fitsSystemWindows="false"
             tools:context="org.standardnotes.notes.MainActivity">
 
         <android.support.design.widget.AppBarLayout
@@ -46,7 +47,10 @@
         android:id="@+id/drawer"
         android:layout_gravity="start"
         android:layout_width="@dimen/drawer_width"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:itemTextColor="@color/drawer_item"
+        app:itemIconTint="@color/drawer_item"
+        >
 
     </android.support.design.widget.NavigationView>
 </android.support.v4.widget.DrawerLayout>
