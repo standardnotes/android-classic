@@ -63,4 +63,12 @@
     <string name="title_delete_confirm">Confirm delete</string>
     <string name="prompt_are_you_sure">Are you sure?</string>
 
+	<!-- String related to widget -->
+	<string name="empty">empty</string>
+    <string name="start">Start</string>
+    <string name="add">+</string>
+
+    <!-- String related to sharing -->
+    <string name="action_share">Share</string>
+
 </resources>

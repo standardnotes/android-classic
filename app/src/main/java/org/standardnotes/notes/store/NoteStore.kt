@@ -1,6 +1,9 @@
 package org.standardnotes.notes.store
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.ContentValues
+import android.content.Intent
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
@@ -8,6 +11,7 @@ import org.joda.time.DateTime
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.*
+import org.standardnotes.notes.widget.NoteListWidget
 import java.util.*
 
 val CURRENT_DB_VERSION: Int = 1
@@ -65,7 +69,6 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
     }
 
-
     @Synchronized fun putNote(uuid: String, item: Note?) {
         val db = writableDatabase
 
@@ -83,6 +86,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             }
             db.setTransactionSuccessful()
         }
+        updateWidgets()
     }
 
     @Synchronized fun putTag(uuid: String, item: Tag?) {
@@ -409,6 +413,15 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         close()
         SApplication.instance.deleteDatabase("note")
     }
+
+    fun updateWidgets() {
+        val intent = Intent(SApplication.instance, NoteListWidget::class.java)
+        intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+        val ids = AppWidgetManager.getInstance(SApplication.instance).getAppWidgetIds(ComponentName(SApplication.instance, NoteListWidget::class.java))
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+        SApplication.instance.sendBroadcast(intent)
+    }
+
 }
 
 private fun EncryptedItem.isValid(): Boolean {

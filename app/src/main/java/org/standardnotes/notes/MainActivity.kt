@@ -10,7 +10,6 @@ import android.view.MotionEvent
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.view_navigation_header.view.*
 import org.standardnotes.notes.comms.SyncManager
-import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.frag.NoteListFragment
 
 class MainActivity : BaseActivity(), SyncManager.SyncListener {
@@ -31,6 +30,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         super.onSaveInstanceState(outState)
         outState!!.putString("tag", selectedTagId)
     }
+
 
     private lateinit var drawerToggle: ActionBarDrawerToggle
     private var selectedTagId = ""
