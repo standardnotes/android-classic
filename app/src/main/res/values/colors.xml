@@ -3,6 +3,6 @@
     <color name="colorPrimary">#F44336</color>
     <color name="colorPrimaryDark">#D32F2F</color>
     <color name="colorPrimaryLight">#FFCDD2</color>
-    <color name="colorAccent">#448AFF</color>
+    <color name="colorAccent">#F44336</color>
     <color name="feint_gray">#cccccc</color>
 </resources>
