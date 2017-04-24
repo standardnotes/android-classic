@@ -33,6 +33,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     var notes = ArrayList<Note>()
     var tagId = ""
+    var searchText: String? = null
 
     var currentSnackbar: Snackbar? = null
 
@@ -50,6 +51,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         super.onCreate(savedInstanceState)
         if (savedInstanceState != null) {
             tagId = savedInstanceState.getString("tagId")
+            searchText = savedInstanceState.getString("search")
         }
     }
 
@@ -79,12 +81,13 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onResume() {
         super.onResume()
-        refreshNotesForTag() // This is too often and slow for large datasets, but necessary until we have an event to trigger refresh
+        refreshNotes() // This is too often and slow for large datasets, but necessary until we have an event to trigger refresh
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("tagId", tagId)
+        outState.putString("search", searchText)
     }
 
     override fun onSyncStarted() {
@@ -97,18 +100,27 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         currentSnackbar?.dismiss()
     }
 
-    fun refreshNotesForTag(uuid: String? = null) {
-        if (uuid == null) { // In-place refresh after delete
-            refreshNotesForTag(tagId)
+    fun refreshNotes(uuid: String? = null, search: String? = null) {
+        if (search == "") { // not null, but empty
+            notes = ArrayList()
+            searchText = search
+            adapter.notifyDataSetChanged()
             return
         }
-        val noteList = if (TextUtils.isEmpty(uuid))
+        if (uuid == null) { // In-place refresh after delete
+            refreshNotes(tagId, searchText)
+            return
+        }
+        val noteList = if (search != null)
+            SApplication.instance.noteStore.getNotesWithText(search)
+        else if (TextUtils.isEmpty(uuid))
             SApplication.instance.noteStore.getAllNotes()
         else
             SApplication.instance.noteStore.getNotesForTag(uuid)
         notes = ArrayList(noteList)
         adapter.notifyDataSetChanged()
         tagId = uuid // Save for future use
+        searchText = search
     }
 
     override fun onSyncFailed() {
@@ -168,7 +180,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
                             .setMessage(R.string.prompt_are_you_sure)
                             .setPositiveButton(R.string.action_delete, { dialogInterface, i ->
                                 SApplication.instance.noteStore.deleteItem(note!!.uuid)
-                                refreshNotesForTag()
+                                refreshNotes()
                                 SyncManager.sync()
                             })
                             .setNegativeButton(R.string.action_cancel, null)

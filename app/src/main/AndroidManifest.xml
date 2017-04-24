@@ -15,11 +15,14 @@
         <activity android:name=".StarterActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
@@ -32,8 +35,8 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".NoteActivity"
-            android:windowSoftInputMode="stateHidden|adjustResize"
-            android:theme="@style/AppTheme.NoActionBar.Transparent"/>
+            android:theme="@style/AppTheme.NoActionBar.Transparent"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
         <activity
             android:name=".TagListActivity"
             android:label="@string/title_tags" />
@@ -65,10 +68,12 @@
                 android:resource="@xml/note_list_widget_info" />
         </receiver>
 
-
         <service
             android:name=".widget.AppWidgetRefreshService"
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <activity android:name=".SearchActivity"></activity>
     </application>
+
 </manifest>

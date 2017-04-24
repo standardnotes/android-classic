@@ -23,7 +23,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
 
     override fun onSyncCompleted() {
         updateTagsMenu() // Update tags list
-        noteListFragment().refreshNotesForTag(selectedTagId) // Update notes in fragment
+        noteListFragment().refreshNotes(selectedTagId, null) // Update notes in fragment
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -82,7 +82,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
                 drawer_layout.closeDrawers()
                 selectedTagId = uuid
                 updateTagsMenu()
-                noteListFragment().refreshNotesForTag(selectedTagId)
+                noteListFragment().refreshNotes(selectedTagId, null)
                 return@setOnMenuItemClickListener true
             }
         }
@@ -134,11 +134,12 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (drawerToggle!!.onOptionsItemSelected(item))
+        if (drawerToggle.onOptionsItemSelected(item))
             return true
         else
             when (item?.itemId) {
                 R.id.settings -> startActivity(Intent(this, SettingsActivity::class.java))
+                R.id.search-> startActivity(Intent(this, SearchActivity::class.java))
                 R.id.debug -> startActivity(Intent(this, DebugActivity::class.java))
             }
         return true

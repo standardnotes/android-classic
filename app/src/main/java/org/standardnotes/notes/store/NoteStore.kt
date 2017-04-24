@@ -249,6 +249,34 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         }
     }
 
+
+    fun getNotesWithText(search: String): List<Note> {
+        val db = readableDatabase
+        val cur = db.rawQuery("SELECT n.*, e.* FROM $TABLE_NOTE n" +
+                " INNER JOIN $TABLE_ENCRYPTABLE e ON n.$KEY_UUID=e.$KEY_UUID" +
+                " WHERE n.$KEY_TITLE LIKE '%$search%' COLLATE NOCASE" +
+                " OR n.$KEY_TEXT LIKE '%$search%' COLLATE NOCASE",
+                null)
+        cur.use {
+            val items = ArrayList<Note>(cur.count)
+            while (cur.moveToNext()) {
+                val note = Note()
+                note.uuid = cur.getString(cur.getColumnIndex(KEY_UUID))
+                note.title = cur.getString(cur.getColumnIndex(KEY_TITLE))
+                note.text = cur.getString(cur.getColumnIndex(KEY_TEXT))
+                note.dirty = cur.getInt(cur.getColumnIndex(KEY_DIRTY)) == 1
+                note.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
+                note.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
+                note.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
+                note.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
+                items.add(note)
+            }
+            items.sortByDescending { it.updatedAt }
+            return items
+        }
+    }
+
     fun getAllTags(forNoteUuid: String?, fetchReferences: Boolean, justDirty: Boolean): List<Tag> {
         val db = readableDatabase
         val cur = if (forNoteUuid == null) {
@@ -421,6 +449,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
         SApplication.instance.sendBroadcast(intent)
     }
+
 
 }
 
