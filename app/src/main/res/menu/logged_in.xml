@@ -10,8 +10,8 @@
 
     <item
         android:id="@+id/search"
-        android:icon="@android:drawable/ic_menu_search"
-        android:title="Search"
+        android:icon="@drawable/ic_magnify"
+        android:title="@string/search"
         app:showAsAction="ifRoom" />
 
     <item

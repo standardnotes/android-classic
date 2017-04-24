@@ -9,8 +9,8 @@ android {
         applicationId "org.standardnotes.notes"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 10100
-        versionName "1.1.0"
+        versionCode 10200
+        versionName "1.2.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "SERVER_DEFAULT", "\"https://n3.standardnotes.org/\""
     }
@@ -100,7 +100,6 @@ dependencies {
     compile 'com.madgag.spongycastle:pg:1.54.0.0'
     compile 'net.danlew:android.joda:2.9.4.1'
     compile 'ch.acra:acra:4.9.2'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
 }
 repositories {

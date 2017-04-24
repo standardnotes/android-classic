@@ -32,7 +32,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
     val adapter: Adapter by lazy { Adapter() }
 
     var notes = ArrayList<Note>()
-    var tagId = ""
+    var tagId: String? = null
     var searchText: String? = null
 
     var currentSnackbar: Snackbar? = null
@@ -100,28 +100,35 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         currentSnackbar?.dismiss()
     }
 
-    fun refreshNotes(uuid: String? = null, search: String? = null) {
-        if (search == "") { // not null, but empty
+    fun refreshNotesForSearch(search: String?) {
+        tagId = null
+        searchText = search
+        if (search.isNullOrEmpty()) { // Don't show anything without search term
             notes = ArrayList()
-            searchText = search
-            adapter.notifyDataSetChanged()
-            return
+        } else {
+            notes = ArrayList(SApplication.instance.noteStore.getNotesWithText(search!!))
         }
-        if (uuid == null) { // In-place refresh after delete
-            refreshNotes(tagId, searchText)
-            return
-        }
-        val noteList = if (search != null)
-            SApplication.instance.noteStore.getNotesWithText(search)
-        else if (TextUtils.isEmpty(uuid))
+        adapter.notifyDataSetChanged()
+    }
+
+    fun refreshNotesForTag(uuid: String? = null) {
+        searchText = null
+        val noteList = if (uuid.isNullOrEmpty())
             SApplication.instance.noteStore.getAllNotes()
         else
-            SApplication.instance.noteStore.getNotesForTag(uuid)
+            SApplication.instance.noteStore.getNotesForTag(uuid!!)
         notes = ArrayList(noteList)
+        tagId = uuid
         adapter.notifyDataSetChanged()
-        tagId = uuid // Save for future use
-        searchText = search
     }
+
+    fun refreshNotes() {
+        if (tagId != null)
+            refreshNotesForTag(tagId)
+        else
+            refreshNotesForSearch(searchText)
+    }
+
 
     override fun onSyncFailed() {
         swipeRefreshLayout.isRefreshing = false

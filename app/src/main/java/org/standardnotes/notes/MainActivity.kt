@@ -23,7 +23,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
 
     override fun onSyncCompleted() {
         updateTagsMenu() // Update tags list
-        noteListFragment().refreshNotes(selectedTagId, null) // Update notes in fragment
+        noteListFragment().refreshNotesForTag(selectedTagId) // Update notes in fragment
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -82,7 +82,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
                 drawer_layout.closeDrawers()
                 selectedTagId = uuid
                 updateTagsMenu()
-                noteListFragment().refreshNotes(selectedTagId, null)
+                noteListFragment().refreshNotesForTag(selectedTagId)
                 return@setOnMenuItemClickListener true
             }
         }
