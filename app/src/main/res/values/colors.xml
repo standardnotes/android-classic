@@ -2,8 +2,7 @@
 <resources>
     <color name="colorPrimary">#F44336</color>
     <color name="colorPrimaryDark">#D32F2F</color>
-    <color name="colorAccent">#448AFF</color>
+    <color name="colorPrimaryLight">#FFCDD2</color>
+    <color name="colorAccent">#F44336</color>
     <color name="feint_gray">#cccccc</color>
-    <color name="offWhite">#f0f0f0</color>
-    <color name="drawer_top_bg">#ffebee</color>
 </resources>

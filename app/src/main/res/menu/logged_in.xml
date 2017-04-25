@@ -5,8 +5,14 @@
     <item
         android:id="@+id/debug"
         android:title="Debug"
-        app:showAsAction="ifRoom"
-        android:visible="false" />
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/search"
+        android:icon="@drawable/ic_magnify"
+        android:title="@string/search"
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/settings"

@@ -137,11 +137,12 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (drawerToggle!!.onOptionsItemSelected(item))
+        if (drawerToggle.onOptionsItemSelected(item))
             return true
         else
             when (item?.itemId) {
                 R.id.settings -> startActivity(Intent(this, SettingsActivity::class.java))
+                R.id.search-> startActivity(Intent(this, SearchActivity::class.java))
                 R.id.debug -> startActivity(Intent(this, DebugActivity::class.java))
             }
         return true

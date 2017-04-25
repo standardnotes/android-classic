@@ -8,7 +8,6 @@
     <string name="prompt_confirm_password">Confirm Password</string>
     <string name="action_sign_in">Sign in</string>
     <string name="action_register">Register</string>
-    <string name="action_sign_out">Sign Out</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_ok">OK</string>
@@ -66,12 +65,13 @@
     <string name="title_delete_confirm">Confirm delete</string>
     <string name="prompt_are_you_sure">Are you sure?</string>
 
-	<!-- String related to widget -->
-	<string name="empty">empty</string>
+    <!-- String related to widget -->
+    <string name="empty">empty</string>
     <string name="start">Start</string>
     <string name="add">+</string>
 
     <!-- String related to sharing -->
     <string name="action_share">Share</string>
+    <string name="search">Search</string>
 
 </resources>

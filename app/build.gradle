@@ -9,8 +9,8 @@ android {
         applicationId "org.standardnotes.notes"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 10100
-        versionName "1.1.0"
+        versionCode 10200
+        versionName "1.2.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "SERVER_DEFAULT", "\"https://n3.standardnotes.org/\""
     }
@@ -53,7 +53,7 @@ android {
         unitTests.all {
             testLogging {
                 events "passed", "skipped", "failed", "standardOut", "standardError"
-                outputs.upToDateWhen {false}
+                outputs.upToDateWhen { false }
                 showStandardStreams = true
             }
         }
@@ -81,6 +81,13 @@ dependencies {
     compile "com.android.support:recyclerview-v7:$android_support"
     compile "com.android.support:preference-v7:$android_support"
     compile "com.android.support:preference-v14:$android_support"
+
+    androidTestCompile 'com.android.support.test.espresso:espresso-contrib:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.android.support', module: 'support-v4'
+        exclude group: 'com.android.support', module: 'design'
+        exclude group: 'com.android.support', module: 'recyclerview-v7'
+    }
     compile 'org.glassfish:javax.annotation:10.0-b28'
     compile 'com.google.code.gson:gson:2.8.0'
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
@@ -93,14 +100,7 @@ dependencies {
     compile 'com.madgag.spongycastle:pg:1.54.0.0'
     compile 'net.danlew:android.joda:2.9.4.1'
     compile 'ch.acra:acra:4.9.2'
-
     testCompile 'junit:junit:4.12'
-    androidTestCompile 'com.android.support.test.espresso:espresso-contrib:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-        exclude group: 'com.android.support', module: 'support-v4'
-        exclude group: 'com.android.support', module: 'design'
-        exclude group: 'com.android.support', module: 'recyclerview-v7'
-    }
 }
 repositories {
     mavenCentral()

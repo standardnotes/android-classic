@@ -1,5 +1,6 @@
 package org.standardnotes.notes.frag
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -32,7 +33,8 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
     val adapter: Adapter by lazy { Adapter() }
 
     var notes = ArrayList<Note>()
-    var tagId = ""
+    var tagId: String? = null
+    var searchText: String? = null
 
     var currentSnackbar: Snackbar? = null
 
@@ -50,6 +52,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         super.onCreate(savedInstanceState)
         if (savedInstanceState != null) {
             tagId = savedInstanceState.getString("tagId")
+            searchText = savedInstanceState.getString("search")
         }
     }
 
@@ -79,12 +82,13 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
 
     override fun onResume() {
         super.onResume()
-        refreshNotesForTag() // This is too often and slow for large datasets, but necessary until we have an event to trigger refresh
+        refreshNotes() // This is too often and slow for large datasets, but necessary until we have an event to trigger refresh
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("tagId", tagId)
+        outState.putString("search", searchText)
     }
 
     override fun onSyncStarted() {
@@ -97,19 +101,35 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
         currentSnackbar?.dismiss()
     }
 
-    fun refreshNotesForTag(uuid: String? = null) {
-        if (uuid == null) { // In-place refresh after delete
-            refreshNotesForTag(tagId)
-            return
+    fun refreshNotesForSearch(search: String?) {
+        tagId = null
+        searchText = search
+        if (search.isNullOrEmpty()) { // Don't show anything without search term
+            notes = ArrayList()
+        } else {
+            notes = ArrayList(SApplication.instance.noteStore.getNotesWithText(search!!))
         }
-        val noteList = if (TextUtils.isEmpty(uuid))
+        adapter.notifyDataSetChanged()
+    }
+
+    fun refreshNotesForTag(uuid: String? = null) {
+        searchText = null
+        val noteList = if (uuid.isNullOrEmpty())
             SApplication.instance.noteStore.getAllNotes()
         else
-            SApplication.instance.noteStore.getNotesForTag(uuid)
+            SApplication.instance.noteStore.getNotesForTag(uuid!!)
         notes = ArrayList(noteList)
+        tagId = uuid
         adapter.notifyDataSetChanged()
-        tagId = uuid // Save for future use
     }
+
+    fun refreshNotes() {
+        if (tagId != null)
+            refreshNotesForTag(tagId)
+        else
+            refreshNotesForSearch(searchText)
+    }
+
 
     override fun onSyncFailed() {
         swipeRefreshLayout.isRefreshing = false
