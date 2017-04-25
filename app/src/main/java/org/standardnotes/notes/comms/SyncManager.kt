@@ -55,6 +55,7 @@ object SyncManager {
     }
 
     @Synchronized fun sync() {
+        if (!SApplication.instance.valueStore.isSignedIn()) return
 
         val existingCall = syncCall
         if (existingCall != null && !existingCall.isCanceled) {
@@ -79,10 +80,8 @@ object SyncManager {
         syncCall = SApplication.instance.comms.api.sync(uploadSyncItems)
         syncCall?.enqueue(object : Callback<SyncItems> {
             override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {
-
                 if (response.isSuccessful) {
                     val putItemErrors = SApplication.instance.noteStore.putItems(response.body())
-
                     if (putItemErrors.isEmpty()) {
                         iter = syncListeners.iterator()
                         while (iter.hasNext()) {

@@ -9,9 +9,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.widget.RemoteViews;
 
+import org.standardnotes.notes.MainActivity;
 import org.standardnotes.notes.NoteActivity;
 import org.standardnotes.notes.R;
-import org.standardnotes.notes.StarterActivity;
 
 
 public class NoteListWidget extends AppWidgetProvider {
@@ -38,7 +38,7 @@ public class NoteListWidget extends AppWidgetProvider {
         remoteViews.setEmptyView(R.id.noteListView, R.id.empty_view);
 
         //intent for App Start Button
-        Intent intentstart = new Intent(context, StarterActivity.class);
+        Intent intentstart = new Intent(context, MainActivity.class);
         PendingIntent pendingIntentstart = PendingIntent.getActivity(context, 0, intentstart, 0);
         remoteViews.setOnClickPendingIntent(R.id.start_app, pendingIntentstart);
 

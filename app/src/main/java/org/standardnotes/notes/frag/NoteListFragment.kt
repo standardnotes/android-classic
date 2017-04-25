@@ -19,6 +19,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.frag_note_list.*
 import kotlinx.android.synthetic.main.item_note.view.*
 import org.joda.time.format.DateTimeFormat
+import org.standardnotes.notes.BuildConfig
 import org.standardnotes.notes.NoteActivity
 import org.standardnotes.notes.R
 import org.standardnotes.notes.SApplication
@@ -181,17 +182,31 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
             itemView.setOnLongClickListener {
                 val popup = PopupMenu(activity, itemView)
                 popup.menu.add(activity.getString(R.string.action_delete))
-                popup.setOnMenuItemClickListener {
-                    AlertDialog.Builder(activity)
-                            .setTitle(R.string.title_delete_confirm)
-                            .setMessage(R.string.prompt_are_you_sure)
-                            .setPositiveButton(R.string.action_delete, { dialogInterface, i ->
-                                SApplication.instance.noteStore.deleteItem(note!!.uuid)
-                                refreshNotes()
-                                SyncManager.sync()
-                            })
-                            .setNegativeButton(R.string.action_cancel, null)
-                            .show()
+                if (BuildConfig.DEBUG) popup.menu.add("Note Info")
+                popup.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.title) {
+                        activity.getString(R.string.action_delete) -> {
+                            AlertDialog.Builder(activity)
+                                    .setTitle(R.string.title_delete_confirm)
+                                    .setMessage(R.string.prompt_are_you_sure)
+                                    .setPositiveButton(R.string.action_delete, { dialogInterface, i ->
+                                        SApplication.instance.noteStore.deleteItem(note!!.uuid)
+                                        refreshNotesForTag()
+                                        SyncManager.sync()
+                                    })
+                                    .setNegativeButton(R.string.action_cancel, null)
+                                    .show()
+                        }
+                        "Note Info" -> {
+                            AlertDialog.Builder(activity)
+                                    .setTitle(note!!.title)
+                                    .setMessage("UUID: " + note!!.uuid + "\n\n" +
+                                            "encItemKey: " + note!!.encItemKey + "\n\n" +
+                                            "Dirty: " + note!!.dirty.toString())
+                                    .setNegativeButton(android.R.string.ok, null)
+                                    .show()
+                        }
+                    }
                     true
                 }
                 popup.show()

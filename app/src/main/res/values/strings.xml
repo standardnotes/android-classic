@@ -7,11 +7,14 @@
     <string name="prompt_password">Password</string>
     <string name="prompt_confirm_password">Confirm Password</string>
     <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_out">Sign Out</string>
     <string name="action_register">Register</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_ok">OK</string>
+    <string name="action_account">Tap here to sign in and enable sync</string>
     <string name="registration_confirmation">Note that because your notes are encrypted on your device using your password, Standard Notes does not have a password reset option. You cannot forget your password.</string>
+    <string name="sign_out_confirmation">Note that because your notes are encrypted on your device using your password, you will not be able to access your notes after signing out. You can access notes that have been synced again by signing in with the same credentials you used previously.</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>

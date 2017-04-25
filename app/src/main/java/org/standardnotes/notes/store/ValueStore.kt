@@ -15,6 +15,10 @@ class ValueStore(context: Context) {
         prefs.edit().putString("masterKey", mk).putString("token", token).apply()
     }
 
+    fun isSignedIn(): Boolean {
+        return masterKey != null
+    }
+
     val masterKey: String?
         get() = prefs.getString("masterKey", null)
 

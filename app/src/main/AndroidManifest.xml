@@ -12,31 +12,25 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".StarterActivity">
+        <activity android:name=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".LoginActivity"
+            android:name=".AccountActivity"
             android:label="@string/app_name" />
-        <activity
-            android:name=".MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".NoteActivity"
             android:theme="@style/AppTheme.NoActionBar.Transparent"
-            android:windowSoftInputMode="stateHidden|adjustResize" />
+            android:windowSoftInputMode="stateHidden|adjustResize"/>
         <activity
             android:name=".TagListActivity"
             android:label="@string/title_tags" />
@@ -68,6 +62,7 @@
                 android:resource="@xml/note_list_widget_info" />
         </receiver>
 
+
         <service
             android:name=".widget.AppWidgetRefreshService"
             android:exported="false"
@@ -75,5 +70,4 @@
 
         <activity android:name=".SearchActivity"></activity>
     </application>
-
 </manifest>

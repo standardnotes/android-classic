@@ -5,13 +5,13 @@ import android.support.test.espresso.IdlingResource;
 public class ProgressIdlingResource implements IdlingResource {
 
     private IdlingResource.ResourceCallback resourceCallback;
-    private LoginActivity loginActivity;
-    private LoginActivity.ProgressListener progressListener;
+    private AccountActivity accountActivity;
+    private AccountActivity.ProgressListener progressListener;
 
-    public ProgressIdlingResource(LoginActivity activity){
-        loginActivity = activity;
+    public ProgressIdlingResource(AccountActivity activity){
+        accountActivity = activity;
 
-        progressListener = new LoginActivity.ProgressListener() {
+        progressListener = new AccountActivity.ProgressListener() {
 
             @Override
             public void onProgressShown() {
@@ -27,7 +27,7 @@ public class ProgressIdlingResource implements IdlingResource {
             }
         };
 
-        loginActivity.setProgressListener(progressListener);
+        accountActivity.setProgressListener(progressListener);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class ProgressIdlingResource implements IdlingResource {
 
     @Override
     public boolean isIdleNow() {
-        return !loginActivity.isInProgress();
+        return !accountActivity.isInProgress();
     }
 
     @Override
