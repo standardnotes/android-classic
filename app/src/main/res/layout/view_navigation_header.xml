@@ -1,40 +1,3 @@
-<<<<<<< HEAD
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/drawer_top_bg">
-    <LinearLayout
-        android:layout_weight="0"
-        android:orientation="horizontal"
-        android:id="@+id/main_account_title"
-        android:layout_width="match_parent"
-        android:layout_marginTop="96dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:clickable="true"
-        android:background="?android:attr/selectableItemBackground"
-        android:layout_height="56dp">
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="0dp"
-            android:layout_gravity="center_vertical"
-            android:layout_weight="1"
-            android:layout_height="wrap_content">
-            <TextView
-                android:id="@+id/main_account_email"
-                style="@style/AppTheme.DrawerEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-            <TextView
-                android:id="@+id/main_account_server"
-                style="@style/AppTheme.DrawerServer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-    </LinearLayout>
-
-=======
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -69,6 +32,4 @@
                 android:layout_height="wrap_content"/>
         </LinearLayout>
     </LinearLayout>
-
->>>>>>> 0b16469cba09050d36ea4fe8c2cec70190401a95
 </FrameLayout>
