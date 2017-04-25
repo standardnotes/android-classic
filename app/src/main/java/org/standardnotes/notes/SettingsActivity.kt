@@ -10,7 +10,6 @@ import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_settings.*
 import org.standardnotes.notes.comms.ExportUtil
-import org.standardnotes.notes.comms.SyncManager
 
 class SettingsActivity : BaseActivity() {
 
@@ -24,7 +23,6 @@ class SettingsActivity : BaseActivity() {
                 SettingsFragment()).commit()
         export.setOnClickListener { exportData() }
         feedback.setOnClickListener { startFeedbackIntent() }
-        logout.setOnClickListener { logout() }
         version.text = "v" + packageManager.getPackageInfo(packageName, 0).versionName
     }
 
@@ -70,14 +68,6 @@ class SettingsActivity : BaseActivity() {
         }
 
     }
-
-    private fun logout() {
-        SApplication.instance.clearData()
-        SyncManager.stopSyncTimer()
-        startActivity(Intent(this, StarterActivity::class.java))
-        finishAffinity()
-    }
-
 
     class SettingsFragment : PreferenceFragmentCompat() {
 

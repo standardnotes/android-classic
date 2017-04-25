@@ -7,6 +7,7 @@ import android.content.Intent
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 import org.joda.time.DateTime
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt

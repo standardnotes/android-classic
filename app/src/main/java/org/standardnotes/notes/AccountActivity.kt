@@ -12,9 +12,10 @@ import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView.OnEditorActionListener
 import android.widget.Toast
-import kotlinx.android.synthetic.main.activity_login.*
+import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.android.synthetic.main.view_password_confirm.view.*
 import org.standardnotes.notes.comms.Crypt
+import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.AuthParamsResponse
 import org.standardnotes.notes.comms.data.SigninResponse
 import org.standardnotes.notes.store.ValueStore
@@ -22,8 +23,25 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class LoginActivity : AppCompatActivity() {
+class AccountActivity : AppCompatActivity() {
 
+    val syncListener: SyncManager.SyncListener by lazy {
+        object:SyncManager.SyncListener {
+            override fun onSyncStarted() {
+
+            }
+
+            override fun onSyncCompleted() {
+                SyncManager.unsubscribe(this)
+                startActivity(Intent(this@AccountActivity, MainActivity::class.java))
+                finish()
+            }
+
+            override fun onSyncFailed() {
+                // TODO: notify user something happened
+            }
+        }
+    }
     var progressListener: ProgressListener? = null
 
     interface ProgressListener {
@@ -41,21 +59,23 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        setContentView(R.layout.activity_account)
+
+        setButtonVisibility()
 
         val signInCallback: Callback<SigninResponse> = object : Callback<SigninResponse> {
             override fun onResponse(call: Call<SigninResponse>, response: Response<SigninResponse>) {
                 if (response.isSuccessful) {
-                    startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                    finish()
+                    SyncManager.subscribe(syncListener)
+                    SyncManager.sync()
                 } else {
-                    Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@AccountActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                 }
                 hideProgress()
             }
 
             override fun onFailure(call: Call<SigninResponse>, t: Throwable) {
-                Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
+                Toast.makeText(this@AccountActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                 hideProgress()
             }
         }
@@ -64,34 +84,34 @@ class LoginActivity : AppCompatActivity() {
             try {
                 showProgress()
                 SApplication.instance.valueStore.server = server.text.toString()
-                SApplication.instance.clearData() // should be clear but ensure
+                // SApplication.instance.clearData() // should be clear but ensure
                 SApplication.instance.resetComms()
                 SApplication.instance.comms.api.getAuthParamsForEmail(email.text.toString()).enqueue(object : Callback<AuthParamsResponse> {
                     override fun onResponse(call: Call<AuthParamsResponse>, response: Response<AuthParamsResponse>) {
                         try {
                             val params = response.body()
                             if (!Crypt.isParamsSupported(params)) {
-                                Toast.makeText(this@LoginActivity, getString(R.string.error_unsupported_algorithm, params.getPwAlg()), Toast.LENGTH_LONG).show();
+                                Toast.makeText(this@AccountActivity, getString(R.string.error_unsupported_algorithm, params.getPwAlg()), Toast.LENGTH_LONG).show();
                                 hideProgress()
                                 return
                             }
                             Crypt.doLogin(email.text.toString(), password.text.toString(), params, signInCallback)
-                            ValueStore(this@LoginActivity).authParams = params
+                            ValueStore(this@AccountActivity).authParams = params
                         } catch (e: Exception) {
-                            Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
+                            Toast.makeText(this@AccountActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                             e.printStackTrace()
                         }
 
                     }
 
                     override fun onFailure(call: Call<AuthParamsResponse>, t: Throwable) {
-                        Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@AccountActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                         hideProgress()
                     }
                 })
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
+                Toast.makeText(this@AccountActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                 hideProgress()
             }
         }
@@ -100,9 +120,21 @@ class LoginActivity : AppCompatActivity() {
                 showSignUpDialog(View.inflate(this, R.layout.view_password_confirm, null), signInCallback)
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
+                Toast.makeText(this@AccountActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                 hideProgress()
             }
+        }
+
+        signOutButton.setOnClickListener {
+            AlertDialog.Builder(this)
+                    .setMessage(R.string.sign_out_confirmation)
+                    .setNegativeButton(R.string.action_cancel, null)
+                    .setPositiveButton(R.string.action_ok, { d, i ->
+                        signOut()
+                        startActivity(Intent(this@AccountActivity, MainActivity::class.java))
+                        finishAffinity()
+                    })
+                    .show()
         }
 
         password.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
@@ -136,7 +168,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun showSignUpDialog(view : View, signInCallback : Callback<SigninResponse>) {
         SApplication.instance.valueStore.server = server.text.toString()
-        SApplication.instance.clearData() // should be clear but ensure
+        // SApplication.instance.clearData() // should be clear but ensure
         SApplication.instance.resetComms()
 
         val dialog = AlertDialog.Builder(this)
@@ -149,7 +181,7 @@ class LoginActivity : AppCompatActivity() {
                         showProgress()
                         Crypt.doRegister(email.text.toString(), password.text.toString(), signInCallback)
                     } else {
-                        Toast.makeText(this@LoginActivity, R.string.error_passwords_mismatch, Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@AccountActivity, R.string.error_passwords_mismatch, Toast.LENGTH_LONG).show()
                     }
                 })
                 .show()
@@ -206,5 +238,23 @@ class LoginActivity : AppCompatActivity() {
         notifyListener()
     }
 
+    private fun setButtonVisibility() {
+        val signedIn = SApplication.instance.valueStore.isSignedIn()
+        sign_up.visibility = if (signedIn) View.GONE else View.VISIBLE
+        email_sign_in_button.visibility = if (signedIn) View.GONE else View.VISIBLE
+        signOutButton.visibility = if (signedIn) View.VISIBLE else View.GONE
+
+        server.isEnabled = !signedIn
+        email.isEnabled = !signedIn
+        email.setText(if (signedIn) SApplication.instance.valueStore.email else "")
+        password.isEnabled = !signedIn
+    }
+
+    private fun signOut() {
+        SApplication.instance.clearData()
+        SApplication.instance.valueStore.email = null
+        SApplication.instance.valueStore.server = null
+        SyncManager.stopSyncTimer()
+    }
 }
 

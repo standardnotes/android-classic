@@ -40,7 +40,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
     val SYNC_DELAY = 500L
     val syncHandler: Handler = Handler()
     val syncRunnable: Runnable = Runnable {
-        if (saveNote()) {
+        if (saveNote() && SApplication.instance.valueStore.isSignedIn()) {
             SyncManager.sync()
         }
     }
@@ -278,7 +278,7 @@ fun newNote(): Note {
     // Move to a factory
     val note = Note()
     note.uuid = UUID.randomUUID().toString()
-    note.encItemKey = Crypt.generateEncryptedKey(512, Crypt.ENCRYPTION_VERSION)
+    // note.encItemKey = Crypt.generateEncryptedKey(512, Crypt.ENCRYPTION_VERSION)
     note.createdAt = DateTime.now()
     note.updatedAt = note.createdAt
     return note

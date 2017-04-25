@@ -51,8 +51,11 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         supportActionBar?.setHomeButtonEnabled(true)
         val header = drawer.inflateHeaderView(R.layout.view_navigation_header)
         val values = SApplication.instance.valueStore
-        header.main_account_server.text = values.server
-        header.main_account_email.text = values.email
+        header.main_account_email.text = if (values.isSignedIn()) values.email else getString(R.string.action_account)
+        header.main_account_server.text = if (values.isSignedIn()) values.server else ""
+        header.main_account_title.setOnClickListener {
+            startActivity(Intent(this@MainActivity, AccountActivity::class.java))
+        }
 
         title = getString(R.string.app_name)
 

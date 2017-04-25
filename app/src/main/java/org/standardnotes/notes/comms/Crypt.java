@@ -222,6 +222,8 @@ public class Crypt {
     }
 
     public static String encrypt(String text, String hexKey, String hexIv) throws Exception {
+        if (!SApplication.Companion.getInstance().getValueStore().isSignedIn()) return text;
+
         Cipher ecipher = Cipher.getInstance(AES_CBC_PKCS5_PADDING);
         byte[] key = Hex.decode(hexKey);
         SecretKey sks = new SecretKeySpec(key, AES);
@@ -255,6 +257,16 @@ public class Crypt {
 
     public static EncryptedItem encrypt(EncryptableItem thing, String version) {
         try {
+            if (thing.getEncItemKey() == null) {
+                // The encrypt method won't be called unless the user is signed in, so it's safe to generate the key for this thing
+                thing.setEncItemKey(generateEncryptedKey(512, Crypt.ENCRYPTION_VERSION));
+                if (thing instanceof Note) {
+                    SApplication.Companion.getInstance().getNoteStore().putNote(thing.getUuid(), (Note) thing);
+                } else if (thing instanceof Tag) {
+                    SApplication.Companion.getInstance().getNoteStore().putTag(thing.getUuid(), (Tag) thing);
+                }
+            }
+
             EncryptedItem item = new EncryptedItem();
             copyInEncryptableItemFields(thing, item);
             String contentJson = null;
