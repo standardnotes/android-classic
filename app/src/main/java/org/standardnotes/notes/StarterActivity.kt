@@ -11,11 +11,14 @@ class StarterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         if (SApplication.instance.valueStore.token != null) {
-            startActivity(Intent(this, MainActivity::class.java))
+            val mainIntent = Intent(this, MainActivity::class.java)
+            mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            startActivity(mainIntent)
             if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
                 var text = intent.getStringExtra(Intent.EXTRA_TEXT)
                 if (text != null) {
                     val intent = Intent(this, NoteActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                     intent.putExtra(EXTRA_TEXT, text)
                     startActivity(intent)
                 }

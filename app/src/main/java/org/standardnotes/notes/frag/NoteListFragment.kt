@@ -32,7 +32,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
     val adapter: Adapter by lazy { Adapter() }
 
     var notes = ArrayList<Note>()
-    var tagId: String? = null
+    var tagId: String? = ""
     var searchText: String? = null
 
     var currentSnackbar: Snackbar? = null
