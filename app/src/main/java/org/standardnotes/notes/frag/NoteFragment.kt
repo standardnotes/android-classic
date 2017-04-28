@@ -199,8 +199,7 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
     private fun shareNote() {
         val intent = Intent()
         intent.action = Intent.ACTION_SEND
-        intent.putExtra(Intent.EXTRA_TITLE, note.title)
-        intent.putExtra(Intent.EXTRA_TEXT, note.text)
+        intent.putExtra(Intent.EXTRA_TEXT, note.title + "\n" + note.text)
         intent.type = "text/plain"
         startActivity(intent)
     }
