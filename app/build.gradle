@@ -9,8 +9,8 @@ android {
         applicationId "org.standardnotes.notes"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 10200
-        versionName "1.2.0"
+        versionCode 10201
+        versionName "1.2.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "SERVER_DEFAULT", "\"https://n3.standardnotes.org/\""
     }
