@@ -29,6 +29,7 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.closeSoftKeyboard;
+import static android.support.test.espresso.action.ViewActions.longClick;
 import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.action.ViewActions.scrollTo;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
@@ -220,8 +221,22 @@ public class StarterActivityTest {
                 allOf(withId(R.id.tag), isDisplayed())).perform(replaceText("tag2"), closeSoftKeyboard());
         onView(
                 allOf(withId(android.R.id.button1), withText("OK"))).perform(scrollTo(), click());
+        onView(withId(R.id.fab)).perform(click());
+        onView(
+                allOf(withId(R.id.tag), isDisplayed())).perform(replaceText("tag3"), closeSoftKeyboard());
+        onView(
+                allOf(withId(android.R.id.button1), withText("OK"))).perform(scrollTo(), click());
         onView(
                 withText("tag1")).perform(click());
+        onView(
+                withText("tag3")).perform(click());
+        onView(
+                withText("tag3")).perform(longClick());
+        onView(
+                allOf(isDisplayed(), withText("Delete"))).perform(click()); // context menu
+        onView(
+                allOf(isDisplayed(), withText("Delete"))).perform(click()); // popup
+        onView(withText("tag3")).check(doesNotExist());
 
         pressBack();
 
@@ -247,6 +262,7 @@ public class StarterActivityTest {
                 withText("tag1")).perform(click()); // deselect
         onView(
                 withText("tag2")).perform(click()); // select
+        onView(withText("tag3")).check(doesNotExist());
         pressBack();
         onView(withText("tag2")).check(matches(isDisplayed()));
         onView(withText("tag1")).check(doesNotExist());
