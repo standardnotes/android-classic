@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.RecyclerView
 import android.text.Editable
 import android.text.TextWatcher
@@ -40,7 +41,7 @@ class TagListActivity : BaseActivity() {
                 if (savedInstanceState == null) intent.getStringExtra(EXTRA_TAGS) else savedInstanceState.getString(EXTRA_TAGS),
                 listType)
         selectedTags = selectedTagsList.toSet()
-        tags = app.noteStore.getAllTags(false)
+        tags = getUndeletedTags()
 
         list.adapter = Adapter()
         list.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
@@ -56,7 +57,7 @@ class TagListActivity : BaseActivity() {
                         newTag.dirty = true
                         app.noteStore.putTag(newTag.uuid, newTag)
                         SyncManager.sync()
-                        tags = app.noteStore.getAllTags(false)
+                        tags = getUndeletedTags()
                         list.adapter.notifyDataSetChanged()
                     })
                     .setView(layout)
@@ -118,7 +119,35 @@ class TagListActivity : BaseActivity() {
             }
         private val title: CheckBox = itemView.findViewById(R.id.title) as CheckBox
 
+        init {
+            itemView.setOnLongClickListener {
+                val popup = PopupMenu(this@TagListActivity, itemView)
+                popup.menu.add(getString(R.string.action_delete))
+                val tagIdToDelete = tag!!.uuid // possible for view's assigned note to change while popup is displayed if sync happens!
+                popup.setOnMenuItemClickListener {
+                    AlertDialog.Builder(this@TagListActivity)
+                            .setTitle(R.string.title_delete_confirm)
+                            .setMessage(R.string.prompt_are_you_sure)
+                            .setPositiveButton(R.string.action_delete, { dialogInterface, i ->
+                                SApplication.instance.noteStore.deleteItem(tagIdToDelete)
+                                tags = getUndeletedTags()
+                                val remainingTagIds = tags.map { it.uuid }
+                                selectedTags = selectedTags.filter { remainingTagIds.contains(it.uuid) }.toSet() // remove any selected and deleted tags
+                                list.adapter.notifyDataSetChanged()
+                                SyncManager.sync()
+                            })
+                            .setNegativeButton(R.string.action_cancel, null)
+                            .show()
+                    true
+                }
+                popup.show()
+                true
+            }
+        }
+
     }
+
+    private fun getUndeletedTags() = app.noteStore.getAllTags(false).filter { !it.deleted }
 
     inner class Adapter : RecyclerView.Adapter<TagHolder>() {
 
