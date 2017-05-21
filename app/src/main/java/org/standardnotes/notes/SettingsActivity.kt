@@ -24,6 +24,12 @@ class SettingsActivity : BaseActivity() {
                 SettingsFragment()).commit()
         export.setOnClickListener { exportData() }
         feedback.setOnClickListener { startFeedbackIntent() }
+        learnMore.setOnClickListener {
+            val url = "https://standardnotes.org/"
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.data = Uri.parse(url)
+            startActivity(intent)
+        }
         logout.setOnClickListener { logout() }
         version.text = "v" + packageManager.getPackageInfo(packageName, 0).versionName
     }
