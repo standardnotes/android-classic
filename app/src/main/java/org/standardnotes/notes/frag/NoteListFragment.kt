@@ -181,12 +181,13 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
             itemView.setOnLongClickListener {
                 val popup = PopupMenu(activity, itemView)
                 popup.menu.add(activity.getString(R.string.action_delete))
+                val noteIdToDelete = note!!.uuid // possible for view's assigned note to change while popup is displayed if sync happens!
                 popup.setOnMenuItemClickListener {
                     AlertDialog.Builder(activity)
                             .setTitle(R.string.title_delete_confirm)
                             .setMessage(R.string.prompt_are_you_sure)
                             .setPositiveButton(R.string.action_delete, { dialogInterface, i ->
-                                SApplication.instance.noteStore.deleteItem(note!!.uuid)
+                                SApplication.instance.noteStore.deleteItem(noteIdToDelete)
                                 refreshNotes()
                                 SyncManager.sync()
                             })
