@@ -25,19 +25,6 @@
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-                <EditText
-                    android:id="@+id/server"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/prompt_server"
-                    android:inputType="textUri"
-                    android:maxLines="1"
-                    android:nextFocusDown="@+id/email" />
-            </android.support.design.widget.TextInputLayout>
-
-            <android.support.design.widget.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
 
                 <AutoCompleteTextView
                     android:id="@+id/email"
@@ -47,7 +34,7 @@
                     android:inputType="textEmailAddress"
                     android:maxLines="1"
                     android:imeOptions="actionNext"
-                    android:nextFocusDown="@+id/confirm_password" />
+                    android:nextFocusDown="@+id/password" />
 
             </android.support.design.widget.TextInputLayout>
 
@@ -66,6 +53,27 @@
                     android:inputType="textPassword"
                     android:maxLines="1" />
 
+            </android.support.design.widget.TextInputLayout>
+
+            <TextView
+                android:id="@+id/advancedPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:text="@string/advanced_options_button"/>
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/advancedChild"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+                <EditText
+                    android:id="@+id/server"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/prompt_server"
+                    android:inputType="textUri"
+                    android:maxLines="1"/>
             </android.support.design.widget.TextInputLayout>
 
             <Button

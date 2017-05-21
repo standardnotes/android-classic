@@ -2,12 +2,15 @@ package org.standardnotes.notes
 
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.graphics.Paint
 import android.os.Bundle
+import android.support.transition.TransitionManager
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView.OnEditorActionListener
@@ -112,6 +115,12 @@ class LoginActivity : AppCompatActivity() {
             }
             false
         })
+
+        advancedPanel.setOnClickListener( {
+            TransitionManager.beginDelayedTransition(advancedChild.parent as ViewGroup)
+            advancedChild.visibility = if (advancedChild.visibility == View.GONE) View.VISIBLE else View.GONE
+        })
+        advancedPanel.paintFlags = advancedPanel.paintFlags or Paint.UNDERLINE_TEXT_FLAG
 
         val textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
