@@ -61,6 +61,9 @@ object SyncManager {
             existingCall.cancel()
         }
 
+        if (SApplication.instance.valueStore.token == null)
+            return // Not logged in, sync impossible
+
         var iter = syncListeners.iterator()
         while (iter.hasNext()) {
             val listening = iter.next()

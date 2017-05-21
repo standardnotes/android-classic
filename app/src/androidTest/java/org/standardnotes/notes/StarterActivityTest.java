@@ -107,7 +107,7 @@ public class StarterActivityTest {
         actionMenuItemView.perform(click());
 
         ViewInteraction appCompatButton = onView(
-                allOf(withId(R.id.logout), withText("Sign out")));
+                allOf(withId(R.id.logout)));
         appCompatButton.perform(scrollTo(), click());
     }
 

@@ -36,4 +36,8 @@ class ValueStore(context: Context) {
     var authParams: AuthParamsResponse?
         get() { return SApplication.instance!!.gson.fromJson(prefs.getString("authParams", null), object : TypeToken<AuthParamsResponse>() {}.type) }
         set(value) { prefs.edit().putString("authParams", SApplication.instance!!.gson.toJson(value)).apply() }
+
+    fun clear() {
+        prefs.edit().clear().apply()
+    }
 }

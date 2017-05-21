@@ -51,8 +51,7 @@ class SApplication : Application() {
     }
 
     fun clearData() {
-        valueStore.setTokenAndMasterKey(null, null)
-        valueStore.authParams = null
+        valueStore.clear()
         noteStore.deleteAll()
     }
 

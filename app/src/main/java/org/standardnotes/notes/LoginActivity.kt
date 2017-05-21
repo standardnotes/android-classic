@@ -67,7 +67,6 @@ class LoginActivity : AppCompatActivity() {
             try {
                 showProgress()
                 SApplication.instance.valueStore.server = server.text.toString()
-                SApplication.instance.clearData() // should be clear but ensure
                 SApplication.instance.resetComms()
                 SApplication.instance.comms.api.getAuthParamsForEmail(email.text.toString()).enqueue(object : Callback<AuthParamsResponse> {
                     override fun onResponse(call: Call<AuthParamsResponse>, response: Response<AuthParamsResponse>) {
@@ -145,7 +144,6 @@ class LoginActivity : AppCompatActivity() {
 
     private fun showSignUpDialog(view : View, signInCallback : Callback<SigninResponse>) {
         SApplication.instance.valueStore.server = server.text.toString()
-        SApplication.instance.clearData() // should be clear but ensure
         SApplication.instance.resetComms()
 
         val dialog = AlertDialog.Builder(this)

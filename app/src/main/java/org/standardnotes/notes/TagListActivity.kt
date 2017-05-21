@@ -170,7 +170,6 @@ class TagListActivity : BaseActivity() {
         // Move to a factory
         val tag = Tag()
         tag.uuid = UUID.randomUUID().toString()
-        tag.encItemKey = Crypt.generateEncryptedKey(512, Crypt.ENCRYPTION_VERSION)
         tag.createdAt = DateTime.now()
         tag.updatedAt = tag.createdAt
         return tag

@@ -44,15 +44,20 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        drawerToggle = ActionBarDrawerToggle(this, drawer_layout,  R.string.app_name, R.string.app_name)
+        drawerToggle = ActionBarDrawerToggle(this, drawer_layout, R.string.app_name, R.string.app_name)
         drawer_layout.addDrawerListener(drawerToggle!!)
         drawerToggle.isDrawerIndicatorEnabled = true
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeButtonEnabled(true)
         val header = drawer.inflateHeaderView(R.layout.view_navigation_header)
         val values = SApplication.instance.valueStore
-        header.main_account_server.text = values.server
-        header.main_account_email.text = values.email
+        if (values.token != null) {
+            header.main_account_server.text = values.server
+            header.main_account_email.text = values.email
+        } else {
+            header.main_account_server.text = getText(R.string.not_logged_in)
+            header.main_account_email.text = ""
+        }
 
         title = getString(R.string.app_name)
 

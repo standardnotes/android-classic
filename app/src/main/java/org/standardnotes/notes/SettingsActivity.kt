@@ -5,8 +5,10 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.NavUtils
+import android.support.v7.app.AlertDialog
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_settings.*
 import org.standardnotes.notes.comms.ExportUtil
@@ -30,7 +32,18 @@ class SettingsActivity : BaseActivity() {
             intent.data = Uri.parse(url)
             startActivity(intent)
         }
-        logout.setOnClickListener { logout() }
+        logout.setOnClickListener {
+            AlertDialog.Builder(this)
+                    .setTitle(R.string.action_logout)
+                    .setMessage(R.string.prompt_are_you_sure)
+                    .setPositiveButton(R.string.action_delete, { dialogInterface, i ->
+                        logout()
+                    })
+                    .setNegativeButton(R.string.action_cancel, null)
+                    .show()
+        }
+        login.visibility = if (app.valueStore.token == null) View.VISIBLE else View.GONE
+        login.setOnClickListener { startActivity(Intent(this, LoginActivity::class.java)) }
         version.text = "v" + packageManager.getPackageInfo(packageName, 0).versionName
     }
 

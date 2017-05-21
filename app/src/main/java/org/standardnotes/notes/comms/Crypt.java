@@ -362,11 +362,13 @@ public class Crypt {
         return bytesToHex(sha1hash);
     }
 
-    static void copyInEncryptableItemFields(EncryptableItem source, EncryptableItem target) {
+    static void copyInEncryptableItemFields(EncryptableItem source, EncryptableItem target) throws Exception {
         target.setUuid(source.getUuid());
         target.setCreatedAt(source.getCreatedAt());
         target.setUpdatedAt(source.getUpdatedAt());
         target.setEncItemKey(source.getEncItemKey());
+        if (target.getEncItemKey() == null)
+            target.setEncItemKey(Crypt.generateEncryptedKey(512, Crypt.ENCRYPTION_VERSION));
         target.setPresentationName(source.getPresentationName());
         target.setDeleted(source.getDeleted());
     }
