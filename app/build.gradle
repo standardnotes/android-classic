@@ -34,13 +34,15 @@ android {
             }
         }
     }
+    flavorDimensions "runmethod"
     productFlavors {
         normal {
-
+            dimension "runmethod"
         }
         emulatortest {
             applicationId "org.standardnotes.notes.buildfortest"
             buildConfigField "String", "SERVER_DEFAULT", "\"https://stagingapi.standardnotes.org/\""
+            dimension "runmethod"
         }
     }
     sourceSets {
