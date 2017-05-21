@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.preference.PreferenceManager
 import android.support.v4.app.Fragment
+import android.support.v4.app.ShareCompat
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
@@ -197,10 +198,11 @@ class NoteFragment : Fragment(), SyncManager.SyncListener {
     }
 
     private fun shareNote() {
-        val intent = Intent()
-        intent.action = Intent.ACTION_SEND
-        intent.putExtra(Intent.EXTRA_TEXT, note.title + "\n" + note.text)
-        intent.type = "text/plain"
+        val intent = ShareCompat.IntentBuilder
+                .from(activity)
+                .setType("text/plain")
+                .setText(note.title + "\n" + note.text)
+                .intent
         startActivity(intent)
     }
 
