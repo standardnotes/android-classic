@@ -5,7 +5,8 @@
         <CheckBoxPreference
             android:key="enable_screenshots"
             android:defaultValue="false"
-            android:title="@string/action_toggle_screenshots" />
+            android:title="@string/action_toggle_screenshots"
+            android:summary="Screenshots can be disabled to improve security"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/settings_category_ui">
         <CheckBoxPreference

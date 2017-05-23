@@ -71,7 +71,7 @@ object SyncManager {
                 iter.remove()
                 Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
             } else {
-                listening.get().onSyncStarted()
+                listening.get()!!.onSyncStarted()
             }
         }
 
@@ -94,7 +94,7 @@ object SyncManager {
                                 iter.remove()
                                 Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
                             } else {
-                                listening.get().onSyncCompleted()
+                                listening.get()!!.onSyncCompleted()
                             }
                         }
 
@@ -118,7 +118,7 @@ object SyncManager {
                         iter.remove()
                         Log.w(TAG, "SyncListener is null, you may be missing a call to unsubscribe()")
                     } else {
-                        listening.get().onSyncFailed()
+                        listening.get()!!.onSyncFailed()
                     }
                 }
 
