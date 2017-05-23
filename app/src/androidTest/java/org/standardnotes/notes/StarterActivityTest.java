@@ -109,6 +109,8 @@ public class StarterActivityTest {
         ViewInteraction appCompatButton = onView(
                 allOf(withId(R.id.logout)));
         appCompatButton.perform(scrollTo(), click());
+        onView(
+                allOf(withId(android.R.id.button1), withText("Delete"))).perform(click());
     }
 
     @Test
@@ -278,6 +280,7 @@ public class StarterActivityTest {
 
         pressBack();
     }
+
 
     @Test
     public void openCloseOpenClose() {

@@ -37,9 +37,11 @@ android {
     flavorDimensions "runmethod"
     productFlavors {
         normal {
+            resValue "string", "app_name", "Notes"
             dimension "runmethod"
         }
         emulatortest {
+            resValue "string", "app_name", "Notes (staging)"
             applicationId "org.standardnotes.notes.buildfortest"
             buildConfigField "String", "SERVER_DEFAULT", "\"https://stagingapi.standardnotes.org/\""
             dimension "runmethod"
