@@ -45,7 +45,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         setSupportActionBar(toolbar)
 
         drawerToggle = ActionBarDrawerToggle(this, drawer_layout, R.string.app_name, R.string.app_name)
-        drawer_layout.addDrawerListener(drawerToggle!!)
+        drawer_layout.addDrawerListener(drawerToggle)
         drawerToggle.isDrawerIndicatorEnabled = true
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeButtonEnabled(true)
@@ -54,9 +54,15 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
         if (values.token != null) {
             header.main_account_server.text = values.server
             header.main_account_email.text = values.email
+            header.main_account_title.setOnClickListener {
+                startActivity(Intent(this, SettingsActivity::class.java))
+            }
         } else {
             header.main_account_server.text = getText(R.string.not_logged_in)
             header.main_account_email.text = ""
+            header.main_account_title.setOnClickListener {
+                startActivity(Intent(this, LoginActivity::class.java))
+            }
         }
 
         title = getString(R.string.app_name)

@@ -21,7 +21,7 @@
 
     <!-- Strings related to menu if user is logged in -->
     <string name="action_logout">Sign out &amp; delete local data</string>
-    <string name="not_logged_in">Not signed in, local only</string>
+    <string name="not_logged_in">Sign in or register to your free private account to enable sync and encryption.</string>
     <string name="action_settings">Settings</string>
     <string name="action_toggle_screenshots">Enable Screenshots</string>
     <string name="action_toggle_monospace">Use Monospace font for notes</string>

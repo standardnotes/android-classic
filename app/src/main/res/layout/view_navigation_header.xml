@@ -4,9 +4,9 @@
     android:layout_height="wrap_content"
     android:background="@color/colorPrimaryLight">
     <LinearLayout
+        android:id="@+id/main_account_title"
         android:layout_weight="0"
         android:orientation="horizontal"
-        android:id="@+id/main_account_title"
         android:layout_width="match_parent"
         android:layout_marginTop="96dp"
         android:paddingStart="16dp"
