@@ -320,12 +320,21 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     @Synchronized fun deleteItem(uuid: String) {
         val db = writableDatabase
         db.transact {
-            db.update(TABLE_ENCRYPTABLE,
+            val loggedIn = SApplication.instance.valueStore.token != null
+            if (loggedIn)
+                db.update(TABLE_ENCRYPTABLE,
                     ContentValues().apply {
                         put(KEY_DELETED, true)
                         put(KEY_DIRTY, true)
                     },
                     "$KEY_UUID=?", arrayOf(uuid))
+            else { // Purge from the database if we're not logged in, no need to wait and sync
+                db.delete(TABLE_ENCRYPTABLE, "$KEY_UUID=?", arrayOf(uuid))
+                db.delete(TABLE_TAG, "$KEY_UUID=?", arrayOf(uuid))
+                db.delete(TABLE_NOTE, "$KEY_UUID=?", arrayOf(uuid))
+                db.delete(TABLE_NOTE_TAG, "$KEY_NOTE_UUID=?", arrayOf(uuid))
+                db.delete(TABLE_NOTE_TAG, "$KEY_TAG_UUID=?", arrayOf(uuid))
+            }
             db.setTransactionSuccessful()
         }
     }
