@@ -157,7 +157,7 @@ class NoteStoreTest {
     @Test
     fun encrypt001() {
         val mk = "96fbfbace17d0d268cc5a57900fe785e50a40cf7ae2d23a3dcdd2f28d5fd09d8"
-        SApplication.instance.valueStore.setTokenAndMasterKey("", mk)
+        SApplication.instance.valueStore.setTokenAndMasterKey("", mk, null)
 
         val n = newNote()
         n.text = UUID.randomUUID().toString()
@@ -176,11 +176,12 @@ class NoteStoreTest {
     @Test
     fun encrypt002() {
         val mk = "96fbfbace17d0d268cc5a57900fe785e50a40cf7ae2d23a3dcdd2f28d5fd09d8"
-        SApplication.instance.valueStore.setTokenAndMasterKey("", mk)
+        val ak = "f6fsfbacd17d0d268cc5a57900fe785e50a40cf7ae2d23a3dcdd2f28d5fd09d2"
+        SApplication.instance.valueStore.setTokenAndMasterKey("", mk, ak)
 
         val n = Note()
         n.uuid = UUID.randomUUID().toString()
-        n.encItemKey = Crypt.generateEncryptedKey(512, "002")
+        n.encItemKey = Crypt.generateEncryptedKey(512, "002", n.uuid)
         n.createdAt = DateTime.now()
         n.updatedAt = n.createdAt
         n.text = UUID.randomUUID().toString()
