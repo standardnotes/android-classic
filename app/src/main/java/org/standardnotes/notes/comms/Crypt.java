@@ -2,6 +2,7 @@ package org.standardnotes.notes.comms;
 
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
 import org.spongycastle.crypto.digests.SHA512Digest;
@@ -9,6 +10,7 @@ import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.util.encoders.Hex;
 import org.standardnotes.notes.BuildConfig;
+import org.standardnotes.notes.LoginActivity;
 import org.standardnotes.notes.SApplication;
 import org.standardnotes.notes.comms.data.AuthParamsResponse;
 import org.standardnotes.notes.comms.data.ContentType;
@@ -50,8 +52,6 @@ public class Crypt {
     private static ContentDecryptor<Note> noteDecryptor = new ContentDecryptor<>(Note.class);
     private static ContentDecryptor<Tag> tagDecryptor = new ContentDecryptor<>(Tag.class);
 
-    public static final String ENCRYPTION_VERSION = "001";
-
     @NotNull
     public static boolean isParamsSupported(AuthParamsResponse params) {
         return true;
@@ -71,6 +71,24 @@ public class Crypt {
                     String serverHashedPassword = fullHashedPassword.substring(0, splitLength);
                     final String mk = fullHashedPassword.substring(splitLength, splitLength * 2);
                     final String ak = fullHashedPassword.substring(splitLength * 2, splitLength * 3);
+
+                    String stringToAuth = String.format("%d:%s", params.getPwCost(), params.getPwSalt());
+                    String localAuth = createHash(stringToAuth, ak);
+
+                    if(params.getPwAuth().length() == 0) {
+                        // no pw_auth returned by server
+                        // TODO Show alert:
+                        // "Verification Tag Not Found"
+                        // "Cannot verify authenticity of server parameters. Please visit standardnotes.org/verification to learn more. Do you wish to continue login?"
+                        return;
+                    }
+
+                    if(!localAuth.equals(params.getPwAuth())) {
+                        // invalid parameters sent by server
+                        // TODO Show alert: "Invalid server verification tag; aborting login. Learn more at standardnotes.org/verification."
+                        return;
+                    }
+
                     SApplication.Companion.getInstance().getComms().getApi().signin(email, serverHashedPassword).enqueue(new Callback<SigninResponse>() {
                         @Override
                         public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
@@ -110,8 +128,12 @@ public class Crypt {
                     String serverHashedPassword = fullHashedPassword.substring(0, splitLength);
                     final String mk = fullHashedPassword.substring(splitLength, splitLength * 2);
                     final String ak = fullHashedPassword.substring(splitLength * 2, splitLength * 3);
+
+                    String stringToAuth = String.format("%d:%s", params.getPwCost(), params.getPwSalt());
+                    params.setPwAuth(createHash(stringToAuth, ak));
+
                     SApplication.Companion.getInstance().getComms().getApi().register(email, serverHashedPassword,
-                            params.getPwSalt(), params.getPwNonce(), params.getPwFunc(), params.getPwAlg(), params.getPwCost(), params.getPwKeySize()).enqueue(new Callback<SigninResponse>() {
+                            params.getPwSalt(), params.getPwAuth(), params.getPwCost()).enqueue(new Callback<SigninResponse>() {
                         @Override
                         public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
                             if (response.isSuccessful()) {
@@ -167,13 +189,6 @@ public class Crypt {
         String authKey = SApplication.Companion.getInstance().getValueStore().getAuthKey();
         return new Keys(masterKey, authKey);
     }
-
-//    private static Keys generate002KeysFromMasterKey() throws InvalidKeyException, NoSuchAlgorithmException {
-//        String masterKey = SApplication.Companion.getInstance().getValueStore().getMasterKey();
-//        String encryptionKey = createHash(masterKey, Hex.toHexString("e".getBytes()));
-//        String authKey = createHash(masterKey, Hex.toHexString("a".getBytes()));
-//        return new Keys(encryptionKey, authKey);
-//    }
 
     public static String generateEncryptedKey(int size, String version, String uuid) throws Exception {
         String itemKey = generateKey(size);
@@ -265,9 +280,10 @@ public class Crypt {
 
 
     public static EncryptedItem encrypt(EncryptableItem thing, String version) {
+        Log.d("Crypt", "Encrypting with version " + version);
         try {
             EncryptedItem item = new EncryptedItem();
-            copyInEncryptableItemFields(thing, item);
+            copyInEncryptableItemFields(thing, item, version);
             String contentJson = null;
             Keys keys = Crypt.getItemKeys(item, version);
             if (thing instanceof Note) {
@@ -373,13 +389,13 @@ public class Crypt {
         return bytesToHex(sha1hash);
     }
 
-    static void copyInEncryptableItemFields(EncryptableItem source, EncryptableItem target) throws Exception {
+    static void copyInEncryptableItemFields(EncryptableItem source, EncryptableItem target, String version) throws Exception {
         target.setUuid(source.getUuid());
         target.setCreatedAt(source.getCreatedAt());
         target.setUpdatedAt(source.getUpdatedAt());
         target.setEncItemKey(source.getEncItemKey());
         if (target.getEncItemKey() == null)
-            target.setEncItemKey(Crypt.generateEncryptedKey(512, Crypt.ENCRYPTION_VERSION, source.getUuid()));
+            target.setEncItemKey(Crypt.generateEncryptedKey(512, version, source.getUuid()));
         target.setPresentationName(source.getPresentationName());
         target.setDeleted(source.getDeleted());
     }
@@ -435,7 +451,7 @@ public class Crypt {
                     }
 
                     T thing = SApplication.Companion.getInstance().getGson().fromJson(contentJson, type);
-                    copyInEncryptableItemFields(item, thing);
+                    copyInEncryptableItemFields(item, thing, version);
                     return thing;
                 }
 
@@ -450,8 +466,7 @@ public class Crypt {
         AuthParamsResponse defaultAuthParams = new AuthParamsResponse();
         defaultAuthParams.setPwCost(60000);
         String nonce = generateKey(256);
-        defaultAuthParams.setPwNonce(nonce);
-        defaultAuthParams.setPwSalt(hashSha1(email + nonce));
+        defaultAuthParams.setPwSalt(hashSha1(email + ":" + nonce));
         return defaultAuthParams;
     }
 }

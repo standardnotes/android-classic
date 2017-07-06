@@ -72,11 +72,6 @@ class LoginActivity : AppCompatActivity() {
                     override fun onResponse(call: Call<AuthParamsResponse>, response: Response<AuthParamsResponse>) {
                         try {
                             val params = response.body()
-                            if (!Crypt.isParamsSupported(params)) {
-                                Toast.makeText(this@LoginActivity, getString(R.string.error_unsupported_algorithm, params.getPwAlg()), Toast.LENGTH_LONG).show();
-                                hideProgress()
-                                return
-                            }
                             Crypt.doLogin(email.text.toString(), password.text.toString(), params, signInCallback)
                             ValueStore(this@LoginActivity).authParams = params
                         } catch (e: Exception) {

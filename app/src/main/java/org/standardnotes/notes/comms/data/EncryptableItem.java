@@ -44,7 +44,7 @@ public class EncryptableItem {
     @SerializedName("references")
     @Expose
     private List<Reference> references = null;
-
+    
     /**
      * 
      * @return

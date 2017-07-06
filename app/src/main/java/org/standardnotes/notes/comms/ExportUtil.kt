@@ -23,9 +23,10 @@ object ExportUtil {
     }
 
     fun exportEncrypted(activity: Activity, listener: ExportListener?) {
+        val encryptionVersion = if (SApplication.instance.valueStore.authParams?.pwAuth != null) "002" else "001"
         val exportItems = ExportItems()
-        SApplication.instance!!.noteStore.notesList.map { Crypt.encrypt(it, Crypt.ENCRYPTION_VERSION) }.forEach { exportItems.items.add(it) }
-        SApplication.instance!!.noteStore.getAllTags(true).map { Crypt.encrypt(it, Crypt.ENCRYPTION_VERSION) }.forEach { exportItems.items.add(it) }
+        SApplication.instance!!.noteStore.notesList.map { Crypt.encrypt(it, encryptionVersion) }.forEach { exportItems.items.add(it) }
+        SApplication.instance!!.noteStore.getAllTags(true).map { Crypt.encrypt(it, encryptionVersion) }.forEach { exportItems.items.add(it) }
         exportItems.authParams = ValueStore(activity).authParams
 
         export(activity, exportItems, listener)
