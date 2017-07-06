@@ -152,7 +152,7 @@ class NoteListFragment : Fragment(), SyncManager.SyncListener {
             get
             set(value) {
                 field = value
-                itemView.title.text = note?.title
+                itemView.title.text = if (note?.errorDecrypting == true) "Error decrypting" else note?.title
                 itemView.date.text = DateTimeFormat.shortDateTime().print(note?.updatedAt)
                 var noteText = note?.text ?: ""
                 noteText = noteText.substring(0, Math.min(256, noteText.length))

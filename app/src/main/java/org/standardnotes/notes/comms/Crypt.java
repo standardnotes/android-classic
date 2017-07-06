@@ -75,15 +75,15 @@ public class Crypt {
                     String stringToAuth = String.format("%d:%s", params.getPwCost(), params.getPwSalt());
                     String localAuth = createHash(stringToAuth, ak);
 
-                    if(params.getPwAuth().length() == 0) {
+                    if(params.getPwAuth() == null) {
                         // no pw_auth returned by server
                         // TODO Show alert:
                         // "Verification Tag Not Found"
                         // "Cannot verify authenticity of server parameters. Please visit standardnotes.org/verification to learn more. Do you wish to continue login?"
-                        return;
+//                        return;
                     }
 
-                    if(!localAuth.equals(params.getPwAuth())) {
+                    else if(!localAuth.equals(params.getPwAuth())) {
                         // invalid parameters sent by server
                         // TODO Show alert: "Invalid server verification tag; aborting login. Learn more at standardnotes.org/verification."
                         return;
@@ -118,7 +118,7 @@ public class Crypt {
             @Override
             public void run() {
                 try {
-                    AuthParamsResponse params = Crypt.getDefaultAuthParams(email);
+                    final AuthParamsResponse params = Crypt.getDefaultAuthParams(email);
                     byte[] key = Crypt.generateKey(
                             password.getBytes(Charsets.UTF_8),
                             params.getPwSalt().getBytes(Charsets.UTF_8),
@@ -139,6 +139,7 @@ public class Crypt {
                             if (response.isSuccessful()) {
                                 SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk, ak);
                                 SApplication.Companion.getInstance().getValueStore().setEmail(email);
+                                SApplication.Companion.getInstance().getValueStore().setAuthParams(params);
                             }
                             callback.onResponse(call, response);
                         }
@@ -285,6 +286,7 @@ public class Crypt {
             EncryptedItem item = new EncryptedItem();
             copyInEncryptableItemFields(thing, item, version);
             String contentJson = null;
+            item.setEncItemKey(Crypt.generateEncryptedKey(512, version, item.getUuid()));
             Keys keys = Crypt.getItemKeys(item, version);
             if (thing instanceof Note) {
                 item.setContentType(ContentType.Note.toString());
@@ -396,7 +398,7 @@ public class Crypt {
         target.setEncItemKey(source.getEncItemKey());
         if (target.getEncItemKey() == null)
             target.setEncItemKey(Crypt.generateEncryptedKey(512, version, source.getUuid()));
-        target.setPresentationName(source.getPresentationName());
+        target.setErrorDecrypting(source.getErrorDecrypting());
         target.setDeleted(source.getDeleted());
     }
 
@@ -411,7 +413,7 @@ public class Crypt {
             try {
 
                 if (item.getContent() != null) {
-                    String contentJson;
+                    String contentJson = "{}";
                     String version = item.getContent().substring(0, 3);
                     String contentToDecrypt = item.getContent().substring(3);
                     if (version.equals("000")) {
@@ -428,21 +430,26 @@ public class Crypt {
                             String stringToAuth = version + ":" + uuid + ":" + ivHex + ":" + cipherText;
 
                             if(!uuid.equals(item.getUuid())) {
-                                throw new Exception("Could not authenticate item");
+                                item.setErrorDecrypting(true);
+                                // throw new Exception("Could not authenticate item");
+                            } else {
+                                // authenticate
+                                String hash = createHash(stringToAuth, keys.ak);
+                                if (!hash.equals(authHash)) {
+                                    item.setErrorDecrypting(true);
+                                    // throw new Exception("could not authenticate item");
+                                } else {
+                                    contentJson = Crypt.decrypt(cipherText, keys.ek, ivHex);
+                                }
                             }
 
-                            // authenticate
-                            String hash = createHash(stringToAuth, keys.ak);
-                            if (!hash.equals(authHash)) {
-                                throw new Exception("could not authenticate item");
-                            }
 
-                            contentJson = Crypt.decrypt(cipherText, keys.ek, ivHex);
                         } else { // "001"
                             // authenticate
                             String hash = createHash(item.getContent(), keys.ak);
                             if (!hash.equals(item.getAuthHash())) {
-                                throw new Exception("could not authenticate item");
+                                item.setErrorDecrypting(true);
+//                                throw new Exception("could not authenticate item");
                             }
                             contentJson = Crypt.decrypt(contentToDecrypt, keys.ek, null);
                         }

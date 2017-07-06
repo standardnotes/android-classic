@@ -44,8 +44,8 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     private val KEY_CREATED_AT = "CREATED"
     private val KEY_UPDATED_AT = "UPDATED"
     private val KEY_ENC_ITEM_KEY = "ENC_ITEM_KEY"
-    private val KEY_PRESENTATION_NAME = "PRESENTATION_NAME"
     private val KEY_DELETED = "DELETED"
+    private val KEY_ERROR_DECRYPTING = "ERROR_DECRYPTING"
     // also contains KEY_UUID
 
     private val TABLE_NOTE_TAG = "NOTE_TAG"
@@ -56,7 +56,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE $TABLE_NOTE ($KEY_UUID TEXT, $KEY_TITLE TEXT, $KEY_TEXT TEXT)")
         db.execSQL("CREATE TABLE $TABLE_TAG ($KEY_UUID TEXT, $KEY_TITLE TEXT)")
-        db.execSQL("CREATE TABLE $TABLE_ENCRYPTABLE ($KEY_UUID TEXT, $KEY_CREATED_AT INTEGER, $KEY_UPDATED_AT INTEGER, $KEY_ENC_ITEM_KEY TEXT, $KEY_PRESENTATION_NAME TEXT, $KEY_DELETED BOOLEAN, $KEY_DIRTY BOOLEAN)")
+        db.execSQL("CREATE TABLE $TABLE_ENCRYPTABLE ($KEY_UUID TEXT, $KEY_CREATED_AT INTEGER, $KEY_UPDATED_AT INTEGER, $KEY_ENC_ITEM_KEY TEXT, $KEY_ERROR_DECRYPTING BOOLEAN, $KEY_DELETED BOOLEAN, $KEY_DIRTY BOOLEAN)")
         db.execSQL("CREATE TABLE $TABLE_NOTE_TAG ($KEY_NOTE_UUID TEXT, $KEY_TAG_UUID TEXT)")
 
         db.execSQL("CREATE INDEX IDX_NOTE ON $TABLE_NOTE ($KEY_UUID)")
@@ -133,9 +133,9 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
             put(KEY_CREATED_AT, item.createdAt.millis)
             put(KEY_UPDATED_AT, item.updatedAt.millis)
             put(KEY_ENC_ITEM_KEY, item.encItemKey)
-            put(KEY_PRESENTATION_NAME, item.presentationName)
             put(KEY_DELETED, item.deleted)
             put(KEY_DIRTY, item.dirty)
+            put(KEY_ERROR_DECRYPTING, item.errorDecrypting)
         })
     }
 
@@ -161,7 +161,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 note.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
                 note.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
                 note.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
-                note.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                note.errorDecrypting = cur.getInt(cur.getColumnIndex(KEY_ERROR_DECRYPTING)) == 1
                 note.references = getReferences(db, note.uuid, ContentType.Tag)
                 items.add(note)
             }
@@ -213,7 +213,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 tag.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
                 tag.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
                 tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
-                tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                tag.errorDecrypting = cur.getInt(cur.getColumnIndex(KEY_ERROR_DECRYPTING)) == 1
                 tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
                 items.add(tag)
             }
@@ -240,7 +240,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 note.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
                 note.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
                 note.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
-                note.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                note.errorDecrypting = cur.getInt(cur.getColumnIndex(KEY_ERROR_DECRYPTING)) == 1
                 note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
                 items.add(note)
             }
@@ -268,7 +268,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 note.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
                 note.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
                 note.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
-                note.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                note.errorDecrypting = cur.getInt(cur.getColumnIndex(KEY_ERROR_DECRYPTING)) == 1
                 note.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
                 items.add(note)
             }
@@ -297,7 +297,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
                 tag.createdAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_CREATED_AT)))
                 tag.updatedAt = DateTime(cur.getLong(cur.getColumnIndex(KEY_UPDATED_AT)))
                 tag.encItemKey = cur.getString(cur.getColumnIndex(KEY_ENC_ITEM_KEY))
-                tag.presentationName = cur.getString(cur.getColumnIndex(KEY_PRESENTATION_NAME))
+                tag.errorDecrypting = cur.getInt(cur.getColumnIndex(KEY_ERROR_DECRYPTING)) == 1
                 tag.deleted = cur.getInt(cur.getColumnIndex(KEY_DELETED)) == 1
                 if (fetchReferences)
                     tag.references = getReferences(db, tag.uuid, ContentType.Note)
@@ -408,7 +408,7 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
 //    }
 
     private fun copyMetadataIntoOld(newNote: EncryptableItem, oldNote: EncryptableItem) {
-        oldNote.presentationName = newNote.presentationName
+        oldNote.errorDecrypting = newNote.errorDecrypting
         oldNote.createdAt = newNote.createdAt
         oldNote.updatedAt = newNote.updatedAt
         oldNote.dirty = false // We're saving so we can clear the dirty flag
