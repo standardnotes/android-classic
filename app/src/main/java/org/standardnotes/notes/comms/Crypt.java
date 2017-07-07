@@ -559,7 +559,7 @@ public class Crypt {
 
     public static AuthParamsResponse getDefaultAuthParams(String email) throws Exception {
         AuthParamsResponse defaultAuthParams = new AuthParamsResponse();
-        defaultAuthParams.setPwCost(1000);
+        defaultAuthParams.setPwCost(60000);
         String nonce = generateKey(256);
         defaultAuthParams.setPwSalt(hashSha1(email + ":" + nonce));
         return defaultAuthParams;
