@@ -67,7 +67,7 @@ class NoteStoreTest {
         ns.mergeNote(changedNote.uuid, changedNote)
         val mergedNote = ns.getNote(changedNote.uuid)
         Assert.assertEquals(oldTitle, mergedNote!!.title)
-        Assert.assertEquals(n.text, mergedNote!!.text)
+        Assert.assertEquals(n.text, mergedNote.text)
         Assert.assertEquals(changedNote.updatedAt, mergedNote.updatedAt)
 
     }

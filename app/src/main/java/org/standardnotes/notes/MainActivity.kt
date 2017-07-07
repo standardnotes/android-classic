@@ -37,7 +37,7 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState != null && savedInstanceState?.containsKey("tag")) {
+        if (savedInstanceState != null && savedInstanceState.containsKey("tag")) {
             selectedTagId = savedInstanceState.getString("tag")
         }
 
@@ -159,12 +159,12 @@ class MainActivity : BaseActivity(), SyncManager.SyncListener {
 
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
-        drawerToggle?.syncState()
+        drawerToggle.syncState()
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
-        drawerToggle?.syncState()
+        drawerToggle.syncState()
     }
 
 }

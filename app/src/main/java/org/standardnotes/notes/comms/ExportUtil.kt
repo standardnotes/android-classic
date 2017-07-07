@@ -25,8 +25,8 @@ object ExportUtil {
     fun exportEncrypted(activity: Activity, listener: ExportListener?) {
         val encryptionVersion = if (SApplication.instance.valueStore.authParams?.pwAuth != null) "002" else "001"
         val exportItems = ExportItems()
-        SApplication.instance!!.noteStore.notesList.map { Crypt.encrypt(it, encryptionVersion) }.forEach { exportItems.items.add(it) }
-        SApplication.instance!!.noteStore.getAllTags(true).map { Crypt.encrypt(it, encryptionVersion) }.forEach { exportItems.items.add(it) }
+        SApplication.instance.noteStore.notesList.map { Crypt.encrypt(it, encryptionVersion) }.forEach { exportItems.items.add(it) }
+        SApplication.instance.noteStore.getAllTags(true).map { Crypt.encrypt(it, encryptionVersion) }.forEach { exportItems.items.add(it) }
         exportItems.authParams = ValueStore(activity).authParams
 
         export(activity, exportItems, listener)
@@ -34,8 +34,8 @@ object ExportUtil {
 
     fun exportDecrypted(activity: Activity, listener: ExportListener?) {
         val exportItems = ExportItems()
-        SApplication.instance!!.noteStore.notesList.map { getPlaintextItem(it, ContentType.Note) }.forEach { exportItems.items.add(it) }
-        SApplication.instance!!.noteStore.getAllTags(true).map { getPlaintextItem(it, ContentType.Tag) }.forEach { exportItems.items.add(it) }
+        SApplication.instance.noteStore.notesList.map { getPlaintextItem(it, ContentType.Note) }.forEach { exportItems.items.add(it) }
+        SApplication.instance.noteStore.getAllTags(true).map { getPlaintextItem(it, ContentType.Tag) }.forEach { exportItems.items.add(it) }
 
         export(activity, exportItems, listener)
     }
@@ -51,7 +51,7 @@ object ExportUtil {
     }
 
     private fun export(activity: Activity, exportItems: ExportItems, listener: ExportListener?) {
-        val jsonString = SApplication.instance!!.gson.toJson(exportItems)
+        val jsonString = SApplication.instance.gson.toJson(exportItems)
         val path = writeToFile(activity, jsonString)
         if (path != null) {
             shareFile(activity, path)

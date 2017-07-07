@@ -57,7 +57,7 @@ class LoginActivity : AppCompatActivity() {
                 hideProgress()
             }
 
-            override fun onFailure(call: Call<SigninResponse>, t: Throwable) {
+            override fun onFailure(call: Call<SigninResponse>?, t: Throwable?) {
                 Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                 hideProgress()
             }
@@ -72,7 +72,7 @@ class LoginActivity : AppCompatActivity() {
                     override fun onResponse(call: Call<AuthParamsResponse>, response: Response<AuthParamsResponse>) {
                         try {
                             val params = response.body()
-                            Crypt.doLogin(email.text.toString(), password.text.toString(), params, signInCallback)
+                            Crypt.doLogin(this@LoginActivity, email.text.toString(), password.text.toString(), params, signInCallback)
                             ValueStore(this@LoginActivity).authParams = params
                         } catch (e: Exception) {
                             Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
@@ -81,7 +81,7 @@ class LoginActivity : AppCompatActivity() {
 
                     }
 
-                    override fun onFailure(call: Call<AuthParamsResponse>, t: Throwable) {
+                    override fun onFailure(call: Call<AuthParamsResponse>?, t: Throwable?) {
                         Toast.makeText(this@LoginActivity, getString(R.string.error_login), Toast.LENGTH_LONG).show()
                         hideProgress()
                     }
