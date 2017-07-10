@@ -32,7 +32,9 @@ public class EncryptableItem {
     @SerializedName("enc_item_key")
     @Expose
     private String encItemKey;
-
+    @SerializedName("presentation_name")
+    @Expose
+    private String presentationName = null;
     @SerializedName("deleted")
     @Expose
     private Boolean deleted = false;
@@ -42,12 +44,7 @@ public class EncryptableItem {
     @SerializedName("references")
     @Expose
     private List<Reference> references = null;
-
-    @SerializedName("error_decrypting")
-    @Expose
-    private Boolean errorDecrypting = false;
-
-
+    
     /**
      * 
      * @return
@@ -121,18 +118,21 @@ public class EncryptableItem {
     }
 
     /**
-     *
-     * @param errorDecrypting
+     * 
+     * @return
+     *     The presentationName
      */
-    public void setErrorDecrypting(Boolean errorDecrypting) { this.errorDecrypting = errorDecrypting; }
+    public String getPresentationName() {
+        return presentationName;
+    }
 
     /**
-     *
-     * @return
-     *     The errorDecrypting
+     * 
+     * @param presentationName
+     *     The presentation_name
      */
-    public Boolean getErrorDecrypting() {
-        return errorDecrypting;
+    public void setPresentationName(String presentationName) {
+        this.presentationName = presentationName;
     }
 
     /**
