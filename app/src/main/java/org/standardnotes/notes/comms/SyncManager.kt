@@ -79,14 +79,10 @@ object SyncManager {
         val uploadSyncItems = UploadSyncItems()
         uploadSyncItems.syncToken = SApplication.instance.valueStore.syncToken
 
-        Log.d("Sync", "pwAuth: " + SApplication.instance.valueStore.authParams)
-
         val encryptionVersion = if (SApplication.instance.valueStore.authParams?.pwAuth != null) "002" else "001"
 
         val dirtyItems = SApplication.instance.noteStore.toSave
         dirtyItems.map { Crypt.encrypt(it, encryptionVersion) }.forEach { uploadSyncItems.items.add(it) }
-
-        Log.d("Sync",  "Upload sync items:" + uploadSyncItems)
 
         syncCall = SApplication.instance.comms.api.sync(uploadSyncItems)
         syncCall?.enqueue(object : Callback<SyncItems> {
