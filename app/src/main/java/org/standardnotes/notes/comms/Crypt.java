@@ -120,7 +120,6 @@ public class Crypt {
                     String stringToAuth = String.format("%d:%s", params.getPwCost(), params.getPwSalt());
                     String localAuth = createHash(stringToAuth, ak);
 
-<<<<<<< HEAD
                     final Runnable signInBlock = new Runnable() {
                         @Override
                         public void run() {
@@ -150,7 +149,9 @@ public class Crypt {
                                 "Login Anyway",
                                 new Runnable() {
                                     @Override
-                                    public void run() { signInBlock.run(); }
+                                    public void run() {
+                                        signInBlock.run();
+                                    }
                                 },
                                 new Runnable() {
                                     @Override
@@ -165,17 +166,9 @@ public class Crypt {
                                     }
                                 }
                         );
-=======
-                    if(params.getPwAuth().length() == 0) {
-                        // no pw_auth returned by server
-                        // TODO Show alert:
-                        // "Verification Tag Not Found"
-                        // "Cannot verify authenticity of server parameters. Please visit standardnotes.org/verification to learn more. Do you wish to continue login?"
-                        return;
->>>>>>> parent of e8cbd42... error decrypting flag
                     }
 
-                    if(!localAuth.equals(params.getPwAuth())) {
+                    else if(!localAuth.equals(params.getPwAuth())) {
                         // invalid parameters sent by server
                         showAlert(activity,
                                 "Invalid Verification Tag",
@@ -215,7 +208,7 @@ public class Crypt {
             @Override
             public void run() {
                 try {
-                    AuthParamsResponse params = Crypt.getDefaultAuthParams(email);
+                    final AuthParamsResponse params = Crypt.getDefaultAuthParams(email);
                     byte[] key = Crypt.generateKey(
                             password.getBytes(Charsets.UTF_8),
                             params.getPwSalt().getBytes(Charsets.UTF_8),
@@ -236,6 +229,7 @@ public class Crypt {
                             if (response.isSuccessful()) {
                                 SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk, ak);
                                 SApplication.Companion.getInstance().getValueStore().setEmail(email);
+                                SApplication.Companion.getInstance().getValueStore().setAuthParams(params);
                             }
                             callback.onResponse(call, response);
                         }
@@ -382,6 +376,7 @@ public class Crypt {
             EncryptedItem item = new EncryptedItem();
             copyInEncryptableItemFields(thing, item, version);
             String contentJson = null;
+            item.setEncItemKey(Crypt.generateEncryptedKey(512, version, item.getUuid()));
             Keys keys = Crypt.getItemKeys(item, version);
             if (thing instanceof Note) {
                 item.setContentType(ContentType.Note.toString());
