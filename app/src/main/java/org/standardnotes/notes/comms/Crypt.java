@@ -61,45 +61,22 @@ public class Crypt {
         return true;
     }
 
-    public static void showConfirmationAlert(final Activity activity, final String title, final String message, final String confirmTitle, final Runnable onConfirmation, final Runnable onCancel) {
+    public static void showConfirmationAlert(final Activity activity, final String title, final String message, final String confirmTitle, final DialogInterface.OnClickListener onConfirmation, final DialogInterface.OnClickListener onCancel) {
         AlertDialog.Builder alert = new AlertDialog.Builder(activity);
         alert.setTitle(title);
         alert.setMessage(message);
-
-        alert.setPositiveButton(confirmTitle,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        onConfirmation.run();
-                    }
-                });
-
-
-        alert.setNegativeButton("Cancel",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                        onCancel.run();
-                    }
-                });
-
+        alert.setPositiveButton(confirmTitle, onConfirmation);
+        alert.setNegativeButton("Cancel", onCancel);
         alert.show();
     }
 
-    public static void showAlert(final Activity activity, final String title, final String message, final Runnable onOk) {
+    public static void showAlert(final Activity activity, final String title, final String message, final DialogInterface.OnClickListener onOk) {
         AlertDialog.Builder alert = new AlertDialog.Builder(activity);
         alert.setTitle(title);
         alert.setMessage(message);
-
-        alert.setPositiveButton("Ok",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        onOk.run();
-                    }
-                });
-
+        alert.setPositiveButton("Ok", onOk);
         alert.show();
     }
-
 
     public static void doLogin(final Activity activity, final String email, final String password, final AuthParamsResponse params, final Callback<SigninResponse> callback) {
         Thread loginThread = new Thread(new Runnable() {
@@ -147,19 +124,25 @@ public class Crypt {
                                 "Verification Tag Not Found",
                                 "Cannot verify authenticity of server parameters. Please visit standardnotes.org/verification to learn more. Do you wish to continue login?",
                                 "Login Anyway",
-                                new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        signInBlock.run();
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(final DialogInterface dialog, int which) {
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                signInBlock.run();
+                                                dialog.dismiss();
+                                            }
+                                        });
+
                                     }
                                 },
-                                new Runnable() {
-                                    @Override
-                                    public void run() {
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(final DialogInterface dialog, int which) {
                                         activity.runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
                                                 callback.onFailure(null, null);
+                                                dialog.dismiss();
                                             }
                                         });
 
@@ -173,13 +156,13 @@ public class Crypt {
                         showAlert(activity,
                                 "Invalid Verification Tag",
                                 "Invalid server verification tag; aborting login. Learn more at standardnotes.org/verification.",
-                                new Runnable() {
-                                    @Override
-                                    public void run() {
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(final DialogInterface dialog, int which) {
                                         activity.runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
                                                 callback.onFailure(null, null);
+                                                dialog.dismiss();
                                             }
                                         });
 
