@@ -11,12 +11,15 @@ class ValueStore(context: Context) {
 
     private val prefs: SharedPreferences = context.getSharedPreferences("values", Context.MODE_PRIVATE)
 
-    fun setTokenAndMasterKey(token: String?, mk: String?) {
-        prefs.edit().putString("masterKey", mk).putString("token", token).apply()
+    fun setTokenAndMasterKey(token: String?, mk: String?, ak: String?) {
+        prefs.edit().putString("masterKey", mk).putString("authKey", ak).putString("token", token).apply()
     }
 
     val masterKey: String?
         get() = prefs.getString("masterKey", null)
+
+    val authKey: String?
+        get() = prefs.getString("authKey", null)
 
     val token: String?
         get() = prefs.getString("token", null)
@@ -34,8 +37,8 @@ class ValueStore(context: Context) {
         set(token) { prefs.edit().putString("syncToken", token).apply() }
 
     var authParams: AuthParamsResponse?
-        get() { return SApplication.instance!!.gson.fromJson(prefs.getString("authParams", null), object : TypeToken<AuthParamsResponse>() {}.type) }
-        set(value) { prefs.edit().putString("authParams", SApplication.instance!!.gson.toJson(value)).apply() }
+        get() { return SApplication.instance.gson.fromJson(prefs.getString("authParams", null), object : TypeToken<AuthParamsResponse>() {}.type) }
+        set(value) { prefs.edit().putString("authParams", SApplication.instance.gson.toJson(value)).apply() }
 
     fun clear() {
         prefs.edit().clear().apply()

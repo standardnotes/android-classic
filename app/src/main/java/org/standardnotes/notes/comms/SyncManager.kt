@@ -4,6 +4,7 @@ import android.os.Handler
 import android.util.Log
 import org.acra.ACRA
 import org.standardnotes.notes.SApplication
+import org.standardnotes.notes.comms.data.AuthParamsResponse
 import org.standardnotes.notes.comms.data.Note
 import org.standardnotes.notes.comms.data.SyncItems
 import org.standardnotes.notes.comms.data.UploadSyncItems
@@ -77,8 +78,12 @@ object SyncManager {
 
         val uploadSyncItems = UploadSyncItems()
         uploadSyncItems.syncToken = SApplication.instance.valueStore.syncToken
+
+        val encryptionVersion = if (SApplication.instance.valueStore.authParams?.pwAuth != null) "002" else "001"
+
         val dirtyItems = SApplication.instance.noteStore.toSave
-        dirtyItems.map { Crypt.encrypt(it, Crypt.ENCRYPTION_VERSION) }.forEach { uploadSyncItems.items.add(it) }
+        dirtyItems.map { Crypt.encrypt(it, encryptionVersion) }.forEach { uploadSyncItems.items.add(it) }
+
         syncCall = SApplication.instance.comms.api.sync(uploadSyncItems)
         syncCall?.enqueue(object : Callback<SyncItems> {
             override fun onResponse(call: Call<SyncItems>, response: Response<SyncItems>) {

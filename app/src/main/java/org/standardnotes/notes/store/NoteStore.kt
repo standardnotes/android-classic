@@ -470,10 +470,10 @@ private fun EncryptedItem.isValid(): Boolean {
 
 inline fun <T : SQLiteDatabase, R> T.transact(block: (T) -> R): R {
     try {
-        this?.beginTransaction()
+        this.beginTransaction()
         return block(this)
     } finally {
-        this?.endTransaction()
+        this.endTransaction()
     }
 }
 
@@ -481,6 +481,6 @@ inline fun <T : Cursor, R> T.use(block: (T) -> R): R {
     try {
         return block(this)
     } finally {
-        this?.close()
+        this.close()
     }
 }

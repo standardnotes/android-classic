@@ -16,60 +16,18 @@ import javax.annotation.Generated;
 @Generated("org.jsonschema2pojo")
 public class AuthParamsResponse {
 
-    @SerializedName("pw_func")
-    @Expose
-    private String pwFunc;
-    @SerializedName("pw_alg")
-    @Expose
-    private String pwAlg;
     @SerializedName("pw_cost")
     @Expose
     private Integer pwCost;
-    @SerializedName("pw_key_size")
+
+    @SerializedName("pw_auth")
     @Expose
-    private Integer pwKeySize;
+    private String pwAuth;
+
     @SerializedName("pw_salt")
     @Expose
     private String pwSalt;
-    @SerializedName("pw_nonce")
-    @Expose
-    private String pwNonce;
 
-    /**
-     * 
-     * @return
-     *     The pwFunc
-     */
-    public String getPwFunc() {
-        return pwFunc;
-    }
-
-    /**
-     * 
-     * @param pwFunc
-     *     The pw_func
-     */
-    public void setPwFunc(String pwFunc) {
-        this.pwFunc = pwFunc;
-    }
-
-    /**
-     * 
-     * @return
-     *     The pwAlg
-     */
-    public String getPwAlg() {
-        return pwAlg;
-    }
-
-    /**
-     * 
-     * @param pwAlg
-     *     The pw_alg
-     */
-    public void setPwAlg(String pwAlg) {
-        this.pwAlg = pwAlg;
-    }
 
     /**
      * 
@@ -92,19 +50,19 @@ public class AuthParamsResponse {
     /**
      * 
      * @return
-     *     The pwKeySize
+     *     The pwAuth
      */
-    public Integer getPwKeySize() {
-        return pwKeySize;
+    public String getPwAuth() {
+        return pwAuth;
     }
 
     /**
      * 
-     * @param pwKeySize
-     *     The pw_key_size
+     * @param pwAuth
+     *     The pw_auth
      */
-    public void setPwKeySize(Integer pwKeySize) {
-        this.pwKeySize = pwKeySize;
+    public void setPwAuth(String pwAuth) {
+        this.pwAuth = pwAuth;
     }
 
     /**
@@ -123,24 +81,6 @@ public class AuthParamsResponse {
      */
     public void setPwSalt(String pwSalt) {
         this.pwSalt = pwSalt;
-    }
-
-    /**
-     * 
-     * @return
-     *     The pwNonce
-     */
-    public String getPwNonce() {
-        return pwNonce;
-    }
-
-    /**
-     * 
-     * @param pwNonce
-     *     The pw_nonce
-     */
-    public void setPwNonce(String pwNonce) {
-        this.pwNonce = pwNonce;
     }
 
 }

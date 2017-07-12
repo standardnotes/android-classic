@@ -1,7 +1,12 @@
 package org.standardnotes.notes.comms;
 
+import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.app.Activity;
 
 import org.jetbrains.annotations.NotNull;
 import org.spongycastle.crypto.digests.SHA512Digest;
@@ -9,6 +14,7 @@ import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.util.encoders.Hex;
 import org.standardnotes.notes.BuildConfig;
+import org.standardnotes.notes.LoginActivity;
 import org.standardnotes.notes.SApplication;
 import org.standardnotes.notes.comms.data.AuthParamsResponse;
 import org.standardnotes.notes.comms.data.ContentType;
@@ -50,48 +56,131 @@ public class Crypt {
     private static ContentDecryptor<Note> noteDecryptor = new ContentDecryptor<>(Note.class);
     private static ContentDecryptor<Tag> tagDecryptor = new ContentDecryptor<>(Tag.class);
 
-    public static final String ENCRYPTION_VERSION = "001";
-
     @NotNull
     public static boolean isParamsSupported(AuthParamsResponse params) {
-        if (!"sha512".equals(params.getPwAlg())) {
-            return false;
-        }
         return true;
     }
 
-    public static void doLogin(final String email, final String password, final AuthParamsResponse params, final Callback<SigninResponse> callback) {
+    public static void showConfirmationAlert(final Activity activity, final String title, final String message, final String confirmTitle, final DialogInterface.OnClickListener onConfirmation, final DialogInterface.OnClickListener onCancel) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(activity);
+        alert.setTitle(title);
+        alert.setMessage(message);
+        alert.setPositiveButton(confirmTitle, onConfirmation);
+        alert.setNegativeButton("Cancel", onCancel);
+        alert.show();
+    }
+
+    public static void showAlert(final Activity activity, final String title, final String message, final DialogInterface.OnClickListener onOk) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(activity);
+        alert.setTitle(title);
+        alert.setMessage(message);
+        alert.setPositiveButton("Ok", onOk);
+        alert.show();
+    }
+
+    public static void doLogin(final Activity activity, final String email, final String password, final AuthParamsResponse params, final Callback<SigninResponse> callback) {
         Thread loginThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                Looper.prepare();
                 try {
                     byte[] key = Crypt.generateKey(
                             password.getBytes(Charsets.UTF_8),
                             params.getPwSalt().getBytes(Charsets.UTF_8),
-                            params.getPwCost(),
-                            params.getPwKeySize());
+                            params.getPwCost());
                     String fullHashedPassword = Crypt.bytesToHex(key);
-                    String serverHashedPassword = fullHashedPassword.substring(0, fullHashedPassword.length() / 2);
-                    final String mk = fullHashedPassword.substring(fullHashedPassword.length() / 2);
-                    SApplication.Companion.getInstance().getComms().getApi().signin(email, serverHashedPassword).enqueue(new Callback<SigninResponse>() {
-                        @Override
-                        public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
-                            if (response.isSuccessful()) {
-                                SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk);
-                                SApplication.Companion.getInstance().getValueStore().setEmail(email);
-                            }
-                            callback.onResponse(call, response);
-                        }
+                    int splitLength = fullHashedPassword.length()/3;
+                    final String serverHashedPassword = fullHashedPassword.substring(0, splitLength);
+                    final String mk = fullHashedPassword.substring(splitLength, splitLength * 2);
+                    final String ak = fullHashedPassword.substring(splitLength * 2, splitLength * 3);
 
+                    String stringToAuth = String.format("%d:%s", params.getPwCost(), params.getPwSalt());
+                    String localAuth = createHash(stringToAuth, ak);
+
+                    final Runnable signInBlock = new Runnable() {
                         @Override
-                        public void onFailure(Call<SigninResponse> call, Throwable t) {
-                            callback.onFailure(call, t);
+                        public void run() {
+                            SApplication.Companion.getInstance().getComms().getApi().signin(email, serverHashedPassword).enqueue(new Callback<SigninResponse>() {
+                                @Override
+                                public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
+                                    if (response.isSuccessful()) {
+                                        SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk, ak);
+                                        SApplication.Companion.getInstance().getValueStore().setEmail(email);
+                                    }
+                                    callback.onResponse(call, response);
+                                }
+
+                                @Override
+                                public void onFailure(Call<SigninResponse> call, Throwable t) {
+                                    callback.onFailure(call, t);
+                                }
+                            });
                         }
-                    });
+                    };
+
+                    if(params.getPwAuth() == null || (params.getPwAuth() != null && params.getPwAuth().length() == 0)) {
+                        // no pw_auth returned by server
+                        showConfirmationAlert(activity,
+                                "Verification Tag Not Found",
+                                "Cannot verify authenticity of server parameters. Please visit standardnotes.org/verification to learn more. Do you wish to continue login?",
+                                "Login Anyway",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(final DialogInterface dialog, int which) {
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                signInBlock.run();
+                                                dialog.dismiss();
+                                            }
+                                        });
+
+                                    }
+                                },
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(final DialogInterface dialog, int which) {
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                callback.onFailure(null, null);
+                                                dialog.dismiss();
+                                            }
+                                        });
+
+                                    }
+                                }
+                        );
+                    }
+
+                    else if(!localAuth.equals(params.getPwAuth())) {
+                        // invalid parameters sent by server
+                        showAlert(activity,
+                                "Invalid Verification Tag",
+                                "Invalid server verification tag; aborting login. Learn more at standardnotes.org/verification.",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(final DialogInterface dialog, int which) {
+                                        activity.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                callback.onFailure(null, null);
+                                                dialog.dismiss();
+                                            }
+                                        });
+
+                                    }
+                                });
+                    }
+
+                    else {
+                        signInBlock.run();
+                    }
+
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     callback.onFailure(null, e);
                 }
+
+                Looper.loop();
             }
         });
         loginThread.start();
@@ -102,22 +191,28 @@ public class Crypt {
             @Override
             public void run() {
                 try {
-                    AuthParamsResponse params = Crypt.getDefaultAuthParams(email);
+                    final AuthParamsResponse params = Crypt.getDefaultAuthParams(email);
                     byte[] key = Crypt.generateKey(
                             password.getBytes(Charsets.UTF_8),
                             params.getPwSalt().getBytes(Charsets.UTF_8),
-                            params.getPwCost(),
-                            params.getPwKeySize());
+                            params.getPwCost());
                     String fullHashedPassword = Crypt.bytesToHex(key);
-                    String serverHashedPassword = fullHashedPassword.substring(0, fullHashedPassword.length() / 2);
-                    final String mk = fullHashedPassword.substring(fullHashedPassword.length() / 2);
+                    int splitLength = fullHashedPassword.length()/3;
+                    String serverHashedPassword = fullHashedPassword.substring(0, splitLength);
+                    final String mk = fullHashedPassword.substring(splitLength, splitLength * 2);
+                    final String ak = fullHashedPassword.substring(splitLength * 2, splitLength * 3);
+
+                    String stringToAuth = String.format("%d:%s", params.getPwCost(), params.getPwSalt());
+                    params.setPwAuth(createHash(stringToAuth, ak));
+
                     SApplication.Companion.getInstance().getComms().getApi().register(email, serverHashedPassword,
-                            params.getPwSalt(), params.getPwNonce(), params.getPwFunc(), params.getPwAlg(), params.getPwCost(), params.getPwKeySize()).enqueue(new Callback<SigninResponse>() {
+                            params.getPwSalt(), params.getPwAuth(), params.getPwCost()).enqueue(new Callback<SigninResponse>() {
                         @Override
                         public void onResponse(Call<SigninResponse> call, Response<SigninResponse> response) {
                             if (response.isSuccessful()) {
-                                SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk);
+                                SApplication.Companion.getInstance().getValueStore().setTokenAndMasterKey(response.body().getToken(), mk, ak);
                                 SApplication.Companion.getInstance().getValueStore().setEmail(email);
+                                SApplication.Companion.getInstance().getValueStore().setAuthParams(params);
                             }
                             callback.onResponse(call, response);
                         }
@@ -148,10 +243,10 @@ public class Crypt {
 
     final static IvParameterSpec emptyIvSpec = new IvParameterSpec(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
-    public static byte[] generateKey(byte[] passphraseOrPin, byte[] salt, int iterations, int outputKeyLength) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public static byte[] generateKey(byte[] passphraseOrPin, byte[] salt, int iterations) throws NoSuchAlgorithmException, InvalidKeySpecException {
         PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
         gen.init(passphraseOrPin, salt, iterations);
-        byte[] dk = ((KeyParameter) gen.generateDerivedParameters(outputKeyLength)).getKey();
+        byte[] dk = ((KeyParameter) gen.generateDerivedParameters(768)).getKey();
         return dk;
     }
 
@@ -163,24 +258,23 @@ public class Crypt {
         return keyHex;
     }
 
-    private static Keys generate002KeysFromMasterKey() throws InvalidKeyException, NoSuchAlgorithmException {
+    private static Keys keys() {
         String masterKey = SApplication.Companion.getInstance().getValueStore().getMasterKey();
-        String encryptionKey = createHash(masterKey, Hex.toHexString("e".getBytes()));
-        String authKey = createHash(masterKey, Hex.toHexString("a".getBytes()));
-        return new Keys(encryptionKey, authKey);
+        String authKey = SApplication.Companion.getInstance().getValueStore().getAuthKey();
+        return new Keys(masterKey, authKey);
     }
 
-    public static String generateEncryptedKey(int size, String version) throws Exception {
+    public static String generateEncryptedKey(int size, String version, String uuid) throws Exception {
         String itemKey = generateKey(size);
         if (version.equals("001")) {
             return encrypt(itemKey, SApplication.Companion.getInstance().getValueStore().getMasterKey(), null);
         } else if (version.equals("002")) {
             String ivHex = generateKey(128);
-            Keys keys = generate002KeysFromMasterKey();
+            Keys keys = keys();
             String cipherText = encrypt(itemKey, keys.ek, ivHex);
-            String stringToAuth = version + ":" + ivHex + ":" + cipherText;
+            String stringToAuth = version + ":" + uuid + ":" + ivHex + ":" + cipherText;
             String authHash = createHash(stringToAuth, keys.ak);
-            return version + ":" + authHash + ":" + ivHex + ":" + cipherText;
+            return version + ":" + authHash + ":" + uuid + ":" + ivHex + ":" + cipherText;
         }
         throw new RuntimeException("Encryption version " + version + " not supported");
     }
@@ -193,10 +287,16 @@ public class Crypt {
         } else if (version.equals("002")) {
             String[] keyBits = item.getEncItemKey().split(":");
             String authHash = keyBits[1];
-            String ivHex = keyBits[2];
-            String keyCipherText = keyBits[3];
-            Keys keys = generate002KeysFromMasterKey();
-            String stringToAuth = version + ":" + ivHex + ":" + keyCipherText;
+            String uuid = keyBits[2];
+            String ivHex = keyBits[3];
+            String keyCipherText = keyBits[4];
+            Keys keys = keys();
+            String stringToAuth = version + ":" + uuid + ":" + ivHex + ":" + keyCipherText;
+
+            if(!uuid.equals(item.getUuid())) {
+                Log.d("Crypt", "UUID does not match.");
+                return null;
+            }
 
             String localAuthHash = createHash(stringToAuth, keys.ak);
             if (!localAuthHash.equals(authHash)) {
@@ -254,10 +354,12 @@ public class Crypt {
 
 
     public static EncryptedItem encrypt(EncryptableItem thing, String version) {
+        Log.d("Crypt", "Encrypting with version " + version);
         try {
             EncryptedItem item = new EncryptedItem();
-            copyInEncryptableItemFields(thing, item);
+            copyInEncryptableItemFields(thing, item, version);
             String contentJson = null;
+            item.setEncItemKey(Crypt.generateEncryptedKey(512, version, item.getUuid()));
             Keys keys = Crypt.getItemKeys(item, version);
             if (thing instanceof Note) {
                 item.setContentType(ContentType.Note.toString());
@@ -294,7 +396,7 @@ public class Crypt {
             if (BuildConfig.DEBUG) {
                 Log.d("Crypt", "Encrypting " + item.getContentType() + " " + item.getUuid() + ": " + contentJson);
             }
-            item.setContent(createContentEncrypted(contentJson, keys, version));
+            item.setContent(createContentEncrypted(contentJson, keys, version, item.getUuid()));
             item.setAuthHash(createItemAuthHash(item.getContent(), keys.ak, version));
             return item;
         } catch (Exception e) {
@@ -303,15 +405,15 @@ public class Crypt {
         return null;
     }
 
-    private static String createContentEncrypted(String contentJson, Keys keys, String version) throws Exception {
+    private static String createContentEncrypted(String contentJson, Keys keys, String version, String uuid) throws Exception {
         if (version.equals("001")) {
             return version + encrypt(contentJson, keys.ek, null);
         } else if (version.equals("002")) {
             String hexIv = generateKey(128);
             String cipherText = encrypt(contentJson, keys.ek, hexIv);
-            String stringToAuth = version + ":" + hexIv + ":" + cipherText;
+            String stringToAuth = version + ":" + uuid + ":" + hexIv + ":" + cipherText;
             String authHash = createHash(stringToAuth, keys.ak);
-            return version + ":" + authHash + ":" + hexIv + ":" + cipherText;
+            return version + ":" + authHash + ":" + uuid + ":" + hexIv + ":" + cipherText;
         }
         throw new RuntimeException("Encryption version " + version + " not supported");
     }
@@ -362,13 +464,13 @@ public class Crypt {
         return bytesToHex(sha1hash);
     }
 
-    static void copyInEncryptableItemFields(EncryptableItem source, EncryptableItem target) throws Exception {
+    static void copyInEncryptableItemFields(EncryptableItem source, EncryptableItem target, String version) throws Exception {
         target.setUuid(source.getUuid());
         target.setCreatedAt(source.getCreatedAt());
         target.setUpdatedAt(source.getUpdatedAt());
         target.setEncItemKey(source.getEncItemKey());
         if (target.getEncItemKey() == null)
-            target.setEncItemKey(Crypt.generateEncryptedKey(512, Crypt.ENCRYPTION_VERSION));
+            target.setEncItemKey(Crypt.generateEncryptedKey(512, version, source.getUuid()));
         target.setPresentationName(source.getPresentationName());
         target.setDeleted(source.getDeleted());
     }
@@ -395,9 +497,14 @@ public class Crypt {
                         if (version.equals("002")) {
                             String[] contentBits = contentToDecrypt.split(":");
                             String authHash = contentBits[1];
-                            String ivHex = contentBits[2];
-                            String cipherText = contentBits[3];
-                            String stringToAuth = version + ":" + ivHex + ":" + cipherText;
+                            String uuid = contentBits[2];
+                            String ivHex = contentBits[3];
+                            String cipherText = contentBits[4];
+                            String stringToAuth = version + ":" + uuid + ":" + ivHex + ":" + cipherText;
+
+                            if(!uuid.equals(item.getUuid())) {
+                                throw new Exception("Could not authenticate item");
+                            }
 
                             // authenticate
                             String hash = createHash(stringToAuth, keys.ak);
@@ -419,7 +526,7 @@ public class Crypt {
                     }
 
                     T thing = SApplication.Companion.getInstance().getGson().fromJson(contentJson, type);
-                    copyInEncryptableItemFields(item, thing);
+                    copyInEncryptableItemFields(item, thing, version);
                     return thing;
                 }
 
@@ -433,12 +540,8 @@ public class Crypt {
     public static AuthParamsResponse getDefaultAuthParams(String email) throws Exception {
         AuthParamsResponse defaultAuthParams = new AuthParamsResponse();
         defaultAuthParams.setPwCost(60000);
-        defaultAuthParams.setPwKeySize(512);
-        defaultAuthParams.setPwFunc("pbkdf2");
-        defaultAuthParams.setPwAlg("sha512");
         String nonce = generateKey(256);
-        defaultAuthParams.setPwNonce(nonce);
-        defaultAuthParams.setPwSalt(hashSha1(email + "SN" + nonce));
+        defaultAuthParams.setPwSalt(hashSha1(email + ":" + nonce));
         return defaultAuthParams;
     }
 }
