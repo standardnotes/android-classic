@@ -9,8 +9,8 @@ android {
         applicationId "org.standardnotes.notes"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 10400
-        versionName "1.4.0"
+        versionCode 10401
+        versionName "1.4.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "SERVER_DEFAULT", "\"https://sync.standardnotes.org/\""
     }
@@ -73,20 +73,18 @@ afterEvaluate {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     androidTestCompile 'com.android.support.test:runner:0.5'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-
     compile "com.android.support:appcompat-v7:$android_support"
     compile "com.android.support:design:$android_support"
     compile "com.android.support:support-v4:$android_support"
     compile "com.android.support:recyclerview-v7:$android_support"
     compile "com.android.support:preference-v7:$android_support"
     compile "com.android.support:preference-v14:$android_support"
-
     androidTestCompile 'com.android.support.test.espresso:espresso-contrib:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
         exclude group: 'com.android.support', module: 'support-v4'
