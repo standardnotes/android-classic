@@ -175,9 +175,15 @@ public class Crypt {
                     }
 
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    callback.onFailure(null, e);
+                } catch (final Exception e) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            e.printStackTrace();
+                            callback.onFailure(null, e);
+                        }
+                    });
+
                 }
 
                 Looper.loop();
