@@ -2,7 +2,6 @@
 package org.standardnotes.notes.comms.data;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import javax.annotation.Generated;
 import com.google.gson.annotations.Expose;
@@ -29,7 +28,7 @@ public class SyncItems {
     private List<EncryptedItem> savedItems = new ArrayList<EncryptedItem>();
     @SerializedName("unsaved")
     @Expose
-    private List<HashMap> unsaved = new ArrayList<HashMap>();
+    private List<UnsavedItem> unsaved = new ArrayList<UnsavedItem>();
 
     /**
      * 
@@ -90,7 +89,7 @@ public class SyncItems {
      * @return
      *     The unsaved
      */
-    public List<HashMap> getUnsaved() {
+    public List<UnsavedItem> getUnsaved() {
         return unsaved;
     }
 
@@ -99,7 +98,7 @@ public class SyncItems {
      * @param unsaved
      *     The unsaved
      */
-    public void setUnsaved(List<HashMap> unsaved) {
+    public void setUnsaved(List<UnsavedItem> unsaved) {
         this.unsaved = unsaved;
     }
 

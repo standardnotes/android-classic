@@ -1,0 +1,15 @@
+{
+	"title": "",
+	"type": "object",
+	"javaType": "org.standardnotes.notes.comms.data.UnsavedItem",
+	"properties": {
+		"item": {
+			"javaType": "org.standardnotes.notes.comms.data.EncryptedItem",
+            "$ref": "EncryptedItem.jschema"
+		},
+        "error": {
+            "javaType": "org.standardnotes.notes.comms.data.UnsavedItemError",
+            "$ref": "UnsavedItemError.jschema"
+        }
+	}
+}

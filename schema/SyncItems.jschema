@@ -23,7 +23,8 @@
         "unsaved": {
 		    "type": "array",
 		    "items": {
-		        "javaType": "java.util.HashMap"
+		        "javaType": "org.standardnotes.notes.comms.data.EncryptedItem",
+		        "$ref": "UnsavedItem.jschema"
 		    }
 		}
 	}
