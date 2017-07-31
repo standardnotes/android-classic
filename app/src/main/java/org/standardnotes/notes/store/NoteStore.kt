@@ -7,12 +7,14 @@ import android.content.Intent
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 import org.joda.time.DateTime
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
 import org.standardnotes.notes.comms.data.*
 import org.standardnotes.notes.widget.NoteListWidget
 import java.util.*
+import kotlin.collections.HashMap
 
 val CURRENT_DB_VERSION: Int = 1
 
@@ -347,6 +349,21 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         }
         items.savedItems.forEach {
             try { putItem(it, true) } catch (ex: Exception) { errors += ex }
+        }
+        items.unsaved.forEach {
+            try {
+                val conflicted = it ["item"] as EncryptedItem
+                val error = it ["error"] as HashMap<String, String>
+                if(error ["tag"] == "sync_conflict") {
+                    // create new item with contents of conflicted
+                    conflicted.uuid = UUID.randomUUID().toString()
+                    Log.d("NoteStore", "Putting conflicted item" + conflicted)
+                    try { putItem(conflicted, true) } catch (ex: Exception) { errors += ex }
+                }
+
+            } catch (ex: Exception) {
+                errors += ex
+            }
         }
         return errors
     }

@@ -3,23 +3,15 @@
 	"type": "object",
 	"javaType": "org.standardnotes.notes.comms.data.AuthParamsResponse",
 	"properties": {
-		"pw_func": {
-			"type": "string"
-		},
-		"pw_alg": {
-			"type": "string"
-		},
+
         "pw_cost": {
-            "type": "integer"
-        },
-		"pw_key_size": {
             "type": "integer"
         },
 		"pw_salt": {
 			"type": "string"
 		},
-		"pw_nonce": {
-		    "type": "string"
+		"pw_auth": {
+			"type": "string"
 		}
 	}
 }

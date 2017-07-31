@@ -19,6 +19,12 @@
 		        "javaType": "org.standardnotes.notes.comms.data.EncryptedItem",
 		        "$ref": "EncryptedItem.jschema"
 		    }
+		},
+        "unsaved": {
+		    "type": "array",
+		    "items": {
+		        "javaType": "java.util.HashMap"
+		    }
 		}
 	}
 }

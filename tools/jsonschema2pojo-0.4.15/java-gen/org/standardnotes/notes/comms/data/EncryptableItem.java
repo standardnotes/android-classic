@@ -1,11 +1,15 @@
 
 package org.standardnotes.notes.comms.data;
 
+import java.util.Date;
 import java.util.List;
 import javax.annotation.Generated;
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-import org.joda.time.DateTime;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
 
 
 /**
@@ -14,32 +18,35 @@ import org.joda.time.DateTime;
  * 
  * 
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
+@JsonPropertyOrder({
+    "uuid",
+    "created_at",
+    "updated_at",
+    "enc_item_key",
+    "presentation_name",
+    "deleted",
+    "dirty",
+    "references"
+})
 public class EncryptableItem {
 
-    @SerializedName("uuid")
-    @Expose
+    @JsonProperty("uuid")
     private String uuid;
-    @SerializedName("created_at")
-    @Expose
-    private DateTime createdAt;
-    @SerializedName("updated_at")
-    @Expose
-    private DateTime updatedAt;
-    @SerializedName("enc_item_key")
-    @Expose
+    @JsonProperty("created_at")
+    private Date createdAt;
+    @JsonProperty("updated_at")
+    private Date updatedAt;
+    @JsonProperty("enc_item_key")
     private String encItemKey;
-    @SerializedName("presentation_name")
-    @Expose
+    @JsonProperty("presentation_name")
     private String presentationName = null;
-    @SerializedName("deleted")
-    @Expose
+    @JsonProperty("deleted")
     private Boolean deleted = false;
-    @SerializedName("dirty")
-    @Expose
+    @JsonProperty("dirty")
     private Boolean dirty = false;
-    @SerializedName("references")
-    @Expose
+    @JsonProperty("references")
     private List<Reference> references = null;
 
     /**
@@ -47,6 +54,7 @@ public class EncryptableItem {
      * @return
      *     The uuid
      */
+    @JsonProperty("uuid")
     public String getUuid() {
         return uuid;
     }
@@ -56,6 +64,7 @@ public class EncryptableItem {
      * @param uuid
      *     The uuid
      */
+    @JsonProperty("uuid")
     public void setUuid(String uuid) {
         this.uuid = uuid;
     }
@@ -65,7 +74,8 @@ public class EncryptableItem {
      * @return
      *     The createdAt
      */
-    public DateTime getCreatedAt() {
+    @JsonProperty("created_at")
+    public Date getCreatedAt() {
         return createdAt;
     }
 
@@ -74,7 +84,8 @@ public class EncryptableItem {
      * @param createdAt
      *     The created_at
      */
-    public void setCreatedAt(DateTime createdAt) {
+    @JsonProperty("created_at")
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -83,7 +94,8 @@ public class EncryptableItem {
      * @return
      *     The updatedAt
      */
-    public DateTime getUpdatedAt() {
+    @JsonProperty("updated_at")
+    public Date getUpdatedAt() {
         return updatedAt;
     }
 
@@ -92,7 +104,8 @@ public class EncryptableItem {
      * @param updatedAt
      *     The updated_at
      */
-    public void setUpdatedAt(DateTime updatedAt) {
+    @JsonProperty("updated_at")
+    public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -101,6 +114,7 @@ public class EncryptableItem {
      * @return
      *     The encItemKey
      */
+    @JsonProperty("enc_item_key")
     public String getEncItemKey() {
         return encItemKey;
     }
@@ -110,6 +124,7 @@ public class EncryptableItem {
      * @param encItemKey
      *     The enc_item_key
      */
+    @JsonProperty("enc_item_key")
     public void setEncItemKey(String encItemKey) {
         this.encItemKey = encItemKey;
     }
@@ -119,6 +134,7 @@ public class EncryptableItem {
      * @return
      *     The presentationName
      */
+    @JsonProperty("presentation_name")
     public String getPresentationName() {
         return presentationName;
     }
@@ -128,6 +144,7 @@ public class EncryptableItem {
      * @param presentationName
      *     The presentation_name
      */
+    @JsonProperty("presentation_name")
     public void setPresentationName(String presentationName) {
         this.presentationName = presentationName;
     }
@@ -137,6 +154,7 @@ public class EncryptableItem {
      * @return
      *     The deleted
      */
+    @JsonProperty("deleted")
     public Boolean getDeleted() {
         return deleted;
     }
@@ -146,6 +164,7 @@ public class EncryptableItem {
      * @param deleted
      *     The deleted
      */
+    @JsonProperty("deleted")
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
     }
@@ -155,6 +174,7 @@ public class EncryptableItem {
      * @return
      *     The dirty
      */
+    @JsonProperty("dirty")
     public Boolean getDirty() {
         return dirty;
     }
@@ -164,6 +184,7 @@ public class EncryptableItem {
      * @param dirty
      *     The dirty
      */
+    @JsonProperty("dirty")
     public void setDirty(Boolean dirty) {
         this.dirty = dirty;
     }
@@ -173,6 +194,7 @@ public class EncryptableItem {
      * @return
      *     The references
      */
+    @JsonProperty("references")
     public List<Reference> getReferences() {
         return references;
     }
@@ -182,8 +204,31 @@ public class EncryptableItem {
      * @param references
      *     The references
      */
+    @JsonProperty("references")
     public void setReferences(List<Reference> references) {
         this.references = references;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().append(uuid).append(createdAt).append(updatedAt).append(encItemKey).append(presentationName).append(deleted).append(dirty).append(references).toHashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if ((other instanceof EncryptableItem) == false) {
+            return false;
+        }
+        EncryptableItem rhs = ((EncryptableItem) other);
+        return new EqualsBuilder().append(uuid, rhs.uuid).append(createdAt, rhs.createdAt).append(updatedAt, rhs.updatedAt).append(encItemKey, rhs.encItemKey).append(presentationName, rhs.presentationName).append(deleted, rhs.deleted).append(dirty, rhs.dirty).append(references, rhs.references).isEquals();
     }
 
 }
