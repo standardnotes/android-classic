@@ -7,12 +7,15 @@ import android.content.Intent
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 import org.joda.time.DateTime
 import org.standardnotes.notes.SApplication
 import org.standardnotes.notes.comms.Crypt
+import org.standardnotes.notes.comms.SyncManager
 import org.standardnotes.notes.comms.data.*
 import org.standardnotes.notes.widget.NoteListWidget
 import java.util.*
+import kotlin.collections.HashMap
 
 val CURRENT_DB_VERSION: Int = 1
 
@@ -348,6 +351,36 @@ class NoteStore : SQLiteOpenHelper(SApplication.instance, "note", null, CURRENT_
         items.savedItems.forEach {
             try { putItem(it, true) } catch (ex: Exception) { errors += ex }
         }
+        var needSync = false
+        items.unsaved.forEach {
+            try {
+                val conflicted = it.item
+                val error = it.error
+                if(error.tag == "sync_conflict") {
+                    // create new item with contents of conflicted
+                    val type = contentTypeFromString(conflicted.contentType)
+                    if (type == ContentType.Note) {
+                        val newNote = Crypt.decryptNote(conflicted)
+                        newNote.uuid = UUID.randomUUID().toString()
+                        newNote.dirty = true
+                        putNote(newNote.uuid, newNote)
+                        needSync = true
+                    } else if (type == ContentType.Tag) {
+                        val newTag = Crypt.decryptTag(conflicted)
+                        newTag.uuid = UUID.randomUUID().toString()
+                        newTag.dirty = true
+                        putTag(newTag.uuid, newTag)
+                        needSync = true
+                    }
+                }
+
+            } catch (ex: Exception) { errors += ex }
+        }
+
+        if(needSync) {
+            SyncManager.sync()
+        }
+
         return errors
     }
 

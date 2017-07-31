@@ -13,30 +13,28 @@ import com.google.gson.annotations.SerializedName;
  * 
  */
 @Generated("org.jsonschema2pojo")
-public class Tag
-    extends EncryptableItem
-{
+public class UnsavedItemError {
 
-    @SerializedName("title")
+    @SerializedName("tag")
     @Expose
-    private String title = "";
+    private String tag;
 
     /**
      * 
      * @return
-     *     The title
+     *     The tag
      */
-    public String getTitle() {
-        return title;
+    public String getTag() {
+        return tag;
     }
 
     /**
      * 
-     * @param title
-     *     The title
+     * @param tag
+     *     The tag
      */
-    public void setTitle(String title) {
-        this.title = title;
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
 }

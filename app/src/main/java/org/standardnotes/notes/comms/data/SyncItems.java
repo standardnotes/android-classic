@@ -1,13 +1,11 @@
 
 package org.standardnotes.notes.comms.data;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.Generated;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 
 /**
@@ -28,6 +26,9 @@ public class SyncItems {
     @SerializedName("saved_items")
     @Expose
     private List<EncryptedItem> savedItems = new ArrayList<EncryptedItem>();
+    @SerializedName("unsaved")
+    @Expose
+    private List<UnsavedItem> unsaved = new ArrayList<UnsavedItem>();
 
     /**
      * 
@@ -81,6 +82,24 @@ public class SyncItems {
      */
     public void setSavedItems(List<EncryptedItem> savedItems) {
         this.savedItems = savedItems;
+    }
+
+    /**
+     * 
+     * @return
+     *     The unsaved
+     */
+    public List<UnsavedItem> getUnsaved() {
+        return unsaved;
+    }
+
+    /**
+     * 
+     * @param unsaved
+     *     The unsaved
+     */
+    public void setUnsaved(List<UnsavedItem> unsaved) {
+        this.unsaved = unsaved;
     }
 
 }
