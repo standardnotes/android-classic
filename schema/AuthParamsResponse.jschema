@@ -10,7 +10,7 @@
 		"pw_salt": {
 			"type": "string"
 		},
-		"pw_auth": {
+		"version": {
 			"type": "string"
 		}
 	}

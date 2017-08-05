@@ -36,6 +36,25 @@ class ValueStore(context: Context) {
         get() = prefs.getString("syncToken", null)
         set(token) { prefs.edit().putString("syncToken", token).apply() }
 
+    var protocolVersion: String?
+        get() {
+            var savedvalue = prefs.getString("protocolVersion", null)
+            if(savedvalue == null) {
+                var params = authParams
+                if(params != null && params.version != null) {
+                    savedvalue = params.version
+                }
+
+                if(authKey != null) {savedvalue = "002"}
+                else { savedvalue = "001" }
+
+                protocolVersion = savedvalue
+            }
+
+            return savedvalue
+        }
+    set(value) { prefs.edit().putString("protocolVersion", value).apply() }
+
     var authParams: AuthParamsResponse?
         get() { return SApplication.instance.gson.fromJson(prefs.getString("authParams", null), object : TypeToken<AuthParamsResponse>() {}.type) }
         set(value) { prefs.edit().putString("authParams", SApplication.instance.gson.toJson(value)).apply() }

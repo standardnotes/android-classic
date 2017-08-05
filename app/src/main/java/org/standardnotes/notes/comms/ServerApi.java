@@ -25,7 +25,7 @@ public interface ServerApi {
     @FormUrlEncoded
     @POST("/api/auth/")
     Call<SigninResponse> register(@Field("email") String email, @Field("password") String hashedPassword,
-                                  @Field("pw_salt") String pwSalt, @Field("pw_auth") String pwAuth,
+                                  @Field("pw_salt") String pwSalt, @Field("version") String version,
                                   @Field("pw_cost") Integer pwCost);
 
     @POST("/api/items/sync/")

@@ -21,9 +21,9 @@ public class AuthParamsResponse {
     @SerializedName("pw_salt")
     @Expose
     private String pwSalt;
-    @SerializedName("pw_auth")
+    @SerializedName("version")
     @Expose
-    private String pwAuth;
+    private String version;
 
     /**
      * 
@@ -64,19 +64,19 @@ public class AuthParamsResponse {
     /**
      * 
      * @return
-     *     The pwAuth
+     *     The version
      */
-    public String getPwAuth() {
-        return pwAuth;
+    public String getVersion() {
+        return version;
     }
 
     /**
      * 
-     * @param pwAuth
-     *     The pw_auth
+     * @param version
+     *     The version
      */
-    public void setPwAuth(String pwAuth) {
-        this.pwAuth = pwAuth;
+    public void setVersion(String version) {
+        this.version = version;
     }
 
 }
